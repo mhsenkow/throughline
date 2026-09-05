@@ -41,17 +41,18 @@ import sys, re
 path, h = sys.argv[1], sys.argv[2]
 s = open(path).read()
 
-# Carry the PREVIOUS hash alongside the new one for one cycle.
+# Carry a SHORT ROLLING WINDOW of recent hashes, not just the previous one.
 #
 # Cloudflare edge nodes do not update in lockstep. For a few seconds after a
-# deploy, one node can serve the old HTML while another serves the new policy
-# — and a visitor landing on that pair gets a page whose script is blocked
-# outright. Accepting both hashes closes the window entirely, and the stale
-# one ages out on the next publish.
-prev = ''
-m = re.search(r"script-src '(sha256-[^']+)'", s)
-if m and m.group(1) != f'sha256-{h}':
-    prev = f" '{m.group(1)}'"
+# deploy, one node can serve older HTML while another serves the new policy —
+# and a visitor landing on that pair gets a page whose script is blocked
+# outright. Carrying one predecessor covers a one-version lag; two deploys in
+# quick succession can leave a node two versions behind, which is exactly the
+# case that got through. Three total costs a few bytes of header and covers it.
+KEEP = 3
+old = re.findall(r"'(sha256-[^']+)'", s)
+window = [f'sha256-{h}'] + [x for x in old if x != f'sha256-{h}']
+prev = ''.join(f" '{x}'" for x in window[1:KEEP])
 
 block = f"""/notebook/*
   Cache-Control: public, max-age=60

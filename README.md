@@ -159,6 +159,7 @@ any path. Static hosts (Cloudflare Pages, Netlify, S3, GitHub Pages) work unchan
 | Three-tier tokens, **13 brands**, light/dark, zero component edits | **Real** |
 | Responsive: fluid type, restructured tables, touch targets | **Real** |
 | App shell: fixed chrome, inner scroll canvas, cell rail with scroll spy | **Real** |
+| Appearance menu: 13 themes × 7 typefaces × 3 densities × mode × language | **Real** |
 | i18n incl. RTL via logical properties; locale interpolated into prompts | **Real** |
 | Untrusted-output escaping | **Real** (minimal; swap for `rehype-sanitize` in the monorepo) |
 | Auto model resolution against each cell's `requires` class | **Real** |
@@ -209,7 +210,10 @@ own origin.
 1. Open any notebook and press **Run all**. Nothing is connected; nothing needs to be.
 2. Edit the input afterwards. Every downstream cell goes **stale** — dashed border,
    result preserved, nothing re-runs. That is the §5.3 contract.
-3. **Brand** → thirteen systems, including the ten ported from
+3. **Appearance** → thirteen colour systems, seven typefaces, three densities,
+   mode and language in one menu. Type is a **separate axis** from colour, so
+   Braun can be read in a serif or the editorial theme set in a grotesque
+   without either brand being edited. Thirteen systems, including the ten ported from
    `ibm.io/wordcount`. Same component tree, same markup, zero component edits.
    Wordcount's token vocabulary is `bg/face/ink/mute/rule/hair/accent/mark`;
    each maps one-for-one onto the semantic tier here, which is the argument for

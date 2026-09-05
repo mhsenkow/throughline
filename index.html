@@ -10,6 +10,11 @@
 html,body{margin:0}
 img{max-width:100%}
 
+/* A class that sets `display` outranks the UA stylesheet's [hidden] rule, so
+   `el.hidden = true` silently does nothing. This has already caused two bugs
+   (the model popover, the appearance tabs) — fix the pattern once. */
+[hidden]{display:none !important}
+
 /* ═══════════════════════════════════════════════════════════════════════
    TIER 1 — PRIMITIVES
    Raw values. Never referenced by a component rule. Brands replace these
@@ -123,7 +128,7 @@ img{max-width:100%}
   font-variant-numeric:tabular-nums;
 }
 
-html,body{background:var(--surface-base); color:var(--ink-primary)}
+html,body{background:var(--surface-base); color:var(--ink-primary); font-family:var(--font-body)}
 
 /* ── App shell ───────────────────────────────────────────────────────────
    Three rows: chrome, scrolling canvas, chrome. The canvas sits a level
@@ -133,7 +138,7 @@ html,body{background:var(--surface-base); color:var(--ink-primary)}
 .nb-root{
   block-size:100dvh; display:grid; grid-template-rows:auto minmax(0,1fr) auto;
   background:var(--surface-base); color:var(--ink-primary);
-  font-family:var(--font-body); font-size:var(--p-size-4); line-height:1.55;
+  font-family:var(--font-body); font-size:var(--p-size-4); line-height:var(--line,1.55);
   -webkit-font-smoothing:antialiased; overflow:hidden;
   transition:background var(--motion-base), color var(--motion-base);
 }
@@ -207,6 +212,36 @@ input,textarea,select{font:inherit;color:inherit}
 }
 .btn.secondary:hover{background:var(--surface-sunken)}
 .btn.tiny{padding:var(--p-space-1) var(--p-space-3); font-size:var(--p-size-1)}
+.btn .i{inline-size:1em; block-size:1em; flex:none}
+.btn.primary{font-weight:var(--p-weight-bold)}
+
+/* Joined controls. They share edges because they are one control with
+   several positions, which is what a group of related actions is. */
+.seg-group{
+  display:inline-flex; border-radius:var(--radius-md); overflow:hidden;
+  box-shadow:inset 0 0 0 1px var(--border-strong);
+}
+.seg-group .btn.seg{
+  border-radius:0; background:transparent; color:var(--ink-secondary);
+  padding:var(--p-space-2) var(--p-space-3); font-size:var(--p-size-2);
+  box-shadow:none;
+}
+.seg-group .btn.seg + .btn.seg{box-shadow:inset 1px 0 0 var(--border-strong)}
+.seg-group .btn.seg:hover{background:var(--surface-sunken); color:var(--ink-primary)}
+.seg-group .btn.seg:active{background:var(--accent-wash); color:var(--accent-base)}
+.nb-actions{position:relative}
+
+.share-pop{
+  position:absolute; z-index:25; inset-block-start:calc(100% + var(--p-space-2));
+  inset-inline-end:0; inline-size:min(26rem, 82vw);
+  padding:var(--p-space-4); background:var(--surface-raised);
+  border:1px solid var(--border-strong); border-radius:var(--radius-md);
+  box-shadow:var(--elevation-2);
+  display:flex; flex-direction:column; gap:var(--p-space-2);
+}
+.share-status{margin:0; font-size:var(--p-size-2); font-weight:var(--p-weight-medium)}
+.share-url{font-family:var(--font-mono); font-size:var(--p-size-0)}
+.share-hint{margin:0; font-size:var(--p-size-1); color:var(--ink-muted); line-height:1.5}
 
 :where(button,select,input,textarea,a):focus-visible{
   outline:2px solid var(--border-focus); outline-offset:2px; border-radius:var(--radius-sm);
@@ -473,6 +508,37 @@ details.vars[open] > summary::before{transform:rotate(90deg)}
 .sheet-sec{display:flex; flex-direction:column; gap:var(--p-space-3)}
 .sheet-sec > h3{font-size:var(--p-size-2); text-transform:uppercase; letter-spacing:var(--p-tracking-wide); color:var(--ink-muted); font-family:var(--font-body)}
 
+.sheet-tabs{
+  display:flex; gap:1px; padding:0 var(--p-space-5);
+  border-block-end:1px solid var(--border-subtle); overflow-x:auto;
+}
+.sheet-tab{
+  padding:var(--p-space-3) var(--p-space-4); font-size:var(--p-size-2);
+  color:var(--ink-muted); white-space:nowrap;
+  border-block-end:2px solid transparent; margin-block-end:-1px;
+  transition:color var(--motion-fast), border-color var(--motion-fast);
+}
+.sheet-tab:hover{color:var(--ink-primary)}
+.sheet-tab[aria-selected="true"]{color:var(--ink-primary); border-block-end-color:var(--accent-base)}
+.tabpane{display:flex; flex-direction:column; gap:var(--p-space-5)}
+
+.opts{display:flex; flex-direction:column; gap:1px}
+.opt{
+  display:flex; align-items:center; gap:var(--p-space-3); text-align:start;
+  padding:var(--p-space-3); border-radius:var(--radius-md);
+  transition:background var(--motion-fast);
+}
+.opt:hover{background:var(--surface-sunken)}
+.opt[aria-pressed="true"]{background:var(--accent-wash)}
+.opt .grow{flex:1; min-inline-size:0}
+.opt strong{display:block; font-size:var(--p-size-3); font-weight:var(--p-weight-medium)}
+.opt .sub{display:block; font-size:var(--p-size-1); color:var(--ink-muted)}
+.opt .tick{color:var(--accent-base); opacity:0; flex:none}
+.opt[aria-pressed="true"] .tick{opacity:1}
+
+.ghost .ico{display:inline-flex; vertical-align:-0.15em; margin-inline-end:var(--p-space-2)}
+.ghost .ico .i{inline-size:1em; block-size:1em}
+
 .swatches{display:flex; gap:var(--p-space-2); flex-wrap:wrap}
 .swatch{
   text-align:start;
@@ -620,7 +686,6 @@ details.vars[open] > summary::before{transform:rotate(90deg)}
    [hidden]{display:none} — so the popover renders open until told otherwise.
    The Artifact host supplies this rule in its own reset; a standalone deploy
    does not, which is why this only appeared in production. */
-.menu[hidden]{display:none}
 .menu{
   position:absolute; inset-block-start:calc(100% + var(--p-space-2)); inset-inline-start:0;
   z-index:30; min-inline-size:19rem; padding:var(--p-space-2);
@@ -724,14 +789,6 @@ pre.raw{
 .prov-row{display:flex; gap:var(--p-space-2); align-items:center; flex-wrap:wrap}
 .prov-row input[type="password"]{flex:2; min-inline-size:9rem}
 .prov-row input[type="text"]{flex:1; min-inline-size:8rem; font-family:var(--font-mono); font-size:var(--p-size-1)}
-.share-note{
-  flex-basis:100%; font-size:var(--p-size-1); color:var(--ink-muted);
-  margin-block-start:var(--p-space-2);
-}
-.share-fallback{
-  inline-size:min(22rem,100%); margin-block-start:var(--p-space-2);
-  font-family:var(--font-mono); font-size:var(--p-size-0);
-}
 a.link{color:var(--accent-base); text-decoration:none; font-size:var(--p-size-1)}
 a.link:hover{text-decoration:underline}
 .prov-result{
@@ -768,6 +825,14 @@ a.link:hover{text-decoration:underline}
 .table-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch}
 table.out-table{min-inline-size:32rem}
 
+/* iPad and below: the notebook actions keep their icons and lose their words,
+   in the order least-to-most ambiguous. Run all keeps its label at every size
+   because it is the one button whose meaning must never be guessed. */
+@media (max-width:1024px){
+  .seg-group .btn.seg .lbl{display:none}
+  .seg-group .btn.seg{padding-inline:var(--p-space-4)}
+}
+
 @media (max-width:900px){
   .topbar-in{flex-wrap:wrap; row-gap:var(--p-space-2)}
   /* The rail stops being a sidebar and becomes a scrollable strip above the
@@ -784,9 +849,20 @@ table.out-table{min-inline-size:32rem}
     border-block-end:1px solid var(--border-subtle);
   }
   .rail-label{display:none}
-  .rail-sep{display:none}
+  .rail-list{flex-direction:row; align-items:center; gap:var(--p-space-1)}
+  /* The spine turns with the list. */
+  .rail-list::before{
+    inset-block:auto; inset-block-start:calc(50% - 0.5px);
+    inset-inline:1.4rem; inline-size:auto; block-size:1px;
+  }
   .pip{inline-size:auto; flex:none; padding-inline:var(--p-space-3)}
   .pip .lbl{max-inline-size:9rem}
+  .pip.in-loop::after{
+    inset-block:auto; inset-block-end:2px; inset-inline:-1px;
+    inline-size:auto; block-size:1px;
+  }
+  .pip.loop-start::after{inset-inline-start:50%}
+  .pip.loop-end::after{inset-inline-end:50%}
 }
 
 @media (max-width:640px){
@@ -795,6 +871,11 @@ table.out-table{min-inline-size:32rem}
   .pip{gap:var(--p-space-2)}
   .workspace-in{padding:var(--p-space-4) var(--p-space-4) var(--p-space-6)}
   .statusbar{padding-inline:var(--p-space-4); gap:var(--p-space-3)}
+  .topbar-actions .ghost .lbl{display:none}
+  .topbar-actions .ghost .ico{margin-inline-end:0}
+  .nb-actions{inline-size:100%; justify-content:space-between}
+  .sheet-tabs{padding-inline:var(--p-space-4)}
+  .share-pop{inline-size:min(22rem, calc(100vw - var(--p-space-6)))}
 }
 
 @media (max-width:640px){
@@ -880,10 +961,8 @@ table.out-table{min-inline-size:32rem}
         <div class="menu" id="model-menu" hidden></div>
       </div>
       <div class="topbar-actions">
-        <button class="ghost" id="btn-brand">Brand</button>
-        <button class="ghost" id="btn-locale">Language</button>
-        <button class="ghost" id="btn-mode" aria-label="Toggle dark mode">◐</button>
-        <button class="ghost" id="btn-settings">Connect</button>
+        <button class="ghost" id="btn-look"><span class="ico"></span><span class="lbl">Appearance</span></button>
+        <button class="ghost" id="btn-settings"><span class="ico"></span><span class="lbl">Connect</span></button>
       </div>
     </div>
   </header>
@@ -940,6 +1019,46 @@ const wc = (t) => ({
 });
 
 const HELV = 'Helvetica,"Helvetica Neue",Arial,sans-serif';
+
+/* ── Typography sets ─────────────────────────────────────────────────────
+   Type is its own axis, not a property of the colour theme. A brand ships a
+   default, and this overrides it — so Braun can be read in a serif, or the
+   editorial theme set in a grotesque, without either brand being edited. */
+const TYPESETS = {
+  brand:      { name:'Brand default', note:'Whatever the theme specifies', tokens:null },
+  grotesk:    { name:'Neo-grotesque', note:'Helvetica · neutral, tight, Swiss',
+    tokens:{ '--font-display':"'Helvetica Neue',Helvetica,Arial,sans-serif",
+             '--font-body':"'Helvetica Neue',Helvetica,Arial,sans-serif",
+             '--weight-heading':'700', '--tracking-heading':'-0.02em' } },
+  editorial:  { name:'Editorial', note:'Old-style serif · long-form, warm',
+    tokens:{ '--font-display':"'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif",
+             '--font-body':"'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif",
+             '--weight-heading':'650', '--tracking-heading':'-0.01em' } },
+  mixed:      { name:'Serif + sans', note:'Serif headings, sans text · the default pairing',
+    tokens:{ '--font-display':"'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif",
+             '--font-body':"ui-sans-serif,-apple-system,'Segoe UI',Inter,system-ui,sans-serif",
+             '--weight-heading':'650', '--tracking-heading':'-0.015em' } },
+  humanist:   { name:'Humanist', note:'Optima · calligraphic, open',
+    tokens:{ '--font-display':"Optima,'Gill Sans','Segoe UI',Candara,sans-serif",
+             '--font-body':"Optima,'Gill Sans','Segoe UI',Candara,sans-serif",
+             '--weight-heading':'600', '--tracking-heading':'0em' } },
+  geometric:  { name:'Geometric', note:'Futura · circular, constructed',
+    tokens:{ '--font-display':"Futura,'Century Gothic',Avenir,'Avenir Next',sans-serif",
+             '--font-body':"Futura,'Century Gothic',Avenir,'Avenir Next',sans-serif",
+             '--weight-heading':'600', '--tracking-heading':'0.01em' } },
+  mono:       { name:'Monospace', note:'Everything on the grid · terminal',
+    tokens:{ '--font-display':"ui-monospace,'SF Mono',Menlo,Consolas,monospace",
+             '--font-body':"ui-monospace,'SF Mono',Menlo,Consolas,monospace",
+             '--weight-heading':'600', '--tracking-heading':'-0.01em' } }
+};
+
+const DENSITY = {
+  comfortable:{ name:'Comfortable', note:'Default reading rhythm', scale:1 },
+  compact:    { name:'Compact',     note:'More on screen, tighter leading', scale:0.9 },
+  roomy:      { name:'Roomy',       note:'More air, longer measure', scale:1.12 }
+};
+
+
 
 const BRANDS = {
   rams: { group:'core',
@@ -2110,6 +2229,7 @@ async function runAll(nb, run, onChange){
 const S = {
   view:'library', nbId:null, locale:'en', mode:'light',
   brand:'rams', provider:'auto', keys:{}, cellProvider:{}, models:{}, tests:{}, builtin:'absent', dl:null,
+  typeset:'brand', density:'comfortable', modePref:'system', lookTab:0,
   sheet:null, runs:{}, storage:null, marks:{}
 };
 
@@ -2137,6 +2257,19 @@ function applyTheme(){
   for (const k of [...html.style].filter(k=>k.startsWith('--'))) html.style.removeProperty(k);
   for (const [k,v] of Object.entries({...(b.light||{}), ...(S.mode==='dark' ? (b.dark||{}) : {})}))
     html.style.setProperty(k, v);
+
+  /* Type and density are layered ON TOP of the brand, so either can be
+     changed without touching the other. */
+  const ts = TYPESETS[S.typeset]?.tokens;
+  if (ts) for (const [k,v] of Object.entries(ts)) html.style.setProperty(k, v);
+
+  const d = DENSITY[S.density]?.scale ?? 1;
+  if (d !== 1){
+    for (const [tok, base] of [['--p-space-3',0.75],['--p-space-4',1],['--p-space-5',1.5],
+                               ['--p-space-6',2],['--p-space-7',3]])
+      html.style.setProperty(tok, `${(base*d).toFixed(3)}rem`);
+    html.style.setProperty('--line', d < 1 ? '1.45' : d > 1 ? '1.7' : '1.55');
+  } else html.style.setProperty('--line','1.55');
 }
 
 /* Theme resolution has three states, not two: an explicit host choice stamps
@@ -2257,10 +2390,16 @@ function renderNotebook(){
         <p class="lede">${esc(nb.blurb)}</p>
       </div>
       <div class="nb-actions">
-        <button class="btn" id="run-all" ${busy?'disabled':''}>${esc(busy?t('running'):t('runAll'))}</button>
-        <button class="btn secondary tiny" id="share">Share setup</button>
-        <button class="btn secondary tiny" id="export">${esc(t('exportNb'))}</button>
-        <button class="btn secondary tiny" id="clear">${esc(t('clearRun'))}</button>
+        <button class="btn primary" id="run-all" ${busy?'disabled':''}>
+          ${ICONS.run}<span class="lbl">${esc(busy?t('running'):t('runAll'))}</span></button>
+        <div class="seg-group" role="group" aria-label="Notebook actions">
+          <button class="btn seg" id="share" title="Share setup">
+            ${ICONS.share}<span class="lbl">Share</span></button>
+          <button class="btn seg" id="export" title="${esc(t('exportNb'))}">
+            ${ICONS.save}<span class="lbl">${esc(t('exportNb'))}</span></button>
+          <button class="btn seg" id="clear" title="${esc(t('clearRun'))}">
+            ${ICONS.clear}<span class="lbl">${esc(t('clearRun'))}</span></button>
+        </div>
       </div>
     </div>
 
@@ -2533,8 +2672,6 @@ function renderRail(){
         <span class="node" data-s="done"></span><span class="n">00</span>
         <span class="lbl">${esc(nb.input.label)}</span>
       </button>
-    </div>
-    <div class="rail-list">
     ${nb.cells.map((c,i)=>{
       /* A cell is inside a loop if some gate below it can send the run back
          to it or above it. Drawn on the spine so the shape is legible before
@@ -2591,8 +2728,8 @@ function spy(nb){
 function renderSheet(){
   const old = $('.sheet-backdrop'); if (old) old.remove();
   if (!S.sheet) return;
-  const body = { brand:brandSheet, locale:localeSheet, settings:settingsSheet }[S.sheet]();
-  const title = { brand:t('brand'), locale:t('language'), settings:t('connect') }[S.sheet];
+  const body = { look:brandSheet, settings:settingsSheet }[S.sheet]();
+  const title = { look:'Appearance', settings:t('connect') }[S.sheet];
   const el = document.createElement('div');
   el.className='sheet-backdrop';
   el.innerHTML = `<div class="sheet" role="dialog" aria-modal="true">
@@ -2611,7 +2748,21 @@ const brandGroup = (g) => Object.entries(BRANDS).filter(([,b])=>b.group===g).map
     <strong>${esc(b.name)}</strong><span style="color:var(--ink-muted)">${esc(b.note)}</span>
   </button>`).join('');
 
+const optionRow = (sel, key, name, note, chips) => `
+  <button class="opt" data-${sel}="${key}" aria-pressed="${
+    (sel==='brand'?S.brand:sel==='typeset'?S.typeset:sel==='density'?S.density:sel==='locale'?S.locale:'')===key}">
+    ${chips ? `<span class="chips">${chips.map(c=>`<span class="chip" style="background:${c}"></span>`).join('')}</span>` : ''}
+    <span class="grow"><strong>${esc(name)}</strong><span class="sub">${esc(note)}</span></span>
+    <span class="tick">✓</span>
+  </button>`;
+
 const brandSheet = () => `
+  <div class="sheet-tabs" role="tablist">
+    ${['Theme','Type','Mode','Language'].map((x,i)=>
+      `<button class="sheet-tab" data-tab="${i}" aria-selected="${S.lookTab===i}">${x}</button>`).join('')}
+  </div>
+
+  <div class="tabpane" ${S.lookTab===0?'':'hidden'}>
   <div class="sheet-sec">
     <h3>Built for Throughline</h3>
     <div class="swatches">${brandGroup('core')}</div>
@@ -2628,11 +2779,53 @@ const brandSheet = () => `
   </div>
   <div class="sheet-sec">
     <p class="hint" style="font-size:var(--p-size-1);color:var(--ink-muted)">
-      Thirteen systems, one component tree, zero component edits — including a
-      government AAA palette, a brutalist one where every border is a black rule,
-      and three translucent ones. Each overrides only the semantic tier: surface,
-      ink, accent, border, radius, type, elevation, motion. No component contains
-      a colour.</p>
+      Thirteen systems, one component tree, zero component edits. Each overrides
+      only the semantic tier: surface, ink, accent, border, radius, type,
+      elevation, motion. No component contains a colour.</p>
+  </div>
+  </div>
+
+  <div class="tabpane" ${S.lookTab===1?'':'hidden'}>
+    <div class="sheet-sec">
+      <h3>Typeface</h3>
+      <div class="opts">${Object.entries(TYPESETS).map(([k,v])=>optionRow('typeset',k,v.name,v.note)).join('')}</div>
+      <p class="hint" style="font-size:var(--p-size-1);color:var(--ink-muted)">
+        Type is its own axis, not a property of the colour theme. A brand ships a
+        default; this overrides it — so Braun can be read in a serif, or the
+        editorial theme set in a grotesque, without either brand being edited.</p>
+    </div>
+    <div class="sheet-sec">
+      <h3>Density</h3>
+      <div class="opts">${Object.entries(DENSITY).map(([k,v])=>optionRow('density',k,v.name,v.note)).join('')}</div>
+    </div>
+  </div>
+
+  <div class="tabpane" ${S.lookTab===2?'':'hidden'}>
+    <div class="sheet-sec">
+      <h3>Light or dark</h3>
+      <div class="opts">
+        ${optionRow('mode','light','Light','')}
+        ${optionRow('mode','dark','Dark','')}
+        ${optionRow('mode','system','Follow the system','Changes when your device does')}
+      </div>
+      <p class="hint" style="font-size:var(--p-size-1);color:var(--ink-muted)">
+        Every one of the thirteen systems ships both. Dark is a designed pair,
+        not an inversion.</p>
+    </div>
+  </div>
+
+  <div class="tabpane" ${S.lookTab===3?'':'hidden'}>
+    <div class="sheet-sec">
+      <h3>Interface and output language</h3>
+      <div class="opts">${Object.entries(LOCALES).map(([k,l])=>
+        optionRow('locale',k,l.name,`${l.dir.toUpperCase()} · output in ${l.outputLanguage}`)).join('')}</div>
+      <p class="hint" style="font-size:var(--p-size-1);color:var(--ink-muted)">
+        Locale is a runtime variable, not just chrome — it is interpolated into
+        every cell prompt, so live output follows the interface. Arabic also flips
+        direction; the layout uses logical properties, so nothing was mirrored by
+        hand. Notebook titles and demo text stay English: authored content is a
+        separate translation pipeline from interface strings.</p>
+    </div>
   </div>`;
 
 const localeSheet = () => `
@@ -2746,10 +2939,18 @@ const settingsSheet = () => {
 };
 
 function wireSheet(el){
-  el.querySelectorAll('[data-brand]').forEach(b => b.onclick = () => {
-    S.brand = b.dataset.brand; applyTheme(); renderSheet(); render(); });
-  el.querySelectorAll('[data-locale]').forEach(b => b.onclick = () => {
-    S.locale = b.dataset.locale; applyTheme(); renderSheet(); render(); });
+  el.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
+    S.lookTab = Number(b.dataset.tab); renderSheet(); });
+  const pick = (attr, apply) => el.querySelectorAll(`[data-${attr}]`).forEach(b =>
+    b.onclick = () => { apply(b.dataset[attr]); applyTheme(); renderSheet(); render(); });
+  pick('brand',   v => S.brand = v);
+  pick('typeset', v => S.typeset = v);
+  pick('density', v => S.density = v);
+  pick('locale',  v => S.locale = v);
+  pick('mode',    v => {
+    S.modePref = v;
+    S.mode = v === 'system' ? resolveMode() : v;
+  });
   const mOut = el.querySelector('#marks-out');
   if (mOut) mOut.onclick = () => saveFile('throughline-marks.json',
     JSON.stringify({kind:'throughline.marks', v:1, exported:new Date().toISOString(), items:S.marks}, null, 2));
@@ -2798,6 +2999,21 @@ function wireSheet(el){
     renderSheet(); render();
   });
 }
+
+
+/* Stroke icons at 1em, currentColor. Small enough to stay legible at 14px
+   and to survive a brand that turns everything square. */
+const I = (p, extra='') => `<svg class="i" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+  stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${p}</svg>`;
+const ICONS = {
+  run:    I('<path d="M5 3.2 12.2 8 5 12.8Z" fill="currentColor" stroke="none"/>'),
+  share:  I('<path d="M8 10V2.6"/><path d="M5.4 5.2 8 2.6l2.6 2.6"/><path d="M3.2 9.2v3.6h9.6V9.2"/>'),
+  save:   I('<path d="M8 2.6V10"/><path d="M5.4 7.4 8 10l2.6-2.6"/><path d="M3.2 9.2v3.6h9.6V9.2"/>'),
+  clear:  I('<path d="M13 8a5 5 0 1 1-1.6-3.7"/><path d="M13.2 2.6v3h-3"/>'),
+  look:   I('<circle cx="8" cy="8" r="5.4"/><path d="M8 2.6a5.4 5.4 0 0 1 0 10.8Z" fill="currentColor" stroke="none"/>'),
+  plug:   I('<path d="M6 2.4v3.2M10 2.4v3.2"/><path d="M4.4 5.6h7.2v2.2a3.6 3.6 0 0 1-7.2 0Z"/><path d="M8 11.4v2.2"/>'),
+  back:   I('<path d="M9.6 3.6 5.2 8l4.4 4.4"/>')
+};
 
 /* ── Universal model switcher ───────────────────────────────────────────
    Always visible, one click from anywhere. Shows what is actually in use
@@ -2983,32 +3199,33 @@ function applyShareState(){
 
 /* Whoever holds the link can read the input. That is the point of sharing,
    but it should be said once rather than assumed. */
-function shareNote(btn, url){
+/* Feedback floats above the layout rather than reflowing it. The earlier
+   version injected an input into the button group, which pushed the last
+   button onto a second line — feedback should never move the thing you
+   just clicked. */
+function sharePopover(anchor, url, copied){
+  anchor.closest('.nb-actions')?.querySelector('.share-pop')?.remove();
   const has = url.includes('#i=');
-  const el = document.createElement('span');
-  el.className = 'share-note';
-  el.textContent = has
-    ? 'Includes your input — it stays out of server logs, but anyone with the link can read it.'
-    : 'Setup only. No input included.';
-  btn.parentElement.after(el);
-  setTimeout(()=>el.remove(), 6000);
+  const el = document.createElement('div');
+  el.className = 'share-pop';
+  el.innerHTML = `
+    <p class="share-status">${copied ? 'Link copied' : 'Copy this link'}</p>
+    <input class="share-url" readonly value="${esc(url)}">
+    <p class="share-hint">${has
+      ? 'Carries your input in the fragment — kept out of server logs, but anyone with the link can read it.'
+      : 'Setup only. Your input is not included.'}</p>`;
+  anchor.closest('.nb-actions').appendChild(el);
+  if (!copied) el.querySelector('.share-url').select();
+  const close = e => { if (!el.contains(e.target)){ el.remove(); removeEventListener('click', close); } };
+  setTimeout(()=>addEventListener('click', close), 0);
 }
 
 async function copyShare(nb, btn){
   const url = shareURL(nb);
-  try {
-    await navigator.clipboard.writeText(url);
-    btn.textContent = 'Link copied';
-    shareNote(btn, url);
-  } catch {
-    /* Clipboard access is refused in plenty of contexts. Show the link
-       rather than failing silently — the user can still copy it by hand. */
-    btn.textContent = 'Copy this →';
-    const f = document.createElement('input');
-    f.className = 'share-fallback'; f.value = url; f.readOnly = true;
-    btn.after(f); f.select();
-  }
-  setTimeout(()=>{ btn.textContent = 'Share setup'; }, 2400);
+  let copied = false;
+  try { await navigator.clipboard.writeText(url); copied = true; }
+  catch { /* refused in plenty of contexts — show the link instead */ }
+  sharePopover(btn, url, copied);
 }
 
 /* ── Boot ───────────────────────────────────────────────────────────── */
@@ -3036,20 +3253,18 @@ addEventListener('click', e => {
   if (!m.hidden && !e.target.closest('.switch-wrap')) closeMenu();
 });
 $('#home').onclick = () => { S.view='library'; S.nbId=null; render(); scrollTop(); };
-$('#btn-brand').onclick = () => { S.sheet = S.sheet==='brand'?null:'brand'; renderSheet(); };
-$('#btn-locale').onclick = () => { S.sheet = S.sheet==='locale'?null:'locale'; renderSheet(); };
+$('#btn-look').querySelector('.ico').innerHTML = ICONS.look;
+$('#btn-settings').querySelector('.ico').innerHTML = ICONS.plug;
+$('#btn-look').onclick = () => { S.sheet = S.sheet==='look'?null:'look'; renderSheet(); };
 $('#btn-settings').onclick = () => { S.sheet = S.sheet==='settings'?null:'settings'; renderSheet(); };
-$('#btn-mode').onclick = () => { S.mode = S.mode==='dark'?'light':'dark'; applyTheme(); };
 addEventListener('keydown', e => { if (e.key==='Escape' && S.sheet){ S.sheet=null; renderSheet(); } });
 
 (async function boot(){
   S.mode = resolveMode();
-  let manual = false;
-  $('#btn-mode').addEventListener('click', () => { manual = true; }, {capture:true});
-  new MutationObserver(() => { if (!manual){ S.mode = resolveMode(); applyTheme(); } })
+  new MutationObserver(() => { if (S.modePref==='system'){ S.mode = resolveMode(); applyTheme(); } })
     .observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
-    if (!manual && !document.documentElement.dataset.theme){ S.mode = resolveMode(); applyTheme(); } });
+    if (S.modePref==='system'){ S.mode = resolveMode(); applyTheme(); } });
   await probeBuiltIn();
   /* On-device is the default when it is genuinely ready: free, no key, and
      nothing leaves the machine. Otherwise Auto, which falls back to the
