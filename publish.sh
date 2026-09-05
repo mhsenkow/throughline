@@ -16,12 +16,7 @@ set -euo pipefail
 PORT_REPO="${1:-$HOME/portfolio/portfolio}"
 [ -d "$PORT_REPO/public" ] || { echo "No portfolio repo at $PORT_REPO"; exit 1; }
 
-echo "→ syntax check"
-node --check <(python3 -c "
-import re,sys
-s=open('index.html').read()
-sys.stdout.write(re.search(r'<script type=\"module\">(.*)</script>',s,re.S).group(1))
-") && echo "  ok"
+./check.sh
 
 echo "→ hashing the inline script"
 HASH=$(python3 -c "
@@ -59,7 +54,7 @@ block = f"""/notebook/*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()
-  Content-Security-Policy: default-src 'self'; script-src 'sha256-{h}'{prev} https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://generativelanguage.googleapis.com https://api.groq.com https://openrouter.ai https://api.anthropic.com https://api.openai.com http://localhost:11434 http://127.0.0.1:11434; base-uri 'none'; object-src 'none'; form-action 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'sha256-{h}'{prev} https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://generativelanguage.googleapis.com https://api.groq.com https://openrouter.ai https://api.anthropic.com https://api.openai.com https://router.huggingface.co https://api.cerebras.ai https://api.mistral.ai https://api.deepseek.com https://api.together.xyz https://api.x.ai http://localhost:11434 http://127.0.0.1:11434 http://localhost:1234 http://127.0.0.1:1234; base-uri 'none'; object-src 'none'; form-action 'none'
 """
 if '/notebook/*' in s:
     s = re.sub(r'/notebook/\*\n(?:  .*\n)*', block, s)

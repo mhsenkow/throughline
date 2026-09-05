@@ -1086,9 +1086,7 @@ table.out-table{min-inline-size:32rem}
   .nb-actions{inline-size:100%; justify-content:space-between}
   .sheet-tabs{padding-inline:var(--p-space-4)}
   .share-pop{inline-size:min(22rem, calc(100vw - var(--p-space-6)))}
-}
 
-@media (max-width:640px){
   .shell{padding:var(--p-space-5) var(--p-space-4) var(--p-space-7)}
   .topbar-in{padding:var(--p-space-3) var(--p-space-4)}
   /* Connect panel: one column, chosen provider first — on a phone the list
@@ -1103,7 +1101,6 @@ table.out-table{min-inline-size:32rem}
   .mark{padding:var(--p-space-4)}
   .cell-head{padding:var(--p-space-4) var(--p-space-4) var(--p-space-2)}
   .cell-body,.cell-foot{padding-inline:var(--p-space-4)}
-  .cell-body,.cell-foot{padding-inline-start:var(--p-space-4)}
   .doc-head{padding:var(--p-space-5) var(--p-space-4) var(--p-space-4)}
   .card{padding:var(--p-space-4)}
   .shelf{grid-template-columns:1fr}
@@ -2427,6 +2424,7 @@ const PROVIDERS = {
     label:'Ollama', vendor:'On this machine', tier:'local', group:'nosetup',
     key:'none', reach:'localhost', classes:['fast'], model:'llama3.2',
     models:['llama3.2','llama3.1:8b','qwen2.5:7b','mistral','phi4','gemma2:9b','deepseek-r1:8b'],
+    base:'http://localhost:11434',
     plain:'Free and private, if you already run Ollama.',
     signup:'https://ollama.com/download',
     note:'Needs Ollama running with OLLAMA_ORIGINS allowing this page. An https page cannot reach http://localhost.' },
@@ -2588,7 +2586,11 @@ const isConnected = id => {
   /* Keyless network providers (Ollama) cannot be detected — only reached.
      A passing test is the evidence; there is nothing else to go on. */
   if (PROVIDERS[id].key === 'none') return S.tests[id]?.ok === true;
-  return !!S.keys[id];
+  /* A key that just failed its reachability test is not connected — otherwise
+     Auto keeps routing to a provider that will 401 every cell. */
+  if (!S.keys[id]) return false;
+  if (S.tests[id] && S.tests[id].ok === false) return false;
+  return true;
 };
 const connected = () => Object.keys(PROVIDERS).filter(isConnected);
 
@@ -2894,19 +2896,53 @@ function downstream(nb, cellId){
   return [...out];
 }
 
+function bagText(v){
+  if (v == null) return '';
+  if (typeof v === 'string') return v;
+  if (Array.isArray(v)) return v.map(x=>`- ${x}`).join('\n');
+  /* Gate values are objects with verdict/reason/revision — not tables. */
+  if (typeof v === 'object' && 'verdict' in v){
+    const parts = [`Verdict: ${v.verdict}`];
+    if (v.reason) parts.push(`Reason: ${v.reason}`);
+    if (v.revision) parts.push(`Revision: ${v.revision}`);
+    return parts.join('\n');
+  }
+  if (v.cols && v.rows)
+    return [v.cols.join(' | '), ...v.rows.map(r=>r.join(' | '))].join('\n');
+  try { return JSON.stringify(v); } catch { return String(v); }
+}
+
 function renderPrompt(tpl, nb, run){
   return tpl.replace(/\{\{([\w.]+)\}\}/g, (_,ref)=>{
     if (ref === 'locale.outputLanguage') return LOCALES[S.locale].outputLanguage;
-    const v = run.bag[ref];
-    if (v == null) return '';
-    if (typeof v === 'string') return v;
-    if (Array.isArray(v)) return v.map(x=>`- ${x}`).join('\n');
-    return [v.cols.join(' | '), ...v.rows.map(r=>r.join(' | '))].join('\n');
+    return bagText(run.bag[ref]);
   });
 }
 
-const ready = (nb, cell, run) =>
-  cell.inputs.every(r => run.bag[r] != null && String(run.bag[r]).length > 0);
+const bagPresent = v => {
+  if (v == null) return false;
+  if (typeof v === 'string') return v.length > 0;
+  if (Array.isArray(v)) return v.length > 0;
+  return true;
+};
+const ready = (nb, cell, run) => cell.inputs.every(r => bagPresent(run.bag[r]));
+
+/* Drop a cell's output (and everything that depended on it) from the bag.
+   Skip and clear both call this so readiness matches what the UI claims. */
+function invalidateFrom(nb, run, cellId){
+  const drop = id => {
+    const raw = nb.cells.find(c => c.id === id);
+    if (!raw) return;
+    delete run.bag[eff(nb.id, raw).output.name];
+    const st = run.cells[id];
+    if (st && st.state !== 'idle' && !st.ctrl) st.state = 'idle';
+  };
+  drop(cellId);
+  for (const id of downstream(nb, cellId)) drop(id);
+}
+
+const anyBusy = run => Object.values(run.cells).some(c =>
+  c.ctrl || c.state === 'running' || c.state === 'streaming');
 
 async function execCell(nb, rawCell, run, onChange){
   const cell = eff(nb.id, rawCell);
@@ -3370,7 +3406,9 @@ function renderNotebook(){
   if (rst) rst.onclick = () => resetEdits(nb.id);
   view.querySelectorAll('[data-toggle]').forEach(b => b.onclick = () => {
     const id = b.dataset.toggle;
-    setEdit(nb.id, id, {off: isOff(nb.id, {id}) ? null : true});
+    const turningOff = !isOff(nb.id, {id});
+    if (turningOff) invalidateFrom(nb, getRun(nb), id);
+    setEdit(nb.id, id, {off: turningOff ? true : null});
   });
   view.querySelectorAll('[data-revert]').forEach(b => b.onclick = () => {
     delete (S.edits[nb.id] ?? {})[b.dataset.revert];
@@ -3414,7 +3452,7 @@ function cellHTML(nb, raw, i, run){
         <button class="btn secondary tiny" data-toggle="${raw.id}">Re-enable</button>
       </div>
     </section>`;
-  const canRun = ready(nb, cell, run) && !st.ctrl;
+  const canRun = ready(nb, cell, run) && !st.ctrl && !anyBusy(run);
   const ins = cell.inputs.map(r=>`<span><b>in</b> ${esc(r)}</span>`).join('');
   return `
   <section class="cell" data-state="${st.state}">
@@ -3439,13 +3477,15 @@ function cellHTML(nb, raw, i, run){
     ${S.editing ? `
     <div class="cell-edit">
       <div class="edit-row">
-        <label class="field-inline">
+        ${raw.gate || raw.output.type==='gate'
+          ? `<span class="field-inline"><span class="eyebrow">Output as</span><span>gate</span></span>`
+          : `<label class="field-inline">
           <span class="eyebrow">Output as</span>
           <select data-type="${raw.id}">
             ${['prose','list','table','markdown'].map(x=>
               `<option value="${x}" ${cell.output.type===x?'selected':''}>${x}</option>`).join('')}
           </select>
-        </label>
+        </label>`}
         <button class="btn secondary tiny" data-toggle="${raw.id}">Skip this cell</button>
         ${Object.keys(o).length ? `<button class="btn secondary tiny" data-revert="${raw.id}">Revert cell</button>`:''}
         <span class="spacer"></span>
@@ -3721,13 +3761,16 @@ const brandGroup = (g) => Object.entries(BRANDS).filter(([,b])=>b.group===g).map
     <strong>${esc(b.name)}</strong><span style="color:var(--ink-muted)">${esc(b.note)}</span>
   </button>`).join('');
 
-const optionRow = (sel, key, name, note, chips) => `
-  <button class="opt" data-${sel}="${key}" aria-pressed="${
-    (sel==='brand'?S.brand:sel==='typeset'?S.typeset:sel==='density'?S.density:sel==='locale'?S.locale:'')===key}">
+const optionRow = (sel, key, name, note, chips) => {
+  const cur = sel==='brand'?S.brand:sel==='typeset'?S.typeset:sel==='density'?S.density
+    :sel==='locale'?S.locale:sel==='mode'?S.modePref:'';
+  return `
+  <button class="opt" data-${sel}="${key}" aria-pressed="${cur===key}">
     ${chips ? `<span class="chips">${chips.map(c=>`<span class="chip" style="background:${c}"></span>`).join('')}</span>` : ''}
     <span class="grow"><strong>${esc(name)}</strong><span class="sub">${esc(note)}</span></span>
     <span class="tick">✓</span>
   </button>`;
+};
 
 const brandSheet = () => `
   <div class="sheet-tabs" role="tablist">
@@ -4020,9 +4063,11 @@ function wireSheet(el){
   const dl = el.querySelector('#dl-builtin');
   if (dl) dl.onclick = async () => {
     try {
+      let last = -1;
       await downloadBuiltIn((loaded, total) => {
-        S.dl = total ? Math.round(loaded/total*100) : Math.round(loaded*100);
-        const row = document.querySelector('#dl-progress'); if (row) row.textContent = `${S.dl}%`;
+        const pct = total ? Math.round(loaded/total*100) : Math.round(loaded*100);
+        if (pct === last) return;
+        last = pct; S.dl = pct; renderSheet();
       });
     } catch(e){ S.tests.chrome = {ok:false, msg:e.message || String(e)}; S.builtin = 'unavailable'; }
     S.dl = null; renderSheet(); render();
@@ -4228,8 +4273,15 @@ function markHTML(nb){
    language, which model, and what you put in. All five fit in a URL, so the
    link is the record and nothing needs to be stored anywhere. */
 const b64 = {
-  enc: str => btoa(String.fromCharCode(...new TextEncoder().encode(str)))
-               .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''),
+  /* Chunk the encode: spread into fromCharCode blows the arg limit on large
+     Unicode pastes, which made Share throw instead of copying a link. */
+  enc: str => {
+    const bytes = new TextEncoder().encode(str);
+    let bin = '';
+    for (let i = 0; i < bytes.length; i += 0x8000)
+      bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  },
   dec: str => { try{
     const b = atob(str.replace(/-/g,'+').replace(/_/g,'/'));
     return new TextDecoder().decode(Uint8Array.from(b, c=>c.charCodeAt(0)));

@@ -14,6 +14,12 @@ relative and routing is in-memory — so it can be dropped at any subpath.
 python3 -m http.server 8719
 ```
 
+Before deploy, `./check.sh` (also run by `deploy.sh` / `publish.sh`) syntax-checks the
+inline script, walks the CSS for brace balance and large rules accidentally nested
+inside `@media`, and verifies every provider `base` origin is listed in
+`connect-src`. That CSS check catches a whole class of bug that looks like a
+mysterious specificity problem.
+
 ## Deploy
 
 **Two hosts, and they are not the same machine.** This tripped up the first
@@ -133,7 +139,7 @@ production key into any page, this one included.
 
 Uploads over **SFTP**, not rsync — GreenGeeks disables shell access on this plan
 ("Shell access is not enabled on your account") but leaves the SFTP subsystem
-open, so key auth works and rsync does not. Syntax-checks before uploading,
+open, so key auth works and rsync does not. Runs `./check.sh` before uploading,
 since a broken publish here is a broken site with no build step to catch it.
 
 `mhsenkow.org` is not proxied through Cloudflare, so changes are immediate.

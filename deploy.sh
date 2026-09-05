@@ -22,12 +22,7 @@ USER="${1:-mhsenkow}"
 HOST="chi202.greengeeks.net"
 REMOTE="${2:-/home/${USER}/public_html/notebook}"
 
-echo "→ syntax-checking before anything leaves this machine"
-node --check <(python3 -c "
-import re,sys
-s=open('index.html').read()
-sys.stdout.write(re.search(r'<script type=\"module\">(.*)</script>',s,re.S).group(1))
-") && echo "  ok"
+./check.sh
 
 echo "→ uploading to ${REMOTE}"
 sftp -b - -o BatchMode=yes "${USER}@${HOST}" <<EOF
