@@ -14,17 +14,25 @@ relative and routing is in-memory — so it can be dropped at any subpath.
 python3 -m http.server 8719
 ```
 
-## Deploy to a subpath
+## Deploy
 
-Copy `index.html` to whatever path serves your site. Nothing else is needed —
-no base href, no rewrite rules, no origin.
+Target: **https://ibm.io/notebook** on GreenGeeks, behind Cloudflare.
 
 ```bash
-scp index.html user@host:/var/www/notebook/index.html
+./deploy.sh <ssh-host> <cpanel-user>
 ```
 
-Static hosts (Cloudflare Pages, Netlify, S3+CloudFront, GitHub Pages) all work
-unchanged. There is no origin to secure because there is no origin.
+Defaults to `~/public_html/notebook`. Uses the SSH key in your agent; no password
+is handled by the script. It syntax-checks the file before uploading, since a
+broken publish here is a broken site with no build step to catch it.
+
+The domain is proxied through Cloudflare, so **purge the cache after deploying**
+or you will keep seeing the old file:
+Cloudflare dashboard → Caching → Configuration → Purge Everything.
+
+Nothing else is needed — no base href, no rewrite rules, no origin config. Every
+asset reference is relative and routing is in-memory, so the same file works at
+any path. Static hosts (Cloudflare Pages, Netlify, S3, GitHub Pages) work unchanged.
 
 ## What is real in this MVP
 
