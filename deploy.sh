@@ -28,6 +28,7 @@ echo "→ uploading to ${REMOTE}"
 sftp -b - -o BatchMode=yes "${USER}@${HOST}" <<EOF
 -mkdir ${REMOTE}
 put index.html ${REMOTE}/index.html
+put library.json ${REMOTE}/library.json
 put .htaccess ${REMOTE}/.htaccess
 EOF
 
@@ -40,5 +41,5 @@ echo
 echo "Staging deployed: https://mhsenkow.org/notebook/"
 echo
 echo "To ship PRODUCTION (ibm.io/notebook):"
-echo "  cp index.html ~/portfolio/portfolio/public/notebook/index.html"
+echo "  ./publish.sh"
 echo "  cd ~/portfolio/portfolio && pnpm run deploy"

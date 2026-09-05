@@ -4,9 +4,11 @@ Runnable notebooks that make AI capability legible. See
 [PRODUCT-BRIEF.md](PRODUCT-BRIEF.md) for the thesis and
 [ENGINEERING-BRIEF.md](ENGINEERING-BRIEF.md) for the architecture.
 
-`index.html` is the whole web build: one file, no dependencies, no build step,
-no server. It is deliberately path-agnostic — every asset reference is
-relative and routing is in-memory — so it can be dropped at any subpath.
+`index.html` plus `library.json` are the whole web build: no dependencies, no
+build step, no server. The app is deliberately path-agnostic — every asset
+reference is relative and routing is in-memory — so the pair can be dropped at
+any subpath. A small seed of notebooks is inlined so first paint does not wait
+on the network; `library.json` is fetched relatively and merged in.
 
 ## Run locally
 
@@ -16,9 +18,11 @@ python3 -m http.server 8719
 
 Before deploy, `./check.sh` (also run by `deploy.sh` / `publish.sh`) syntax-checks the
 inline script, walks the CSS for brace balance and large rules accidentally nested
-inside `@media`, and verifies every provider `base` origin is listed in
-`connect-src`. That CSS check catches a whole class of bug that looks like a
-mysterious specificity problem.
+inside `@media`, verifies every provider `base` origin is listed in `connect-src`,
+and validates `library.json` (bindings, demo shapes, taxonomies, shelf balance).
+The CSS check catches a whole class of bug that looks like a mysterious
+specificity problem; the library check catches the class that made live gate
+runs throw.
 
 ## Deploy
 
@@ -27,7 +31,7 @@ deploy, so it is written down.
 
 | | URL | Served by | How |
 |---|---|---|---|
-| **Production** | https://ibm.io/notebook/ | `portfolio` Cloudflare Worker (OpenNext/Next.js) | `public/notebook/index.html` in `mhsenkow/portfolio`, then `pnpm run deploy` |
+| **Production** | https://ibm.io/notebook/ | `portfolio` Cloudflare Worker (OpenNext/Next.js) | `public/notebook/{index.html,library.json}` via `./publish.sh`, then `pnpm run deploy` |
 | **Staging** | https://mhsenkow.org/notebook/ | GreenGeeks `chi202` (Apache, direct — no Cloudflare) | `./deploy.sh` over SFTP |
 
 `ibm.io` resolves to Cloudflare and is handled entirely by the Worker. The
@@ -40,10 +44,10 @@ nothing. Anything uploaded there is invisible.
 ./publish.sh && (cd ~/portfolio/portfolio && pnpm run deploy)
 ```
 
-`publish.sh` copies the app into the Worker's static assets **and regenerates
-the CSP hash**. Do not copy the file by hand — the policy pins script execution
-to a hash of this exact build, so an edited app with a stale hash will not run
-at all.
+`publish.sh` copies the app **and** `library.json` into the Worker's static
+assets **and regenerates the CSP hash**. Do not copy by hand — the policy pins
+script execution to a hash of this exact build, so an edited app with a stale
+hash will not run at all.
 
 Headers live in that repo's `public/_headers` under `/notebook/*`.
 
@@ -147,8 +151,10 @@ The `.htaccess` in this repo ships with it and is live: CSP, `no-cache`
 revalidation, and gzip (111 KB → 39 KB).
 
 Nothing else is needed — no base href, no rewrite rules, no origin config. Every
-asset reference is relative and routing is in-memory, so the same file works at
-any path. Static hosts (Cloudflare Pages, Netlify, S3, GitHub Pages) work unchanged.
+asset reference is relative and routing is in-memory, so the same pair of files
+works at any path. Static hosts (Cloudflare Pages, Netlify, S3, GitHub Pages)
+work unchanged as long as both `index.html` and `library.json` are published
+together.
 
 ## What is real in this MVP
 
@@ -162,8 +168,10 @@ any path. Static hosts (Cloudflare Pages, Netlify, S3, GitHub Pages) work unchan
 | Marks: local rating that captures and restores the setup | **Real** |
 | Shareable permutations encoded in the URL | **Real** |
 | Gate cells — the run can loop back, capped and visible | **Real** |
+| Choice / map / ask cells — pick a path, map over a list, mid-run human input | **Real** |
+| Typed outputs: prose, markdown, list, table, gate, score, diff, ranking, timeline, choice | **Real** |
 | Three-tier tokens, **13 brands**, light/dark, zero component edits | **Real** |
-| Faceted browse: realm × concept, search, sort, animated grid | **Real** |
+| Faceted browse: persona × realm × concept, search, sort, windowed grid | **Real** |
 | Editing a template forks it: skip cells, change output type, rewrite prompts | **Real** |
 | Responsive: fluid type, restructured tables, touch targets | **Real** |
 | App shell: fixed chrome, inner scroll canvas, cell rail with scroll spy | **Real** |
@@ -181,25 +189,34 @@ any path. Static hosts (Cloudflare Pages, Netlify, S3, GitHub Pages) work unchan
 
 ## The library
 
-**25 notebooks across 14 realms.** The home page filters on two axes, because
-they answer different questions:
+**100 notebooks across 13 personas, 16 realms, and 8 concepts.** The home page
+filters on three axes, because they answer different questions:
 
+- **Persona** — whose job: manager, product, engineer, designer, marketer,
+  customer lead, analyst, operator, people partner, founder, scholar, maker,
+  householder.
 - **Realm** — the world you work in: business, technology, design, writing,
   music, worldbuilding, photography, manufacturing, gardening, food, health,
-  learning, home & repair, science, games.
+  learning, home & repair, money & legal, science, games.
 - **Concept** — the move the notebook makes: critique, extract, diagnose,
   generate, compare, plan, translate, teach.
 
 Filing by domain alone would hide half the library from everyone. A gardener
 and a CFO both want *find the hole in this plan* — same concept, different
-realm. Facet counts come from the current result set, so a chip never offers a
+realm. Persona answers the remaining question: *notebooks for someone with my
+job*. Facet counts come from the current result set, so a chip never offers a
 filter that returns nothing, and a selected chip stays visible even at zero so
 there is always a step back rather than only a full reset.
 
-Scaling honestly: the surface handles hundreds. The constraint is that every
-notebook here has hand-written demo output so it can be run before you connect
-anything (R6), and thin filler would violate the thing the brief cares most
-about — the library *is* the product.
+The shelf is content-as-data in `library.json` (`schemaVersion` up to **1.2.0**).
+`1.2.0` adds choice / map / ask behavioural cells and the score / diff /
+ranking / timeline / choice output types. Every notebook still ships with
+hand-written `demo` output so it can be run before you connect anything (R6).
+Thin filler would violate the thing the brief cares most about — the library
+*is* the product.
+
+Scaling honestly: the surface window-renders the card grid and handles
+hundreds. The constraint remains authorship quality, not UI capacity.
 
 ## Editing a template
 

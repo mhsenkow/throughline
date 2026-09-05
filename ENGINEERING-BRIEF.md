@@ -140,6 +140,10 @@ notebook/
 │  ├─ web/          # Vite SPA. The product. T1/T2.
 │  └─ desktop/      # Tauri v2. Empty until T3 is justified.
 ├─ notebooks/       # THE LIBRARY. Content as data, reviewed like content.
+│                   # MVP ships this as library.json next to index.html
+│                   # (seed inlined; full shelf fetched relatively).
+│                   # schemaVersion 1.2.0: choice/map/ask cells;
+│                   # score/diff/ranking/timeline/choice outputs.
 └─ brands/          # One token file per brand. The three-brand proof (§9.3).
 ```
 

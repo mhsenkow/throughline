@@ -324,6 +324,9 @@ ships with.
    everything else keys off this.
 2. **What exactly does the first library cover?** "Capabilities in public resources"
    is not yet a content strategy. Which ten notebooks, and who authors them?
+   **Resolved in MVP:** 100 notebooks filed on persona × realm × concept, authored
+   as content-as-data (`library.json`, schemaVersion up to 1.2.0). Open decision
+   becomes ongoing editorial ownership, not first coverage.
 3. **Does a user author their own notebook in v1**, or only run and fork ours?
 4. **Auth posture:** truly zero-account, or optional account for convenience only?
    (P3 argues zero. Optional accounts have a way of becoming required ones.)
