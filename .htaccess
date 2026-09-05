@@ -1,0 +1,56 @@
+# Throughline — Apache config for ibm.io/notebook
+# Shared hosting (GreenGeeks, Apache 2.4) behind Cloudflare.
+# One static file. No rewrites are needed: routing is in-memory and every
+# asset reference is relative.
+
+# ── Always revalidate the app itself ─────────────────────────────────────
+# There is no build step and no content hash in the filename, so a cached
+# index.html is indistinguishable from a failed deploy. Cloudflare does not
+# cache text/html by default, but browsers will.
+<FilesMatch "\.html$">
+  Header set Cache-Control "no-cache, must-revalidate"
+</FilesMatch>
+
+# ── Compression ──────────────────────────────────────────────────────────
+# The single file is ~90 KB uncompressed and compresses to roughly a fifth
+# of that. Worth doing on a page whose whole job is a fast first read.
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml
+</IfModule>
+
+# ── Security headers ─────────────────────────────────────────────────────
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  Header set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=()"
+
+  # Content-Security-Policy.
+  #
+  # This is the defence-in-depth behind the sanitiser: the page renders model
+  # output as rich content, and model output is untrusted input. If the escape
+  # in outputHTML() is ever wrong, this is what stops it becoming script.
+  #
+  # 'unsafe-inline' on script-src is required because the app IS one inline
+  # module. Replacing it with a per-deploy hash would be stricter; it would
+  # also mean regenerating this file on every publish. Noted as a real
+  # trade-off rather than a silent weakening.
+  #
+  # connect-src lists exactly the model providers the app can reach. ADDING A
+  # PROVIDER MEANS ADDING IT HERE, or its calls fail with no useful error.
+  # frame-ancestors is deliberately absent: the surface is meant to be
+  # embeddable in a host brand's page (PRODUCT-BRIEF P5).
+  Header set Content-Security-Policy "default-src 'self'; \
+script-src 'self' 'unsafe-inline'; \
+style-src 'self' 'unsafe-inline'; \
+img-src 'self' data:; \
+font-src 'self'; \
+connect-src 'self' https://generativelanguage.googleapis.com https://api.groq.com https://openrouter.ai https://api.anthropic.com https://api.openai.com http://localhost:11434 http://127.0.0.1:11434; \
+base-uri 'none'; \
+object-src 'none'; \
+form-action 'none'"
+</IfModule>
+
+# ── Don't serve the repo's own files ─────────────────────────────────────
+<FilesMatch "^(\.gitignore|deploy\.sh|.*\.md)$">
+  Require all denied
+</FilesMatch>

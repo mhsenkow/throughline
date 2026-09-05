@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
 # Deploy Throughline to GreenGeeks over SSH.
 #
-#   ./deploy.sh <ssh-host> <cpanel-user> [remote-path]
+#   ./deploy.sh [ssh-host] <cpanel-user> [remote-path]
 #
+# Host defaults to chi202.greengeeks.net (the server ibm.io sits on).
 # Example:
-#   ./deploy.sh s123.greengeeks.com myuser public_html/notebook
+#   ./deploy.sh chi202.greengeeks.net myuser public_html/notebook
 #
 # Uses the SSH key already in your agent — no password is handled here.
 # Deploys one file. There is no build step because there is nothing to build.
 set -euo pipefail
 
-HOST="${1:?ssh host required, e.g. s123.greengeeks.com}"
+HOST="${1:-chi202.greengeeks.net}"
 USER="${2:?cpanel username required}"
 REMOTE="${3:-public_html/notebook}"
 
@@ -24,8 +25,8 @@ sys.stdout.write(re.search(r'<script type=\"module\">(.*)</script>',s,re.S).grou
 echo "→ ensuring ${REMOTE} exists on ${HOST}"
 ssh "${USER}@${HOST}" "mkdir -p ~/${REMOTE}"
 
-echo "→ uploading index.html"
-rsync -avz --checksum index.html "${USER}@${HOST}:~/${REMOTE}/index.html"
+echo "→ uploading index.html and .htaccess"
+rsync -avz --checksum index.html .htaccess "${USER}@${HOST}:~/${REMOTE}/"
 
 echo
 echo "Deployed. https://ibm.io/notebook"
