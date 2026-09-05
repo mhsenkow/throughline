@@ -31,15 +31,44 @@ nothing. Anything uploaded there is invisible.
 ### Production
 
 ```bash
-cp index.html ~/portfolio/portfolio/public/notebook/index.html
-cd ~/portfolio/portfolio && pnpm run deploy
+./publish.sh && (cd ~/portfolio/portfolio && pnpm run deploy)
 ```
 
-Headers live in that repo's `public/_headers` under `/notebook/*` — same CSP as
-the `.htaccess` here, plus `static.cloudflareinsights.com`, because Cloudflare
-injects its analytics beacon into pages on this zone and the CSP otherwise
-blocks it. Remove both `cloudflareinsights` entries if you would rather keep
-`/notebook` beacon-free.
+`publish.sh` copies the app into the Worker's static assets **and regenerates
+the CSP hash**. Do not copy the file by hand — the policy pins script execution
+to a hash of this exact build, so an edited app with a stale hash will not run
+at all.
+
+Headers live in that repo's `public/_headers` under `/notebook/*`.
+
+## Security posture
+
+**Keys.** Whatever you paste lives in `S.keys` — a plain object in tab memory.
+Never written to IndexedDB or localStorage, never sent to the page's own origin,
+sent only to the provider endpoint you chose. Closing the tab discards it.
+Nothing is embedded in the shipped file; verified there is no credential-shaped
+string in the deployed asset.
+
+**Script execution is pinned to a hash.** `script-src` names a SHA-256 of this
+build's inline script rather than `'unsafe-inline'`. This matters specifically
+because the app renders model output as rich content: if the escaping in
+`outputHTML()` were ever wrong, `'unsafe-inline'` would let the injected script
+run — and it could hook `fetch` and read a key out of the `Authorization`
+header. Verified in both directions: the app runs under the policy, and a
+script injected into the DOM does not execute.
+
+**`style-src` keeps `'unsafe-inline'`, deliberately.** The markup uses `style`
+attributes, which hashes cannot cover. Style injection can distort the page but
+cannot exfiltrate a credential, so the trade is worth naming rather than hiding.
+
+**Cloudflare's analytics beacon is allowed**, for consistency with the rest of
+ibm.io. It carries no page content or user input. Remove the two
+`cloudflareinsights` entries from `_headers` to keep `/notebook` beacon-free.
+
+**What this does not protect against.** A key pasted into the page is visible
+in that browser's own devtools — that is inherent to any bring-your-own-key
+browser app, and it is your key on your machine. Do not paste a shared or
+production key into any page, this one included.
 
 ### Staging
 

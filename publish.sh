@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# Publish Throughline to PRODUCTION (ibm.io/notebook).
+#
+#   ./publish.sh [path-to-portfolio-repo]
+#
+# Copies the app into the portfolio Worker's static assets and regenerates the
+# CSP with a hash of this exact build, then leaves the deploy to you.
+#
+# WHY A HASH: script-src 'unsafe-inline' would let ANY injected inline script
+# run — including one smuggled through model output, which could hook fetch and
+# read an API key out of the Authorization header. A hash pins execution to
+# this one script. It changes on every edit, so it must be regenerated here
+# rather than written by hand.
+set -euo pipefail
+
+PORT_REPO="${1:-$HOME/portfolio/portfolio}"
+[ -d "$PORT_REPO/public" ] || { echo "No portfolio repo at $PORT_REPO"; exit 1; }
+
+echo "→ syntax check"
+node --check <(python3 -c "
+import re,sys
+s=open('index.html').read()
+sys.stdout.write(re.search(r'<script type=\"module\">(.*)</script>',s,re.S).group(1))
+") && echo "  ok"
+
+echo "→ hashing the inline script"
+HASH=$(python3 -c "
+import re, hashlib, base64
+s = open('index.html', encoding='utf-8').read()
+m = re.search(r'<script type=\"module\">(.*?)</script>', s, re.S)
+print(base64.b64encode(hashlib.sha256(m.group(1).encode('utf-8')).digest()).decode())
+")
+echo "  sha256-${HASH}"
+
+mkdir -p "$PORT_REPO/public/notebook"
+cp index.html "$PORT_REPO/public/notebook/index.html"
+echo "→ copied to $PORT_REPO/public/notebook/index.html"
+
+python3 - "$PORT_REPO/public/_headers" "$HASH" <<'PY'
+import sys, re
+path, h = sys.argv[1], sys.argv[2]
+s = open(path).read()
+block = f"""/notebook/*
+  Cache-Control: public, max-age=60
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()
+  Content-Security-Policy: default-src 'self'; script-src 'sha256-{h}' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://generativelanguage.googleapis.com https://api.groq.com https://openrouter.ai https://api.anthropic.com https://api.openai.com http://localhost:11434 http://127.0.0.1:11434; base-uri 'none'; object-src 'none'; form-action 'none'
+"""
+if '/notebook/*' in s:
+    s = re.sub(r'/notebook/\*\n(?:  .*\n)*', block, s)
+else:
+    s = s.rstrip('\n') + '\n\n' + block
+open(path, 'w').write(s)
+print("→ _headers updated with the build hash")
+PY
+
+echo
+echo "Staged. To ship:"
+echo "  cd $PORT_REPO && pnpm run deploy"

@@ -421,6 +421,45 @@ details.vars[open] > summary::before{transform:rotate(90deg)}
 }
 .foot a{color:var(--ink-secondary)}
 
+.switch-wrap{position:relative}
+.switcher{
+  display:inline-flex; align-items:center; gap:var(--p-space-2);
+  padding:var(--p-space-1) var(--p-space-3); border-radius:var(--radius-pill);
+  font-size:var(--p-size-2); color:var(--ink-secondary);
+  box-shadow:inset 0 0 0 1px var(--border-subtle);
+  transition:box-shadow var(--motion-fast), color var(--motion-fast);
+}
+.switcher:hover{box-shadow:inset 0 0 0 1px var(--border-strong); color:var(--ink-primary)}
+.switcher .chev{font-size:var(--p-size-0); color:var(--ink-muted)}
+/* .menu sets display:flex, and a class selector beats the UA stylesheet's
+   [hidden]{display:none} — so the popover renders open until told otherwise.
+   The Artifact host supplies this rule in its own reset; a standalone deploy
+   does not, which is why this only appeared in production. */
+.menu[hidden]{display:none}
+.menu{
+  position:absolute; inset-block-start:calc(100% + var(--p-space-2)); inset-inline-start:0;
+  z-index:30; min-inline-size:19rem; padding:var(--p-space-2);
+  background:var(--surface-raised); border:1px solid var(--border-subtle);
+  border-radius:var(--radius-lg); box-shadow:var(--elevation-2);
+  display:flex; flex-direction:column; gap:1px;
+}
+.menu-label{
+  padding:var(--p-space-2) var(--p-space-3) var(--p-space-1);
+  font-size:var(--p-size-0); text-transform:uppercase;
+  letter-spacing:var(--p-tracking-wide); color:var(--ink-muted);
+}
+.menu-item{
+  display:flex; align-items:center; gap:var(--p-space-3); text-align:start;
+  padding:var(--p-space-2) var(--p-space-3); border-radius:var(--radius-md);
+  font-size:var(--p-size-2); transition:background var(--motion-fast);
+}
+.menu-item:hover:not(:disabled){background:var(--surface-sunken)}
+.menu-item:disabled{opacity:.5; cursor:default}
+.menu-item .grow{flex:1; min-inline-size:0}
+.menu-item .sub{display:block; font-size:var(--p-size-0); color:var(--ink-muted)}
+.menu-item .tick{color:var(--accent-base)}
+.menu-sep{block-size:1px; background:var(--border-subtle); margin:var(--p-space-2) 0}
+
 .picker{display:inline-flex; align-items:center; gap:var(--p-space-2)}
 .picker select{
   inline-size:auto; padding:var(--p-space-1) var(--p-space-2);
@@ -472,6 +511,12 @@ a.link:hover{text-decoration:underline}
   <header class="topbar">
     <div class="topbar-in">
       <button class="wordmark" id="home" title="Library"><span class="glyph"></span><span>Throughline</span></button>
+      <div class="switch-wrap">
+        <button class="switcher" id="btn-model" aria-haspopup="true" aria-expanded="false">
+          <span class="dot" id="model-dot"></span><span id="model-name">…</span><span class="chev">▾</span>
+        </button>
+        <div class="menu" id="model-menu" hidden></div>
+      </div>
       <span class="spacer"></span>
       <button class="ghost" id="btn-brand">Brand</button>
       <button class="ghost" id="btn-locale">Language</button>
@@ -979,6 +1024,10 @@ async function downloadBuiltIn(onProgress){
   }});
   session.destroy?.();
   await probeBuiltIn();
+  /* On-device is the default when it is genuinely ready: free, no key, and
+     nothing leaves the machine. Otherwise Auto, which falls back to the
+     scripted demo so the library is never gated behind setup. */
+  if (isConnected('chrome')) S.provider = 'chrome';
 }
 
 const isConnected = id => {
@@ -1744,11 +1793,79 @@ function wireSheet(el){
   });
 }
 
+/* ── Universal model switcher ───────────────────────────────────────────
+   Always visible, one click from anywhere. Shows what is actually in use
+   rather than making you go find out. */
+const READY_LABEL = () => {
+  if (S.provider === 'auto') return 'Auto';
+  return PROVIDERS[S.provider]?.label ?? 'Auto';
+};
+
+function statusOf(id){
+  if (isConnected(id)) return {cls:'ok', txt:'ready'};
+  if (id === 'chrome'){
+    if (S.builtin === 'downloadable') return {cls:'warn', txt:'one download, then free forever'};
+    if (S.builtin === 'downloading')  return {cls:'warn', txt:`downloading${S.dl!=null?` ${S.dl}%`:'…'}`};
+    return {cls:'off', txt:'not available in this browser'};
+  }
+  if (PROVIDERS[id].reach === 'blocked') return {cls:'off', txt:'desktop build only'};
+  if (PROVIDERS[id].key === 'free')  return {cls:'off', txt:'add a free key'};
+  if (PROVIDERS[id].key === 'paid')  return {cls:'off', txt:'add a key'};
+  return {cls:'off', txt:'not connected'};
+}
+
+function renderSwitcher(){
+  const dot = $('#model-dot'), name = $('#model-name');
+  const active = S.provider === 'auto' ? autoPick({requires:'reasoning'}) : S.provider;
+  dot.className = 'dot ' + (isConnected(active) ? 'ok' : 'warn');
+  name.textContent = S.provider === 'auto' ? `Auto — ${PROVIDERS[active].label}` : PROVIDERS[active].label;
+
+  const menu = $('#model-menu');
+  const row = (id, label, sub, sel, dis) => `
+    <button class="menu-item" data-pick="${id}" ${dis?'disabled':''}>
+      <span class="dot ${sub.cls}"></span>
+      <span class="grow">${esc(label)}<span class="sub">${esc(sub.txt)}</span></span>
+      ${sel?'<span class="tick">✓</span>':''}
+    </button>`;
+
+  const order = ['chrome','demo','ollama','google','groq','openrouter','anthropic','openai'];
+  menu.innerHTML =
+    `<div class="menu-label">Use for every cell</div>` +
+    row('auto', 'Auto', {cls: 'ok', txt: 'best connected model per cell'}, S.provider==='auto', false) +
+    `<div class="menu-sep"></div>` +
+    order.map(id => row(id, PROVIDERS[id].label, statusOf(id),
+                        S.provider===id, !isConnected(id))).join('') +
+    (S.builtin === 'downloadable'
+      ? `<div class="menu-sep"></div><button class="menu-item" id="menu-dl">
+           <span class="dot warn"></span><span class="grow">Download the on-device model
+           <span class="sub">A few GB, once. Then free, offline, no key, forever.</span></span></button>`
+      : '') +
+    `<div class="menu-sep"></div>
+     <button class="menu-item" id="menu-connect"><span class="dot off"></span>
+       <span class="grow">Connect a key…<span class="sub">Free options available</span></span></button>`;
+
+  menu.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => {
+    S.provider = b.dataset.pick; S.cellProvider = {}; closeMenu(); render();
+  });
+  const dl = menu.querySelector('#menu-dl');
+  if (dl) dl.onclick = async () => {
+    closeMenu();
+    try { await downloadBuiltIn((l,t)=>{ S.dl = t ? Math.round(l/t*100) : null; renderSwitcher(); }); }
+    catch(e){ S.tests.chrome = {ok:false, msg:e.message}; S.builtin='unavailable'; }
+    S.dl = null;
+    if (isConnected('chrome')) S.provider = 'chrome';
+    render();
+  };
+  menu.querySelector('#menu-connect').onclick = () => { closeMenu(); S.sheet='settings'; renderSheet(); };
+}
+const closeMenu = () => { const m=$('#model-menu'); m.hidden=true; $('#btn-model').setAttribute('aria-expanded','false'); };
+
 /* ── Boot ───────────────────────────────────────────────────────────── */
 function render(){
   const focus = document.activeElement?.id;
   const scroll = window.scrollY;
   S.view === 'library' ? renderLibrary() : renderNotebook();
+  renderSwitcher();
   if (focus === 'nb-input'){
     const ta = $('#nb-input');
     if (ta){ const end = ta.value.length; ta.focus(); ta.setSelectionRange(end,end); }
@@ -1756,6 +1873,17 @@ function render(){
   window.scrollTo(0, scroll);
 }
 
+$('#btn-model').onclick = e => {
+  e.stopPropagation();
+  const m = $('#model-menu');
+  m.hidden = !m.hidden;
+  $('#btn-model').setAttribute('aria-expanded', String(!m.hidden));
+  if (!m.hidden) renderSwitcher();
+};
+addEventListener('click', e => {
+  const m = $('#model-menu');
+  if (!m.hidden && !e.target.closest('.switch-wrap')) closeMenu();
+});
 $('#home').onclick = () => { S.view='library'; S.nbId=null; render(); window.scrollTo(0,0); };
 $('#btn-brand').onclick = () => { S.sheet = S.sheet==='brand'?null:'brand'; renderSheet(); };
 $('#btn-locale').onclick = () => { S.sheet = S.sheet==='locale'?null:'locale'; renderSheet(); };
@@ -1772,6 +1900,10 @@ addEventListener('keydown', e => { if (e.key==='Escape' && S.sheet){ S.sheet=nul
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     if (!manual && !document.documentElement.dataset.theme){ S.mode = resolveMode(); applyTheme(); } });
   await probeBuiltIn();
+  /* On-device is the default when it is genuinely ready: free, no key, and
+     nothing leaves the machine. Otherwise Auto, which falls back to the
+     scripted demo so the library is never gated behind setup. */
+  if (isConnected('chrome')) S.provider = 'chrome';
   try { const a = IdbAdapter(); await a.init(); S.storage = a; }
   catch { S.storage = MemoryAdapter(); }
   applyTheme(); render();
