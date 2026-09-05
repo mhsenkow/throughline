@@ -281,6 +281,64 @@ input,textarea,select{font:inherit;color:inherit}
 .feature-aside p{font-size:var(--p-size-2); margin-block-start:var(--p-space-2)}
 .feature-aside b{color:var(--ink-primary)}
 
+/* ── Browse ──────────────────────────────────────────────────────────── */
+.browse{display:flex; flex-direction:column; gap:var(--p-space-4)}
+.filter-bar{
+  display:flex; align-items:flex-end; gap:var(--p-space-3); flex-wrap:wrap;
+  position:sticky; inset-block-start:0; z-index:6;
+  padding-block:var(--p-space-3); margin-block-start:calc(var(--p-space-2) * -1);
+  background:var(--surface-sunken);
+}
+.search{flex:1; min-inline-size:14rem}
+.search input{inline-size:100%}
+.sort{display:flex; flex-direction:column; gap:var(--p-space-1)}
+.sort select{inline-size:auto; min-inline-size:9rem}
+
+.facet{display:flex; align-items:baseline; gap:var(--p-space-3); flex-wrap:wrap}
+.facet-label{
+  flex:none; inline-size:4rem; font-size:var(--p-size-0); text-transform:uppercase;
+  letter-spacing:var(--p-tracking-wide); color:var(--ink-muted);
+}
+.chips{display:flex; gap:var(--p-space-2); flex-wrap:wrap; flex:1}
+.chip-btn{
+  display:inline-flex; align-items:center; gap:var(--p-space-2);
+  padding:var(--p-space-1) var(--p-space-3); border-radius:var(--radius-pill);
+  font-size:var(--p-size-1); color:var(--ink-secondary);
+  box-shadow:inset 0 0 0 1px var(--border-subtle);
+  transition:box-shadow var(--motion-fast), color var(--motion-fast), background var(--motion-fast);
+}
+.chip-btn:hover{box-shadow:inset 0 0 0 1px var(--border-strong); color:var(--ink-primary)}
+.chip-btn[aria-pressed="true"]{
+  background:var(--accent-base); color:var(--accent-ink);
+  box-shadow:inset 0 0 0 1px var(--accent-base);
+}
+.chip-btn .gl{font-size:var(--p-size-2); opacity:.8}
+.chip-btn .ct{font-size:var(--p-size-0); opacity:.6; font-variant-numeric:tabular-nums}
+.result-count{
+  margin:0; font-size:var(--p-size-1); color:var(--ink-muted);
+  font-variant-numeric:tabular-nums;
+}
+.card .eyebrow .gl{margin-inline-end:var(--p-space-2); opacity:.7}
+.empty-outs{display:flex; gap:var(--p-space-2); flex-wrap:wrap; justify-content:center}
+.empty{
+  padding:var(--p-space-7) var(--p-space-5); text-align:center;
+  display:flex; flex-direction:column; align-items:center; gap:var(--p-space-4);
+  color:var(--ink-muted);
+}
+
+/* Stagger, capped. A 40-card grid animating in sequence is a loading screen;
+   the cap keeps the last card under a quarter second. */
+@media (prefers-reduced-motion:no-preference){
+  .shelf .card{
+    animation:cardIn var(--motion-base) both;
+    animation-delay:calc(var(--i, 0) * 9ms);
+  }
+  @keyframes cardIn{
+    from{opacity:0; transform:translateY(6px)}
+    to{opacity:1; transform:none}
+  }
+}
+
 .collection{margin-block-end:var(--p-space-7)}
 .collection-head{
   display:flex; align-items:baseline; gap:var(--p-space-4);
@@ -722,6 +780,36 @@ pre.raw{
   color:var(--ink-secondary); white-space:pre-wrap; word-break:break-word;
   max-block-size:11rem; overflow:auto;
 }
+.cell-edit{
+  padding:var(--p-space-3) var(--p-space-6);
+  padding-inline-start:calc(var(--p-space-6) + var(--p-space-6));
+  background:var(--surface-sunken);
+  border-block-start:1px dashed var(--border-subtle);
+  display:flex; flex-direction:column; gap:var(--p-space-3);
+}
+.edit-row{display:flex; align-items:center; gap:var(--p-space-3); flex-wrap:wrap}
+.field-inline{display:flex; align-items:center; gap:var(--p-space-2)}
+.field-inline select{inline-size:auto; padding:var(--p-space-1) var(--p-space-2); font-size:var(--p-size-1)}
+.edit-prompt > summary{
+  cursor:pointer; font-size:var(--p-size-1); color:var(--ink-secondary);
+  list-style:none; padding-block:var(--p-space-1);
+}
+.edit-prompt > summary::-webkit-details-marker{display:none}
+.edit-prompt > summary::before{content:'▸ '; font-size:var(--p-size-0)}
+.edit-prompt[open] > summary::before{content:'▾ '}
+.edit-prompt textarea{font-family:var(--font-mono); font-size:var(--p-size-1); margin-block-start:var(--p-space-2)}
+.edit-prompt .hint{font-size:var(--p-size-1); color:var(--ink-muted); margin-block:var(--p-space-2) 0}
+.cell.off{opacity:.55}
+.cell.off .cell-head{padding-block:var(--p-space-3)}
+.pip.off{opacity:.4}
+.pip.off .lbl{text-decoration:line-through}
+.btn.seg.on{background:var(--accent-wash); color:var(--accent-base)}
+.forked{
+  display:flex; align-items:center; gap:var(--p-space-2); flex-wrap:wrap;
+  margin-block-start:var(--p-space-3); font-size:var(--p-size-2); color:var(--ink-secondary);
+}
+.linkbtn{color:var(--accent-base); text-decoration:underline; font-size:inherit}
+
 .mark{
   padding:var(--p-space-5) var(--p-space-6);
   border-block-start:1px solid var(--border-subtle);
@@ -881,7 +969,37 @@ table.out-table{min-inline-size:32rem}
 @media (max-width:640px){
   .shell{padding:var(--p-space-5) var(--p-space-4) var(--p-space-7)}
   .topbar-in{padding:var(--p-space-3) var(--p-space-4)}
-  .mark{padding:var(--p-space-4)}
+  .cell-edit{
+  padding:var(--p-space-3) var(--p-space-6);
+  padding-inline-start:calc(var(--p-space-6) + var(--p-space-6));
+  background:var(--surface-sunken);
+  border-block-start:1px dashed var(--border-subtle);
+  display:flex; flex-direction:column; gap:var(--p-space-3);
+}
+.edit-row{display:flex; align-items:center; gap:var(--p-space-3); flex-wrap:wrap}
+.field-inline{display:flex; align-items:center; gap:var(--p-space-2)}
+.field-inline select{inline-size:auto; padding:var(--p-space-1) var(--p-space-2); font-size:var(--p-size-1)}
+.edit-prompt > summary{
+  cursor:pointer; font-size:var(--p-size-1); color:var(--ink-secondary);
+  list-style:none; padding-block:var(--p-space-1);
+}
+.edit-prompt > summary::-webkit-details-marker{display:none}
+.edit-prompt > summary::before{content:'▸ '; font-size:var(--p-size-0)}
+.edit-prompt[open] > summary::before{content:'▾ '}
+.edit-prompt textarea{font-family:var(--font-mono); font-size:var(--p-size-1); margin-block-start:var(--p-space-2)}
+.edit-prompt .hint{font-size:var(--p-size-1); color:var(--ink-muted); margin-block:var(--p-space-2) 0}
+.cell.off{opacity:.55}
+.cell.off .cell-head{padding-block:var(--p-space-3)}
+.pip.off{opacity:.4}
+.pip.off .lbl{text-decoration:line-through}
+.btn.seg.on{background:var(--accent-wash); color:var(--accent-base)}
+.forked{
+  display:flex; align-items:center; gap:var(--p-space-2); flex-wrap:wrap;
+  margin-block-start:var(--p-space-3); font-size:var(--p-size-2); color:var(--ink-secondary);
+}
+.linkbtn{color:var(--accent-base); text-decoration:underline; font-size:inherit}
+
+.mark{padding:var(--p-space-4)}
   .cell-head{padding:var(--p-space-4) var(--p-space-4) var(--p-space-2)}
   .cell-body,.cell-foot{padding-inline:var(--p-space-4)}
   .cell-body,.cell-foot{padding-inline-start:var(--p-space-4)}
@@ -929,6 +1047,11 @@ table.out-table{min-inline-size:32rem}
   .swatch{flex:1 1 8rem}
   .cap-list{grid-template-columns:1fr}
   .feature{grid-template-columns:1fr; gap:var(--p-space-4); padding:var(--p-space-4)}
+  .facet{gap:var(--p-space-2)}
+  .facet-label{inline-size:100%}
+  .filter-bar{gap:var(--p-space-2)}
+  .sort{flex:1}
+  .sort select{inline-size:100%}
   .feature-aside{padding-inline-start:0; border-inline-start:0;
     padding-block-start:var(--p-space-4); border-block-start:1px solid var(--border-subtle)}
   .desktop-strip{padding:var(--p-space-4)}
@@ -1317,7 +1440,7 @@ const t = (k, vars) => {
 
 const NOTEBOOKS = [
 {
-  id:'interrogate-decision', schemaVersion:'1.0.0', collection:'judgment',
+  id:'interrogate-decision', schemaVersion:'1.0.0', realm:'business', concept:'critique', collection:'judgment',
   title:'Interrogate a Decision',
   blurb:'Takes a decision you have already half-made and finds the assumptions you did not know you were making — then tells you what evidence would change your mind.',
   teaches:'Assumption archaeology', tags:['reasoning','judgment'], capability:'reasoning',
@@ -1366,7 +1489,7 @@ const NOTEBOOKS = [
   ]
 },
 {
-  id:'meeting-commitments', schemaVersion:'1.0.0', collection:'work',
+  id:'meeting-commitments', schemaVersion:'1.0.0', realm:'business', concept:'extract', collection:'work',
   title:'Meeting Notes → Commitments',
   blurb:'Separates what was actually decided from what was merely discussed, then finds every commitment nobody owns. The orphans are the point.',
   teaches:'Extraction with a judgment layer', tags:['work','extraction'], capability:'fast',
@@ -1410,7 +1533,7 @@ const NOTEBOOKS = [
   ]
 },
 {
-  id:'find-the-hole', schemaVersion:'1.0.0', collection:'judgment',
+  id:'find-the-hole', schemaVersion:'1.0.0', realm:'business', concept:'plan', collection:'judgment',
   title:'Find the Hole in This Plan',
   blurb:'Reads a plan for its dependency structure rather than its content, then names the failure that is both most likely and least watched.',
   teaches:'Structural critique', tags:['planning','risk'], capability:'reasoning',
@@ -1455,7 +1578,7 @@ const NOTEBOOKS = [
   ]
 },
 {
-  id:'five-audiences', schemaVersion:'1.0.0', collection:'communication',
+  id:'five-audiences', schemaVersion:'1.0.0', realm:'business', concept:'translate', collection:'communication',
   title:'One Idea, Five Audiences',
   blurb:'Renders the same concept for five different readers, then shows you which version you could not write — because that is where your own understanding is thin.',
   teaches:'Range, and self-diagnosis', tags:['communication'], capability:'fast',
@@ -1486,7 +1609,7 @@ const NOTEBOOKS = [
   ]
 },
 {
-  id:'steelman', schemaVersion:'1.0.0', collection:'judgment',
+  id:'steelman', schemaVersion:'1.0.0', realm:'business', concept:'critique', collection:'judgment',
   title:'Steelman Yourself',
   blurb:'Builds the strongest possible case against a position you hold, finds where the other side is genuinely right, and scores how much of your view survives.',
   teaches:'Adversarial self-review', tags:['reasoning','judgment'], capability:'reasoning',
@@ -1521,7 +1644,7 @@ const NOTEBOOKS = [
 }
 ,
 {
-  id:'until-it-holds', schemaVersion:'1.1.0', collection:'judgment', featured:true,
+  id:'until-it-holds', schemaVersion:'1.1.0', realm:'business', concept:'critique', collection:'judgment', featured:true,
   title:'Revise Until It Holds',
   blurb:'Attacks your claim, and if it does not survive, sends the run back to restate it — up to three times. The notebook loops until the claim stops falling over.',
   teaches:'Recursion — the notebook decides to try again', tags:['reasoning','loop'], capability:'reasoning',
@@ -1565,7 +1688,7 @@ const NOTEBOOKS = [
   ]
 },
 {
-  id:'pre-mortem', schemaVersion:'1.0.0', collection:'judgment',
+  id:'pre-mortem', schemaVersion:'1.0.0', realm:'business', concept:'plan', collection:'judgment',
   title:'Pre-Mortem',
   blurb:'Assumes the thing already failed, eighteen months from now, and works backwards to find out why. Reliably surfaces risks a forward-looking review misses.',
   teaches:'Prospective hindsight', tags:['planning','risk'], capability:'reasoning',
@@ -1605,7 +1728,7 @@ const NOTEBOOKS = [
   ]
 },
 {
-  id:'ambiguity-report', schemaVersion:'1.0.0', collection:'work',
+  id:'ambiguity-report', schemaVersion:'1.0.0', realm:'tech', concept:'extract', collection:'work',
   title:'Spec → Ambiguity Report',
   blurb:'Finds every sentence two competent people would implement differently. The disagreements you find now are the ones you do not find in review.',
   teaches:'Reading for divergence', tags:['work','specs'], capability:'reasoning',
@@ -1640,7 +1763,7 @@ const NOTEBOOKS = [
   ]
 },
 {
-  id:'feedback-patterns', schemaVersion:'1.0.0', collection:'analysis',
+  id:'feedback-patterns', schemaVersion:'1.0.0', realm:'business', concept:'extract', collection:'analysis',
   title:'Feedback → Patterns',
   blurb:'Turns a pile of comments into themes, separates the signal from the loudest voice, and names what to deliberately ignore.',
   teaches:'Synthesis with a discard pile', tags:['analysis','research'], capability:'reasoning',
@@ -1676,7 +1799,7 @@ const NOTEBOOKS = [
   ]
 },
 {
-  id:'difficult-message', schemaVersion:'1.0.0', collection:'communication',
+  id:'difficult-message', schemaVersion:'1.0.0', realm:'business', concept:'translate', collection:'communication',
   title:'The Difficult Message',
   blurb:'Drafts something hard to say, then reads it back as the person receiving it on their worst day — and shows you which sentence does the damage.',
   teaches:'Adversarial reading of your own words', tags:['communication'], capability:'reasoning',
@@ -1711,7 +1834,417 @@ const NOTEBOOKS = [
     prompt:'State plainly what remains painful regardless of wording, and what the sender should accept rather than keep editing. Respond in {{locale.outputLanguage}}.\n\n{{revision}}\n\n{{worstRead}}',
     demo:()=>'They are losing income they were counting on, and no arrangement of sentences changes that. The revision removes the readings that would have added insult, which is the entire available win. It does not make the message good news and you should stop trying to.\n\nOne thing genuinely improved and it was not the wording: "I will write the reference this month rather than waiting to be asked" is a commitment with a date. The original offered to be a reference, which is what everyone says. This one can be checked.\n\nThe thing to accept: they may respond badly, and that will not mean you wrote it wrong. Two years of work ending is worth a bad reaction. Send it, then be available.' }
   ]
-}
+},
+{ id:'flaky-test', realm:'tech', concept:'diagnose', title:'Why This Test Is Flaky',
+  blurb:'Separates the four reasons a test fails intermittently, then tells you which one you have.',
+  teaches:'Differential diagnosis', tags:['testing','debugging'], capability:'reasoning',
+  input:{ id:'test', label:'The test, and what you have observed',
+    placeholder:'Paste the test or describe it. Include how often it fails.',
+    seed:'An integration test for checkout fails maybe 1 in 15 runs in CI, never locally. It asserts the order total after a discount is applied. Started about three weeks ago.' },
+  cells:[
+  { id:'class', title:'Which kind of flake', intent:'There are only a few. Naming yours narrows the search enormously.',
+    inputs:['input.test'], output:{name:'kind',type:'table'}, requires:'reasoning',
+    prompt:'Classify this flake against the standard causes — timing/async, shared state, ordering, environment, real intermittent bug. Score each. Table: Cause, Fits?, Why. Respond in {{locale.outputLanguage}}.\n\n{{input.test}}',
+    demo:()=>({cols:['Cause','Fits?','Why'],rows:[
+      ['Shared state between tests','Likely','Passes alone, fails in CI where tests run together. Discounts are usually global config.'],
+      ['Timing / async','Possible','Checkout is multi-step; an unawaited write would produce exactly this rate.'],
+      ['Test ordering','Likely','Same evidence as shared state, and CI probably randomises order.'],
+      ['Environment','Unlikely','Would fail far more than 1 in 15, and would not have started three weeks ago.'],
+      ['A real intermittent bug','Do not rule out','1 in 15 in checkout is a customer-facing rate. This is the expensive branch.']]}) },
+  { id:'discriminate', title:'The experiment that separates them', intent:'One change that gives a different answer per cause.',
+    inputs:['kind'], output:{name:'exp',type:'list'}, requires:'reasoning',
+    prompt:'Give experiments that discriminate between the remaining causes — each must produce a different result depending on which is true. Respond in {{locale.outputLanguage}}.\n\n{{kind}}',
+    demo:()=>['**Run the test 200 times alone, in a loop.** Fails: not shared state. Passes: it is the neighbours.',
+      '**Pin the seed so CI runs tests in the same order every time.** If the flake becomes deterministic, it is ordering.',
+      '**Log the discount config at assertion time, not setup time.** If it differs on failures, another test is mutating it.',
+      '**Check what changed three weeks ago.** A flake with a start date has a commit. This is the cheapest step and the one most often skipped.'] },
+  { id:'fix', title:'Fix versus suppress', intent:'Retry annotations are a decision. This makes it an explicit one.',
+    inputs:['kind','exp'], output:{name:'fix',type:'prose'}, requires:'reasoning',
+    prompt:'Say what to fix and what it would mean to merely retry it. Take a position. Respond in {{locale.outputLanguage}}.\n\n{{kind}}\n\n{{exp}}',
+    demo:()=>'Do not add a retry. Not because retries are always wrong, but because this test asserts a money value in checkout — the one place where an intermittent failure might be reporting a real intermittent bug rather than a test defect.\n\nIf the loop-200-times run passes, it is shared state and the fix is isolation: build discount config per test rather than mutating a shared object. That is an afternoon and it fixes every other test that will hit this later.\n\nIf it fails alone, you have a race in checkout that customers hit at some rate you have not measured. Retrying would hide it, and that is the outcome worth avoiding.' }]},
+
+{ id:'error-message', realm:'tech', concept:'critique', title:'Rewrite This Error Message',
+  blurb:'Judges an error against the only three things an error owes the reader, then rewrites it.',
+  teaches:'Writing for the worst moment', tags:['ux','writing'], capability:'fast',
+  input:{ id:'err', label:'The error message', placeholder:'Paste it exactly.',
+    seed:'Error: Something went wrong. Please try again later. (code: ERR_UNSPECIFIED_500)' },
+  cells:[
+  { id:'audit', title:'What it owes', intent:'What happened, why, and what to do. Most errors deliver one.',
+    inputs:['input.err'], output:{name:'audit',type:'table'}, requires:'fast',
+    prompt:'Score this error on: says what happened, says why, says what to do next. Table: Obligation, Met?, Evidence. Respond in {{locale.outputLanguage}}.\n\n{{input.err}}',
+    demo:()=>({cols:['Obligation','Met?','Evidence'],rows:[
+      ['Says what happened','No','"Something went wrong" names nothing.'],
+      ['Says why','No','A 500 code is our failure, and the message implies the user caused it.'],
+      ['Says what to do','Partly','"Try again later" is advice only if retrying could work — and nothing says it could.'],
+      ['Is honest about fault','No','The passive voice puts an internal failure on the reader.']]}) },
+  { id:'variants', title:'Three rewrites', intent:'One per plausible underlying cause, because a generic error is a refusal to find out.',
+    inputs:['audit','input.err'], output:{name:'variants',type:'table'}, requires:'fast',
+    prompt:'Write three replacements, each for a different plausible cause, each stating what happened and what to do. Table: If the cause is, Message. Respond in {{locale.outputLanguage}}.\n\n{{audit}}\n\n{{input.err}}',
+    demo:()=>({cols:['If the cause is','Message'],rows:[
+      ['A timeout downstream','We could not reach the payment service. Nothing was charged. Try again in a minute — if it keeps failing, this is on us and support has the reference EX-4821.'],
+      ['Bad input we failed to validate','The card expiry date is not a real date. Check the month and year and try again.'],
+      ['A genuine unknown','Something failed on our side and we do not yet know what. Nothing was charged. We have logged it as EX-4821 — send that to support and they can see exactly what happened.']]}) },
+  { id:'rule', title:'The rule this suggests', intent:'One error is an instance. The pattern is what you fix.',
+    inputs:['variants'], output:{name:'rule',type:'prose'}, requires:'reasoning',
+    prompt:'State the general rule this rewrite implies for error messages in this product. Respond in {{locale.outputLanguage}}.\n\n{{variants}}',
+    demo:()=>'Every error carries a reference the user can hand to support, and every error says whether anything was charged or changed.\n\nThose two facts do more than any amount of tone work. The first turns a dead end into a route; the second answers the question the user is actually asking, which is never "what went wrong" but "am I now in trouble."\n\nThe generic fallback stays — you will always have unknowns — but it must be the third message, not the first. Reaching for it when you do know the cause is what made the original bad.' }]},
+
+{ id:'chord-intent', realm:'music', concept:'diagnose', title:'What This Progression Is Doing',
+  blurb:'Reads a chord progression for its function rather than its names, then tells you why the third bar feels wrong.',
+  teaches:'Function over labels', tags:['theory','writing'], capability:'reasoning',
+  input:{ id:'prog', label:'The progression, and where it feels off',
+    placeholder:'Chords in order. Key if you know it.',
+    seed:'Key of A minor. Am - F - C - E7 - Am. The E7 feels dramatic but the F before it feels like it arrives too early and kills the build.' },
+  cells:[
+  { id:'function', title:'Function, not names', intent:'What each chord does to tension, regardless of what it is called.',
+    inputs:['input.prog'], output:{name:'fn',type:'table'}, requires:'reasoning',
+    prompt:'Analyse each chord by harmonic function and its effect on tension. Table: Chord, Function, Tension. Respond in {{locale.outputLanguage}}.\n\n{{input.prog}}',
+    demo:()=>({cols:['Chord','Function','Tension'],rows:[
+      ['Am','Tonic — home','Zero. The reference everything else is heard against.'],
+      ['F','Submediant, VI — the soft departure','Low. Warm, unhurried, no pull.'],
+      ['C','Relative major, III','Lower still. This is the problem: it releases rather than builds.'],
+      ['E7','Dominant with a raised third — the strongest pull in the key','Maximum, and arriving from near-zero.'],
+      ['Am','Resolution','Release.']]}) },
+  { id:'why', title:'Why the third bar undoes you', intent:'The diagnosis is a shape, not a chord.',
+    inputs:['fn'], output:{name:'why',type:'prose'}, requires:'reasoning',
+    prompt:'Explain the tension shape and why it disappoints. Respond in {{locale.outputLanguage}}.\n\n{{fn}}',
+    demo:()=>'The tension curve is flat, flat, flatter, then a cliff. F and C are both consonant resting places, so bars two and three are the same emotional event twice — and C is actually more restful than F, so the progression relaxes just before it needs to be climbing.\n\nThe E7 then does all the work alone. That is why it reads as dramatic rather than earned: it has no ramp behind it. You are not hearing a build, you are hearing a jump-scare with a very pleasant three bars in front of it.' },
+  { id:'options', title:'Four ways out', intent:'Ordered by how much of the original survives.',
+    inputs:['why'], output:{name:'options',type:'list'}, requires:'reasoning',
+    prompt:'Give specific alternatives, ordered by how little they change. Name actual chords. Respond in {{locale.outputLanguage}}.\n\n{{why}}',
+    demo:()=>['**Swap C for Dm.** One chord. Dm is subdominant minor — it leans toward E7 instead of resting. The curve now climbs.',
+      '**Keep C but put it first: Am - C - F - E7.** Same chords, and now the motion is home → bright → warm → pull, which rises.',
+      '**Make the third bar F/G or Fmaj7.** Keeps the colour, adds instability so it stops being a landing.',
+      '**Delay the E7 by two beats and put Bdim in front of it.** Most change, biggest payoff — the diminished chord is a ramp, and it is the classical answer to exactly this problem.'] }]},
+
+{ id:'mix-notes', realm:'music', concept:'critique', title:'Translate the Mix Note',
+  blurb:'Turns "make it punchier" into an actual decision about frequency, dynamics, or arrangement.',
+  teaches:'Vague feedback into parameters', tags:['production','feedback'], capability:'reasoning',
+  input:{ id:'note', label:'The note you were given', placeholder:'In their words, not yours.',
+    seed:'The client says the chorus "needs more energy" but also that it is "already too loud."' },
+  cells:[
+  { id:'decode', title:'What they might mean', intent:'Contradictory notes usually name a real problem badly.',
+    inputs:['input.note'], output:{name:'decode',type:'list'}, requires:'reasoning',
+    prompt:'List the plausible technical meanings behind this note, including why the contradiction may be consistent. Respond in {{locale.outputLanguage}}.\n\n{{input.note}}',
+    demo:()=>['**The chorus is loud but not louder than the verse.** Energy is relative; if the verse is already at the ceiling there is nowhere to go, and the mix reads as flat rather than quiet.',
+      '**It is dense, not energetic.** More elements playing at once reads as busier, not bigger, and busier is fatiguing — which is what "too loud" often means.',
+      '**The transient information is gone.** Heavy limiting removes attack. The result measures loud and feels soft, which is exactly this pair of complaints.',
+      '**Nothing changes at the chorus except level.** No new register, no new rhythm, no lift. The arrangement is the problem, not the mix.'] },
+  { id:'tests', title:'How to tell which', intent:'Each meaning has a two-minute check.',
+    inputs:['decode'], output:{name:'tests',type:'table'}, requires:'reasoning',
+    prompt:'For each meaning give a quick check and what result confirms it. Table: Meaning, Check, Confirms if. Respond in {{locale.outputLanguage}}.\n\n{{decode}}',
+    demo:()=>({cols:['Meaning','Check','Confirms if'],rows:[
+      ['No relative lift','Measure LUFS on verse vs chorus','Under 1 LU difference'],
+      ['Density, not energy','Mute two chorus-only parts','It feels bigger with less'],
+      ['Transients crushed','Bypass the limiter, match level','Attack returns and it reads louder at the same loudness'],
+      ['Arrangement is flat','Play verse into chorus with drums only','Nothing changes but volume']]}) },
+  { id:'reply', title:'What to say back', intent:'A reply that gets you a better note next time.',
+    inputs:['decode','tests'], output:{name:'reply',type:'markdown'}, requires:'fast',
+    prompt:'Draft a short reply that offers options rather than asking them to be more technical. Respond in {{locale.outputLanguage}}.\n\n{{decode}}\n\n{{tests}}',
+    demo:()=>'I think those two notes are the same note, and I think you are right.\n\nThe chorus is loud but it is not *louder* — it sits about the same level as the verse, so it never lifts. My instinct is to pull the verse down rather than push the chorus up, which should give you the energy without adding volume.\n\nI have made two versions:\n\n- **A** — verse down 1.5 dB, chorus untouched\n- **B** — same, plus the limiter eased so the drums get their attack back\n\nBoth are quieter overall and should feel bigger. If B is the one, we lose a little competitive loudness for a lot of punch, and I would take that trade — but tell me if you would not.' }]},
+{ id:'world-consistency', realm:'fantasy', concept:'critique', title:'Break Your Own World',
+  blurb:'Finds the rule your setting states and the scene that violates it — then decides which one to keep.',
+  teaches:'Internal consistency auditing', tags:['worldbuilding','fiction'], capability:'reasoning',
+  input:{ id:'world', label:'The rule, and roughly what happens', placeholder:'Magic system, tech level, political constraint — plus a scene or two.',
+    seed:'Magic requires a blood price: any working costs the caster physical vitality proportional to the effect. A healer can mend a wound but ages doing it. In act two my protagonist levels a city wall and is tired but fine by the next chapter.' },
+  cells:[
+  { id:'rules', title:'The rules you have actually set', intent:'Stated, implied, and the ones your scenes assume without saying.',
+    inputs:['input.world'], output:{name:'rules',type:'list'}, requires:'reasoning',
+    prompt:'Extract the rules this world has committed to — stated and implied. Respond in {{locale.outputLanguage}}.\n\n{{input.world}}',
+    demo:()=>['Stated: magic costs vitality in proportion to effect.','Stated: the cost is physical and visible — the healer ages.','Implied: cost is paid immediately, since ageing is described as happening during the working.','Implied: there is no external battery — the caster is the only fuel.','Assumed by act two: cost can be survived and recovered from at scales that should be lethal.'] },
+  { id:'break', title:'Where it breaks', intent:'The specific contradiction, named plainly.',
+    inputs:['rules','input.world'], output:{name:'break',type:'prose'}, requires:'reasoning',
+    prompt:'Identify the contradiction and say what a careful reader will conclude. Respond in {{locale.outputLanguage}}.\n\n{{rules}}\n\n{{input.world}}',
+    demo:()=>'A city wall is orders of magnitude past a mended wound. If a healed cut costs visible years, a levelled wall costs a lifetime — and your protagonist is fine in a chapter.\n\nWhat a careful reader concludes is not "the magic is inconsistent." It is that the cost is not real, which retroactively removes the tension from every earlier scene where it was. The healer ageing was the moment the reader agreed to take the system seriously; act two is the moment they stop.\n\nThis is the expensive kind of break, because it damages what you already spent.' },
+  { id:'choose', title:'Which do you keep', intent:'You cannot keep both. This is the decision, with the cost of each.',
+    inputs:['break'], output:{name:'choose',type:'table'}, requires:'reasoning',
+    prompt:'Give the ways to resolve it, with what each costs the story. Table: Resolution, What it costs, Best if. Respond in {{locale.outputLanguage}}.\n\n{{break}}',
+    demo:()=>({cols:['Resolution','What it costs','Best if'],rows:[
+      ['The wall nearly kills her; act three has her diminished','Rewrites your protagonist’s capability for the rest of the book','The cost is your theme — then this is not a cost, it is the point'],
+      ['She used an external source, established earlier','Requires planting it in act one, and weakens the "caster is the only fuel" rule','You want the set piece and can afford one exception with a name'],
+      ['The wall becomes something smaller — a gate, a section','Loses spectacle','The scene’s job is her resolve, not the scale'],
+      ['Cost scales with intent, not effect','Elegant, but rewrites the healer scene','You are early enough to change the system rather than the scene']]}) }]},
+
+{ id:'shot-list', realm:'photo', concept:'plan', title:'Shot List From an Intent',
+  blurb:'Turns "I want it to feel lonely" into a list of decisions about lens, light, distance and time.',
+  teaches:'Feeling into parameters', tags:['photography','planning'], capability:'reasoning',
+  input:{ id:'brief', label:'What you want it to feel like, and what you are shooting',
+    placeholder:'The feeling first. Constraints second.',
+    seed:'Portraits of a family running a bakery that is closing after 40 years. I want it to feel like the end of something without being sentimental. One morning, available light only.' },
+  cells:[
+  { id:'decisions', title:'The choices that carry the feeling', intent:'Each craft decision, and which way it leans for this brief.',
+    inputs:['input.brief'], output:{name:'dec',type:'table'}, requires:'reasoning',
+    prompt:'Map the feeling onto concrete craft decisions. Table: Decision, This brief wants, Why. Respond in {{locale.outputLanguage}}.\n\n{{input.brief}}',
+    demo:()=>({cols:['Decision','This brief wants','Why'],rows:[
+      ['Distance','Further than feels comfortable','Closeness reads as intimacy, which tips into sentiment. Space reads as ending.'],
+      ['Lens','Normal, 35–50mm','Wide dramatises, long flatters. Neither is honest here.'],
+      ['Light','Window light, unmodified, let shadows go','Fill light is a kindness that removes the subject'],
+      ['Moment','Between actions, not during','Working hands look like continuity. Pauses look like the last time.'],
+      ['Frame','Include the room','A portrait of people is about people. This is about a place losing them.'],
+      ['Colour','Whatever the room is','Grading it warm is the sentimentality you said you did not want']]}) },
+  { id:'shots', title:'The list', intent:'Specific enough to shoot without thinking.',
+    inputs:['dec','input.brief'], output:{name:'shots',type:'list'}, requires:'reasoning',
+    prompt:'Write a shootable list of specific frames. Respond in {{locale.outputLanguage}}.\n\n{{dec}}\n\n{{input.brief}}',
+    demo:()=>['**Wide, from the doorway, before anyone arrives.** Empty room, ovens off, window light only. This is the frame the whole set is measured against.',
+      '**Full-length of one person at the bench, mid-room.** Not working. Standing.',
+      '**Two of them talking, shot from the far side of the room, through the pass.** The barrier is the point.',
+      '**Hands, but idle** — on a bench, in a pocket. Working hands are the cliché.',
+      '**A wall detail with 40 years on it.** A rota, a burn mark, a taped note.',
+      '**The group, arranged, looking at camera, from far enough back that the room wins.** Take it early. It is the one they will want.',
+      '**The doorway again at the end of the morning.** Same frame, people in it. Pair with the first.'] },
+  { id:'avoid', title:'Shots not to take', intent:'Naming the clichés so you notice yourself reaching for them.',
+    inputs:['shots'], output:{name:'avoid',type:'list'}, requires:'reasoning',
+    prompt:'List the shots that would undercut this brief, and why they are tempting. Respond in {{locale.outputLanguage}}.\n\n{{shots}}',
+    demo:()=>['**Flour in the air, backlit.** Beautiful, and it is a photo about bread. You are not photographing bread.',
+      '**A single tear or a hand on a shoulder.** If it happens, it happens — but going looking for it is how you get sentiment.',
+      '**Tight close-up of a lined face.** Reads as reverence, which flattens a person into a symbol.',
+      '**The "closed" sign.** Too literal. The room already says it.'] }]},
+
+{ id:'tolerance-stack', realm:'making', concept:'diagnose', title:'Where the Tolerance Went',
+  blurb:'Stacks the errors in an assembly to find which single dimension is eating your fit.',
+  teaches:'Stack-up reasoning', tags:['engineering','quality'], capability:'reasoning',
+  input:{ id:'assembly', label:'The assembly and the symptom', placeholder:'Parts, nominal dimensions, tolerances, and what goes wrong.',
+    seed:'A three-part enclosure: base, gasket, lid. Bolts through all three. About one in eight units the lid will not seat flat and the gasket extrudes. Base flatness ±0.15, gasket thickness 2.0 ±0.1, lid flange ±0.1, bolt hole position ±0.2.' },
+  cells:[
+  { id:'stack', title:'The stack', intent:'Worst-case and statistical, because they disagree and the disagreement is informative.',
+    inputs:['input.assembly'], output:{name:'stack',type:'table'}, requires:'reasoning',
+    prompt:'Build the tolerance stack. Give each contributor, its range, and its share of the total. Table: Contributor, Range, Share. Respond in {{locale.outputLanguage}}.\n\n{{input.assembly}}',
+    demo:()=>({cols:['Contributor','Range','Share of worst case'],rows:[
+      ['Bolt hole position ±0.2','0.40 mm','36% — and it acts in-plane, not in the stack'],
+      ['Base flatness ±0.15','0.30 mm','27%'],
+      ['Gasket thickness ±0.1','0.20 mm','18%'],
+      ['Lid flange ±0.1','0.20 mm','18%'],
+      ['Worst case total','1.10 mm','Statistical (RSS) total is ~0.55 mm — half']]}) },
+  { id:'suspect', title:'The one that is not like the others', intent:'A stack tells you the size. This tells you the mechanism.',
+    inputs:['stack','input.assembly'], output:{name:'suspect',type:'prose'}, requires:'reasoning',
+    prompt:'Identify the most likely actual cause and explain why the failure rate is a clue. Respond in {{locale.outputLanguage}}.\n\n{{stack}}\n\n{{input.assembly}}',
+    demo:()=>'One in eight is the tell. A pure stack-up failure would be far rarer — worst case needs every contributor at its limit in the same direction, which at these tolerances is a fraction of a percent. One in eight means something is not random.\n\nBolt hole position is the suspect, and not because it is the biggest. It is the only contributor acting in-plane. If holes are off-position, the bolts pull the lid sideways as they tighten, and the gasket extrudes because it is being sheared rather than compressed. That produces a bimodal result — fine or clearly bad, no middle — which matches a 1-in-8 rate far better than a smooth distribution would.\n\nCheck whether failures cluster by fixture or by shift. If they do, it is position, and the fix is upstream of every tolerance on this list.' },
+  { id:'cheapest', title:'Cheapest effective change', intent:'Tightening everything is the expensive answer. This is the ordered one.',
+    inputs:['suspect','stack'], output:{name:'cheap',type:'list'}, requires:'reasoning',
+    prompt:'Give changes ordered by cost-to-benefit, including ones that cost nothing. Respond in {{locale.outputLanguage}}.\n\n{{suspect}}\n\n{{stack}}',
+    demo:()=>['**Clearance the lid holes by 0.5 mm.** Costs a drill change. Removes the in-plane constraint entirely and lets the gasket compress instead of shear.',
+      '**Specify a tightening sequence and torque.** Free. Cross-pattern tightening on an unsequenced assembly is a common cause of exactly this.',
+      '**Measure 30 units and plot the failures against fixture.** Costs an hour and tells you whether the above is right before you change anything.',
+      '**Tighten base flatness to ±0.08.** Real money, real machining time, and it addresses 27% of a stack that is probably not your problem. Last, not first.'] }]},
+
+{ id:'plant-diagnosis', realm:'garden', concept:'diagnose', title:'What Is Wrong With This Plant',
+  blurb:'Works from the pattern of damage rather than the plant, which is how you tell water from disease from pests.',
+  teaches:'Pattern-first diagnosis', tags:['gardening','plants'], capability:'reasoning',
+  input:{ id:'symptoms', label:'What you see, and where on the plant', placeholder:'Which leaves, what pattern, how fast, plus watering and light.',
+    seed:'Tomato in a raised bed. Lower leaves yellowing between the veins, working upward slowly over two weeks. Some brown spots with a yellow halo on the worst leaves. Watering daily, full sun, fed once at planting six weeks ago.' },
+  cells:[
+  { id:'pattern', title:'Read the pattern, not the plant', intent:'Where and in what order tells you more than what it looks like.',
+    inputs:['input.symptoms'], output:{name:'pattern',type:'table'}, requires:'reasoning',
+    prompt:'Analyse the distribution and progression of symptoms and what each pattern implies. Table: Observation, Implies, Rules out. Respond in {{locale.outputLanguage}}.\n\n{{input.symptoms}}',
+    demo:()=>({cols:['Observation','Implies','Rules out']  ,rows:[
+      ['Lower leaves first, moving up','A mobile nutrient being withdrawn from old growth to feed new','Most fungal issues start opportunistically, not bottom-up'],
+      ['Yellowing between veins, veins staying green','Magnesium or nitrogen — interveinal is classic Mg','Overwatering, which yellows whole leaves uniformly'],
+      ['Two weeks, slow','Deficiency, not infection','Blight, which moves in days'],
+      ['Brown spots with yellow halo','A secondary fungal issue on already-weakened tissue','Nothing — but it is likely a consequence, not the cause'],
+      ['Fed once, six weeks ago','Tomatoes in a bed are heavy feeders and that is long past','—']]}) },
+  { id:'ranked', title:'Most to least likely', intent:'With the confirming test for each.',
+    inputs:['pattern'], output:{name:'ranked',type:'list'}, requires:'reasoning',
+    prompt:'Rank causes by likelihood with a confirming check for each. Respond in {{locale.outputLanguage}}.\n\n{{pattern}}',
+    demo:()=>['**Magnesium deficiency — most likely.** Interveinal, bottom-up, slow, six weeks unfed. Confirm: Epsom salts foliar spray; new growth greens within a week if right.',
+      '**Nitrogen deficiency — close second, often alongside.** Confirm: yellowing is more uniform than interveinal on the oldest leaves.',
+      '**Early blight — secondary.** The halo spots fit, but blight starting bottom-up on stressed lower leaves is a passenger here, not the driver.',
+      '**Overwatering — worth checking, unlikely as stated.** Daily in a raised bed in full sun is usually fine, but check drainage. Root problems mimic deficiency because the roots cannot take nutrients up.'] },
+  { id:'do', title:'What to do this week', intent:'In order, with the one thing not to do.',
+    inputs:['ranked'], output:{name:'do',type:'list'}, requires:'fast',
+    prompt:'Give an ordered action list for this week, including what not to do. Respond in {{locale.outputLanguage}}.\n\n{{ranked}}',
+    demo:()=>['**Remove the spotted leaves and bin them, not compost.** Stops the secondary issue spreading while you fix the cause.',
+      '**Feed with a balanced tomato feed, and add Epsom salts** — a tablespoon in 4 litres, watered in. Both deficiencies covered without guessing between them.',
+      '**Mulch.** Splash from soil onto lower leaves is how the fungal spots got there.',
+      '**Then wait a week and look at NEW growth only.** Damaged leaves never recover, and judging by them will make you think the fix failed.',
+      '**Do not spray a fungicide yet.** The spots are a symptom of a hungry plant. Fix the feeding and they usually stop appearing.'] }]},
+{ id:'recipe-scale', realm:'food', concept:'diagnose', title:'Why Scaling Broke It',
+  blurb:'Finds which ingredient does not scale linearly — usually salt, leavening, or time.',
+  teaches:'Non-linear scaling', tags:['cooking','baking'], capability:'reasoning',
+  input:{ id:'recipe', label:'The recipe, the scale factor, and what went wrong',
+    seed:'Doubled a brownie recipe for a party. Same tin size doubled up to a bigger tin. Came out dense and slightly bitter, and the edges were overdone while the middle was raw.',
+    placeholder:'What you scaled and how it failed.' },
+  cells:[
+  { id:'nonlinear', title:'What does not scale', intent:'Most ingredients double. A few emphatically do not.',
+    inputs:['input.recipe'], output:{name:'nl',type:'table'}, requires:'reasoning',
+    prompt:'Identify what does not scale linearly here and why. Table: Element, Scales?, Consequence. Respond in {{locale.outputLanguage}}.\n\n{{input.recipe}}',
+    demo:()=>({cols:['Element','Scales?','Consequence'],rows:[
+      ['Flour, sugar, fat, eggs','Linear','Fine'],
+      ['Leavening (baking powder/soda)','Sub-linear','Doubled soda in a brownie gives a soapy bitterness and a cakey crumb — this is your bitter note'],
+      ['Salt','Roughly linear, but perception is not','Tastes stronger in a denser bake'],
+      ['Bake time','Not linear at all — governed by depth, not volume','A deeper tin needs longer at a LOWER temperature'],
+      ['Tin geometry','Depth is the variable that matters','Doubling volume in a deeper tin is the actual cause of raw middle and burnt edge']]}) },
+  { id:'cause', title:'The actual cause', intent:'One of these is doing most of the damage.',
+    inputs:['nl'], output:{name:'cause',type:'prose'}, requires:'reasoning',
+    prompt:'Name the dominant cause and explain the mechanism. Respond in {{locale.outputLanguage}}.\n\n{{nl}}',
+    demo:()=>'Depth, not quantity. Heat travels inward from every surface, so bake time scales with the *thickness* of the batter, not its volume. A tin that is twice the volume but also deeper needs substantially longer — and at a lower temperature, or the outside is finished long before the middle starts.\n\nThat single change produces both symptoms at once: burnt edges and raw centre are what happens when you give a thicker bake the same time and temperature as a thinner one.\n\nThe doubled leavening explains the bitterness separately, and the density is downstream of both — underbaked centre plus over-risen-then-collapsed crumb.' },
+  { id:'redo', title:'How to run it again', intent:'Specific numbers, not principles.',
+    inputs:['cause','nl'], output:{name:'redo',type:'list'}, requires:'fast',
+    prompt:'Give the corrected approach with specific numbers. Respond in {{locale.outputLanguage}}.\n\n{{cause}}\n\n{{nl}}',
+    demo:()=>['**Use two tins of the original size, not one bigger one.** Same depth, same time, same temperature. This is the whole fix and it costs nothing.',
+      '**If you must use one tin: drop the oven 15°C and add 10–15 minutes**, then test the centre rather than the timer.',
+      '**Scale leavening by about 1.5×, not 2×.** For most bakes this is close enough and avoids the soapy note.',
+      '**Scale salt fully.** It is not the problem, and under-salting a doubled bake is how you get flat-tasting brownies.',
+      '**Test with a skewer at the true centre and one third of the way in.** Two readings tell you whether it is depth or temperature.'] }]},
+
+{ id:'strength-plateau', realm:'health', concept:'diagnose', title:'Why the Progress Stopped',
+  blurb:'Separates the four reasons a training plateau happens, since three have opposite fixes to the fourth.',
+  teaches:'Opposite-fix diagnosis', tags:['training','fitness'], capability:'reasoning',
+  input:{ id:'plateau', label:'The lift, the history, and the rest of your life',
+    placeholder:'Include sleep and stress — they are usually the answer.',
+    seed:'Squat stuck at 120kg for seven weeks. Training four days a week, adding 2.5kg a session until it stopped. Sleeping about six hours. Work has been heavy since February. Bodyweight flat.' },
+  cells:[
+  { id:'four', title:'The four causes', intent:'They look identical from inside and have contradictory fixes.',
+    inputs:['input.plateau'], output:{name:'four',type:'table'}, requires:'reasoning',
+    prompt:'Assess against the standard plateau causes: under-recovery, under-eating, technique breakdown at load, and programme exhaustion. Table: Cause, Evidence for, Fix direction. Respond in {{locale.outputLanguage}}.\n\n{{input.plateau}}',
+    demo:()=>({cols:['Cause','Evidence for','Fix direction'],rows:[
+      ['Under-recovery','Six hours sleep, high work stress, four sessions a week','Do LESS'],
+      ['Under-eating','Bodyweight flat while training hard','Eat more'],
+      ['Technique breaking at load','Linear progression usually ends here','Reduce load, fix pattern'],
+      ['Programme exhausted','2.5kg a session cannot continue indefinitely for anyone','Change structure — this is normal and expected'],
+      ['—','Note that the first three all say "back off" and the fourth says "change"','They are not the same instruction']]}) },
+  { id:'likely', title:'Which one is yours', intent:'The evidence usually points somewhere unwelcome.',
+    inputs:['four'], output:{name:'likely',type:'prose'}, requires:'reasoning',
+    prompt:'Say which cause dominates and be direct about it. Respond in {{locale.outputLanguage}}.\n\n{{four}}',
+    demo:()=>'Sleep. Six hours with elevated work stress is the answer, and everything else here is a passenger.\n\nLinear progression ending at seven weeks is completely normal and would have happened anyway — but it ends *earlier* and *harder* when recovery is short. Flat bodyweight while training four days a week says you are also eating at maintenance, which compounds it.\n\nThe unwelcome part: no programme change fixes this. You can restructure the training and you will get another few weeks, then stall again lower. The variable that is actually limiting you is not in the gym.' },
+  { id:'plan', title:'What to change, in order', intent:'Ordered by effect, which is not the same as ordered by appeal.',
+    inputs:['likely','four'], output:{name:'plan',type:'list'}, requires:'reasoning',
+    prompt:'Give an ordered plan, honest about which parts are unpopular. Respond in {{locale.outputLanguage}}.\n\n{{likely}}\n\n{{four}}',
+    demo:()=>['**Sleep, for two weeks, before changing anything else.** Seven and a half hours minimum. If the squat moves on that alone, you have your answer and you saved yourself a programme rewrite.',
+      '**Drop to three sessions.** Counterintuitive and correct. Four sessions on six hours sleep is four sessions of accumulating fatigue.',
+      '**Eat 200–300 kcal above maintenance.** Flat weight while progressing is only sustainable early.',
+      '**Then, and only then, change the programme.** Stop adding 2.5kg a session; move to weekly progression or a wave. This is the fun part and it is fourth for a reason.',
+      '**Film a set at 110kg.** Cheap, and rules out technique in one video.'] }]},
+
+{ id:'concept-check', realm:'learning', concept:'teach', title:'Find the Hole in What You Know',
+  blurb:'Asks you to explain something, then locates the exact sentence where your understanding stops.',
+  teaches:'Self-locating ignorance', tags:['learning','study'], capability:'reasoning',
+  input:{ id:'explain', label:'Explain something you think you understand',
+    placeholder:'Write it as if to a colleague. Do not look anything up.',
+    seed:'A database index makes queries faster because it stores a sorted copy of the column, so the database can jump straight to the row instead of scanning the whole table.' },
+  cells:[
+  { id:'solid', title:'What you actually have', intent:'The parts that are correct, stated back precisely.',
+    inputs:['input.explain'], output:{name:'solid',type:'list'}, requires:'reasoning',
+    prompt:'List what is correct in this explanation. Be specific and generous. Respond in {{locale.outputLanguage}}.\n\n{{input.explain}}',
+    demo:()=>['Correct: an index is a separate structure, not a property of the table.','Correct: it is ordered, and the ordering is what enables the speedup.','Correct: the alternative is a scan, and avoiding the scan is the point.','Correct in effect: lookups become roughly logarithmic rather than linear.'] },
+  { id:'edge', title:'The edge of it', intent:'The precise sentence where the explanation stops being load-bearing.',
+    inputs:['input.explain','solid'], output:{name:'edge',type:'prose'}, requires:'reasoning',
+    prompt:'Identify exactly where the understanding runs out, and what question would expose it. Respond in {{locale.outputLanguage}}.\n\n{{input.explain}}\n\n{{solid}}',
+    demo:()=>'"Jump straight to the row" is where it stops.\n\nThe explanation knows the index is sorted and knows that helps, but it does not say *how* sorted data is searched — which means it cannot answer why an index on a low-cardinality column (a boolean, say) is often useless, or why range queries behave differently from equality ones, or why the query planner sometimes ignores an index you built.\n\nThe question that exposes it: **why is an index on a column with two possible values usually worse than no index at all?** If the answer is "because it still has to jump," the model is a lookup table rather than a tree, and the gap is B-trees and selectivity.' },
+  { id:'next', title:'The one thing to learn next', intent:'Not a syllabus. The single concept that unlocks the rest.',
+    inputs:['edge'], output:{name:'next',type:'prose'}, requires:'reasoning',
+    prompt:'Name the single next concept and why it unlocks the others. Respond in {{locale.outputLanguage}}.\n\n{{edge}}',
+    demo:()=>'Selectivity.\n\nNot B-trees — that is the mechanism, and you can hold it later. Selectivity is the idea that an index is only worth using when it eliminates most of the rows, and it is the concept that makes every confusing index behaviour suddenly obvious.\n\nOnce you have it: low-cardinality indexes are useless because they eliminate half the table at best. The planner ignores your index because it estimated poor selectivity. Composite index column order matters because the most selective column should come first. Range queries differ because they eliminate less than equality does.\n\nOne idea, four mysteries. Learn that before the tree structure, not after.' }]},
+
+{ id:'quote-check', realm:'home', concept:'compare', title:'Read This Quote Properly',
+  blurb:'Finds what a trade quote leaves out, which is where the second invoice comes from.',
+  teaches:'Reading for absence', tags:['home','contracts'], capability:'reasoning',
+  input:{ id:'quote', label:'The quote, as written', placeholder:'Paste it. Include the total and any exclusions.',
+    seed:'Bathroom refit, £6,400. Includes: strip out, first fix plumbing, tiling, fit supplied suite, second fix, making good. Excludes: tiles, suite, electrics. 10 working days. 50% deposit.' },
+  cells:[
+  { id:'gaps', title:'What is not in it', intent:'The costed items are easy. The uncosted ones decide the final number.',
+    inputs:['input.quote'], output:{name:'gaps',type:'table'}, requires:'reasoning',
+    prompt:'Identify what this quote does not cover or leaves ambiguous, and the likely cost impact. Table: Gap, Why it matters, Ask them. Respond in {{locale.outputLanguage}}.\n\n{{input.quote}}',
+    demo:()=>({cols:['Gap','Why it matters','Ask them'],rows:[
+      ['"Making good" is undefined','Can mean filled and sanded, or plastered and painted — hundreds apart','What standard, and does it include paint?'],
+      ['Electrics excluded but not scoped','A bathroom needs certified work; excluding it does not remove it','Who does it, when in the sequence, and does your schedule depend on them?'],
+      ['Waste removal not mentioned','A strip-out fills a skip','Skip included or extra?'],
+      ['No allowance for what is behind the wall','Rot, old pipework, non-standard joists — common in a refit','What is the hourly rate for unforeseen work, agreed in advance?'],
+      ['"10 working days" with no start date','A quote is not a booking','Start date in writing'],
+      ['50% deposit is high','Material cost is excluded, so what is the deposit funding?','Can it be 25% now, 25% on first fix?']]}) },
+  { id:'questions', title:'The email to send', intent:'Six questions, answerable in writing, that turn a quote into a contract.',
+    inputs:['gaps'], output:{name:'email',type:'markdown'}, requires:'fast',
+    prompt:'Draft a short, non-adversarial email asking for the missing detail. Respond in {{locale.outputLanguage}}.\n\n{{gaps}}',
+    demo:()=>'Hi —\n\nThanks for this, the price looks reasonable. Before I confirm, six things I would like in writing so we both know where we stand:\n\n1. What does "making good" cover — is that plastered and painted, or prepared for me to decorate?\n2. Electrics are excluded — are you arranging a certified electrician, or am I? And where do they sit in the sequence?\n3. Is skip hire and waste removal included?\n4. If you open the wall and find something unexpected, what is the rate, and can we agree that anything over £200 gets a call before it happens?\n5. Can we put a start date in writing alongside the 10 working days?\n6. Would you consider 25% deposit and 25% at first fix? Materials are on me, so I would rather stage it.\n\nNone of this is a problem, I would just rather ask now than halfway through.' },
+  { id:'walk', title:'What would make you walk', intent:'Deciding this before you are invested is the only time it is easy.',
+    inputs:['gaps'], output:{name:'walk',type:'list'}, requires:'reasoning',
+    prompt:'List the answers that should end the conversation, and why. Respond in {{locale.outputLanguage}}.\n\n{{gaps}}',
+    demo:()=>['**Refusing to put a start date in writing.** The most common source of a job that runs months.',
+      '**"We will sort the electrics out."** Bathroom electrics are notifiable work. Vagueness here is a certificate you will not get.',
+      '**No answer on unforeseen-work rates.** This is the single largest cost risk and a professional will have a ready answer.',
+      '**Pressure on the deposit.** A trade that needs 50% up front on a job where they buy no materials has a cashflow problem, and you would be funding it.',
+      '**Irritation at being asked.** Six reasonable questions in writing is a normal request. How they respond is the most useful information in the whole exchange.'] }]},
+{ id:'design-crit', realm:'design', concept:'critique', title:'Crit This Without Being Nice',
+  blurb:'Separates taste from function, so the feedback that matters is not lost among the feedback that is merely preference.',
+  teaches:'Separating taste from failure', tags:['design','feedback'], capability:'reasoning',
+  input:{ id:'work', label:'Describe the design and what it has to do',
+    placeholder:'The job first, then the design. The job is what makes crit possible.',
+    seed:'A pricing page with three tiers. Job: get self-serve users to pick the middle tier without a sales call. Currently: three equal cards, feature checklists, middle one has a "Popular" badge, CTA is "Get started" on all three.' },
+  cells:[
+  { id:'split', title:'Function, convention, taste', intent:'Only the first is arguable on evidence. Conflating them is why crits go badly.',
+    inputs:['input.work'], output:{name:'split',type:'table'}, requires:'reasoning',
+    prompt:'Split the critique into failures of function, breaks with convention, and matters of taste. Table: Observation, Kind, Consequence. Respond in {{locale.outputLanguage}}.\n\n{{input.work}}',
+    demo:()=>({cols:['Observation','Kind','Consequence'],rows:[
+      ['Three equal cards','Function','If the job is to steer to the middle, equal weight actively fights it'],
+      ['Same CTA on all three','Function','No differentiation in the one element people click'],
+      ['"Popular" badge','Convention','Works, but it is the weakest available signal and it is doing all the steering'],
+      ['Feature checklists','Convention','Fine. Optimises for comparison, which is what a checklist is for'],
+      ['Card ordering cheap→expensive','Convention','Expected. Reversing is a real option but a bigger swing'],
+      ['Card corner radius, spacing','Taste','Not crit. Do not spend the room on it']]}) },
+  { id:'against', title:'What the design is arguing', intent:'Every layout makes an argument. Naming it shows whether it is the one you meant.',
+    inputs:['split','input.work'], output:{name:'arg',type:'prose'}, requires:'reasoning',
+    prompt:'State the argument this design makes to a visitor, and whether it matches the stated job. Respond in {{locale.outputLanguage}}.\n\n{{split}}\n\n{{input.work}}',
+    demo:()=>'The design argues: "here are three comparable options, you decide."\n\nThe job is: "take the middle one."\n\nThose are different pages. Three equal cards with identical CTAs is a comparison table with rounded corners — it is optimised for a careful evaluator who wants to weigh features, and the stated user is a self-serve buyer who wants to be told what to pick.\n\nThe "Popular" badge is the only element doing the actual job, and it is doing it alone, in the smallest type on the page.' },
+  { id:'moves', title:'Three moves, by size', intent:'What to try, ordered by how much has to change.',
+    inputs:['arg'], output:{name:'moves',type:'list'}, requires:'reasoning',
+    prompt:'Give specific changes ordered smallest to largest, each tied to the job. Respond in {{locale.outputLanguage}}.\n\n{{arg}}',
+    demo:()=>['**Differentiate the CTAs.** Middle becomes "Start free trial"; outer two become "Choose Basic" / "Contact sales". Costs nothing and stops the page treating three choices as one.',
+      '**Break the symmetry.** Middle card larger, raised, with the others visually subordinate. This is what the design is currently refusing to do, and it is the whole job.',
+      '**Lead with the recommendation and demote comparison.** One card, prominent, with "compare all plans" below it. Biggest change, most aligned with the stated user — and the one worth testing rather than debating.'] }]},
+
+{ id:'hypothesis-audit', realm:'science', concept:'critique', title:'Is This Actually Testable',
+  blurb:'Checks whether a hypothesis could ever come out false, which is the only property that makes testing it worthwhile.',
+  teaches:'Falsifiability in practice', tags:['research','method'], capability:'reasoning',
+  input:{ id:'hyp', label:'The hypothesis and how you plan to test it',
+    placeholder:'What you think is true, and the study or experiment.',
+    seed:'Hypothesis: our onboarding redesign improves user engagement. Test: compare engagement metrics for 30 days before and after launch.' },
+  cells:[
+  { id:'falsify', title:'What result would refute it', intent:'If you cannot state one, you are not testing anything.',
+    inputs:['input.hyp'], output:{name:'fals',type:'prose'}, requires:'reasoning',
+    prompt:'State precisely what observation would falsify this hypothesis as written, and whether the proposed test could produce it. Respond in {{locale.outputLanguage}}.\n\n{{input.hyp}}',
+    demo:()=>'As written, nothing would refute it — and that is the problem.\n\n"Engagement" is unspecified, so any metric that moved up can be nominated afterwards as the one that mattered. If sessions fall but session length rises, the hypothesis survives. If both fall, "engagement" can become retention. A hypothesis that survives every outcome is not a hypothesis.\n\nThe before/after design compounds it: 30 days before versus 30 days after cannot separate the redesign from seasonality, a marketing push, a pricing change, or the simple fact that the users in each window are different people.' },
+  { id:'confounds', title:'What else could produce the result', intent:'Each alternative explanation, and whether the design excludes it.',
+    inputs:['input.hyp','fals'], output:{name:'conf',type:'table'}, requires:'reasoning',
+    prompt:'List alternative explanations for a positive result and whether the design rules them out. Table: Alternative, Excluded?, Fix. Respond in {{locale.outputLanguage}}.\n\n{{input.hyp}}\n\n{{fals}}',
+    demo:()=>({cols:['Alternative','Excluded?','Fix'],rows:[
+      ['Seasonality or weekday effects','No','Compare same period year-on-year, or randomise'],
+      ['Different users in each window','No','Randomised assignment, not before/after'],
+      ['Novelty effect','No','Measure at 7, 30 and 90 days — novelty decays'],
+      ['Other shipped changes','No','Check the release log for the window'],
+      ['Regression to the mean','No','If the redesign was triggered by a bad month, expect improvement regardless'],
+      ['Marketing changed the traffic mix','No','Segment by acquisition channel']]}) },
+  { id:'restate', title:'The version worth running', intent:'Specific enough to fail.',
+    inputs:['fals','conf'], output:{name:'restate',type:'markdown'}, requires:'reasoning',
+    prompt:'Rewrite the hypothesis and test so it is falsifiable and the main confounds are controlled. Respond in {{locale.outputLanguage}}.\n\n{{fals}}\n\n{{conf}}',
+    demo:()=>'**Hypothesis.** New users randomised to the redesigned onboarding complete their first meaningful action within 7 days at a higher rate than users on the existing flow.\n\n**Primary metric.** Percentage completing first meaningful action within 7 days. One metric, named in advance.\n\n**Falsified if.** The redesigned group performs at or below control, or the difference is smaller than 3 percentage points.\n\n**Design.** Randomised at signup, 50/50, running concurrently — which removes seasonality, release-log contamination, and traffic-mix effects in one move.\n\n**Duration.** Until 2,000 users per arm, decided before starting rather than when the numbers look good.\n\n**Secondary, exploratory, not confirmatory.** 30- and 90-day retention, to catch novelty decay.\n\nThe change that matters is not the wording. It is running the two flows *concurrently* instead of sequentially — that alone removes five of the six alternatives in the table.' }]},
+
+{ id:'session-zero', realm:'games', concept:'plan', title:'Session Zero Contract',
+  blurb:'Surfaces the assumptions about tone, lethality and spotlight that groups discover three months in.',
+  teaches:'Surfacing assumed agreements', tags:['tabletop','group'], capability:'reasoning',
+  input:{ id:'game', label:'The game, the group, and what you imagine',
+    placeholder:'System, how many players, what you are picturing.',
+    seed:'Five players, mixed experience. I want a gritty low-magic campaign where death is possible and choices stick. Two of the players mostly want to be funny.' },
+  cells:[
+  { id:'tensions', title:'Where this group will collide', intent:'Not hypothetical — these are the specific frictions in what you described.',
+    inputs:['input.game'], output:{name:'tens',type:'table'}, requires:'reasoning',
+    prompt:'Identify the concrete tensions between stated preferences. Table: Tension, Shows up as, Month it surfaces. Respond in {{locale.outputLanguage}}.\n\n{{input.game}}',
+    demo:()=>({cols:['Tension','Shows up as','When it surfaces'],rows:[
+      ['Gritty tone vs comedic play','A serious scene undercut by a joke, repeatedly','Session 2, and every session after'],
+      ['Death is possible vs players attached to characters','First death, and whether it feels earned or arbitrary','Month 2'],
+      ['Choices stick vs players wanting to undo','Someone asks to retcon','First real consequence'],
+      ['Five players, one spotlight','Two loud, three quiet, nobody says anything','Month 1, unspoken'],
+      ['Mixed experience','Veterans optimise, newcomers hesitate','Session 1']]}) },
+  { id:'ask', title:'What to actually ask them', intent:'Questions that get real answers, not "sounds good".',
+    inputs:['tens'], output:{name:'ask',type:'list'}, requires:'reasoning',
+    prompt:'Write the questions to ask at session zero. Concrete, answerable, not abstract. Respond in {{locale.outputLanguage}}.\n\n{{tens}}',
+    demo:()=>['**"If your character dies in session four because of a bad roll, is that a good story or a bad night?"** Not "are you okay with death" — everyone says yes to that.',
+      '**"When a scene is tense, do you want the table to stay in it, or is a joke a release valve?"** Both are legitimate. They cannot both be default.',
+      '**"Name something you want your character to do that you would be disappointed to never get to."** Surfaces spotlight expectations before they curdle.',
+      '**"If you make a choice that closes a door, do you want me to warn you first?"** The single most useful question, and almost never asked.',
+      '**"What is a thing you do not want in the game at all?"** Ask it plainly and write it down.'] },
+  { id:'contract', title:'The one page', intent:'Written down, because agreements you remember differently are the ones that break groups.',
+    inputs:['ask','tens'], output:{name:'contract',type:'markdown'}, requires:'fast',
+    prompt:'Draft a one-page group agreement based on this. Plain language, specific. Respond in {{locale.outputLanguage}}.\n\n{{ask}}\n\n{{tens}}',
+    demo:()=>'**What we agreed**\n\n**Tone.** Gritty by default, comedy welcome between scenes. If someone says "let me have this one," we stay in the scene. Anyone can say it, including me.\n\n**Death.** Real, and always telegraphed. You will get a clear signal before anything lethal. If you walk into it anyway, that is the story.\n\n**Choices.** They stick. But I will ask "are you sure?" once before a door closes permanently, and that question always means what it says.\n\n**Spotlight.** Each of you told me one thing you want your character to do. I have written them down and I owe each of you a scene aimed at it within the first six sessions.\n\n**Off the table.** [List what people named.] No discussion needed, ever.\n\n**Changing this.** Any of us can ask to revisit it at any time, and asking is not a complaint.' }]}
 ];
 
 /* ═════════ packages/storage — swappable adapter (ENG-BRIEF §4.1)
@@ -1901,8 +2434,29 @@ const sleep = ms => new Promise(r=>setTimeout(r,ms));
 /* Scripted provider. Streams by *unit of the output type* — prose by clause,
    lists by item, tables by row — which is a small demonstration that the
    contract is typed all the way down rather than text pretending to be data. */
+/* When the output type is overridden, the scripted value is RE-PRESENTED in
+   the new shape — never regenerated. A demo that invented new content to fill
+   a table you asked for would be lying about what the model would do. */
+function reshape(v, to){
+  const isTable = v && !Array.isArray(v) && typeof v === 'object' && v.cols;
+  if (to === 'list'){
+    if (Array.isArray(v)) return v;
+    if (isTable) return v.rows.map(r => `**${r[0]}** — ${r.slice(1).join(' · ')}`);
+    return String(v).split(/\n\n+/).filter(Boolean);
+  }
+  if (to === 'table'){
+    if (isTable) return v;
+    const rows = (Array.isArray(v) ? v : String(v).split(/\n\n+/)).filter(Boolean);
+    return {cols:['—'], rows: rows.map(x=>[String(x)])};
+  }
+  if (Array.isArray(v)) return v.map(x=>`- ${x}`).join('\n');
+  if (isTable) return v.rows.map(r=>`- **${r[0]}** — ${r.slice(1).join(' · ')}`).join('\n');
+  return v;
+}
+
 async function runDemo(cell, bag, onDelta, signal){
-  const value = cell.demo(bag);
+  let value = cell.demo(bag);
+  if (cell._reshapeTo) value = reshape(value, cell._reshapeTo);
   await sleep(180 + Math.random()*220);
   if (typeof value === 'string'){
     /* Reveal by slicing the original, never by re-joining fragments —
@@ -2122,7 +2676,8 @@ async function testProvider(id){
    ═════════ */
 
 const producerOf = (nb, ref) => ref.startsWith('input.')
-  ? null : nb.cells.find(c => c.output.name === ref)?.id ?? null;
+  ? null : nb.cells.find(c => eff(nb.id, c).output.name === ref)?.id ?? null;
+const isOff = (nbId, cell) => !!editsFor(nbId)[cell.id]?.off;
 
 /* Downstream closure of a cell. Trivially small graph on a linear list,
    but computed properly so branching cell types stay cheap to add later. */
@@ -2152,7 +2707,8 @@ function renderPrompt(tpl, nb, run){
 const ready = (nb, cell, run) =>
   cell.inputs.every(r => run.bag[r] != null && String(run.bag[r]).length > 0);
 
-async function execCell(nb, cell, run, onChange){
+async function execCell(nb, rawCell, run, onChange){
+  const cell = eff(nb.id, rawCell);
   const cs = run.cells[cell.id];
   const providerId = resolveFor(cell);
   cs.state='running'; cs.error=null; cs.value=null; cs.raw=''; cs.via=providerId; onChange();
@@ -2161,8 +2717,11 @@ async function execCell(nb, cell, run, onChange){
   try {
     const onDelta = v => { cs.value = v; cs.state='streaming'; onChange(); };
     const onText  = txt => { cs.raw = txt; cs.state='streaming'; onChange(); };
+    const original = rawCell.output.type;
+    const demoCell = cell.output.type !== original
+      ? {...cell, _reshapeTo: cell.output.type} : cell;
     const value = providerId === 'demo'
-      ? await runDemo(cell, {...run.bag, __pass: run.passes[cell.id] ?? 1}, onDelta, ctrl.signal)
+      ? await runDemo(demoCell, {...run.bag, __pass: run.passes[cell.id] ?? 1}, onDelta, ctrl.signal)
       : await runLive(providerId, renderPrompt(cell.prompt, nb, run), cell.output.type,
                       onDelta, onText, ctrl.signal);
     cs.value = value; cs.raw=''; cs.state='done'; cs.ms = Math.round(performance.now()-t0);
@@ -2195,9 +2754,15 @@ async function runAll(nb, run, onChange){
   let i = 0, steps = 0;
   const HARD_CAP = nb.cells.length * 6;   // belt and braces against a cycle
   while (i < nb.cells.length && steps++ < HARD_CAP){
-    const cell = nb.cells[i];
+    const raw = nb.cells[i];
+    if (isOff(nb.id, raw)){ i++; continue; }      // skipped cells are simply not run
+    const cell = eff(nb.id, raw);
     if (!ready(nb, cell, run)) break;
-    await execCell(nb, cell, run, onChange);
+    /* execCell must receive the RAW cell — it derives the effective one itself,
+       and it needs the original to know whether the output type was overridden.
+       Handing it the effective cell made the override invisible, so the demo
+       returned its original shape while the cell claimed the new one. */
+    await execCell(nb, raw, run, onChange);
     const st = run.cells[cell.id];
     if (st.state === 'error') break;
 
@@ -2229,6 +2794,7 @@ async function runAll(nb, run, onChange){
 const S = {
   view:'library', nbId:null, locale:'en', mode:'light',
   brand:'rams', provider:'auto', keys:{}, cellProvider:{}, models:{}, tests:{}, builtin:'absent', dl:null,
+  editing:false, edits:{},
   typeset:'brand', density:'comfortable', modePref:'system', lookTab:0,
   sheet:null, runs:{}, storage:null, marks:{}
 };
@@ -2284,16 +2850,48 @@ const getRun = nb => S.runs[nb.id] ??= {
 };
 
 /* ── Library view ───────────────────────────────────────────────────── */
-const COLLECTIONS = [
-  {id:'judgment',     name:'Judgment',     blurb:'Pressure-test a decision, a plan, or a position you already hold.'},
-  {id:'work',         name:'Work',         blurb:'Turn the artefacts of a working week into something with owners and dates.'},
-  {id:'communication',name:'Communication',blurb:'Say the thing, then find out how it will actually be read.'},
-  {id:'analysis',     name:'Analysis',     blurb:'Make a pile of unstructured input into something you can act on.'}
-];
 
-const cardHTML = nb => `
-  <button class="card${nb.featured?' featured':''}" data-nb="${nb.id}">
-    <p class="eyebrow">${esc(nb.teaches)}</p>
+/* ── Facets ──────────────────────────────────────────────────────────────
+   Two axes, because they answer different questions. REALM is the world you
+   work in; CONCEPT is the move the notebook makes. A gardener and a CFO both
+   want "find the hole in this plan" — same concept, different realm — so
+   filing by domain alone would hide half the library from everyone. */
+const REALMS = {
+  business:   {name:'Business',      icon:'◆'},
+  tech:       {name:'Technology',    icon:'▦'},
+  design:     {name:'Design',        icon:'◐'},
+  writing:    {name:'Writing',       icon:'✎'},
+  music:      {name:'Music',         icon:'♪'},
+  fantasy:    {name:'Worldbuilding', icon:'✦'},
+  photo:      {name:'Photography',   icon:'◉'},
+  making:     {name:'Manufacturing', icon:'⚙'},
+  garden:     {name:'Gardening',     icon:'❦'},
+  food:       {name:'Food',          icon:'◗'},
+  health:     {name:'Health',        icon:'✚'},
+  learning:   {name:'Learning',      icon:'◈'},
+  home:       {name:'Home & Repair', icon:'⌂'},
+  money:      {name:'Money & Legal', icon:'§'},
+  science:    {name:'Science',       icon:'∿'},
+  games:      {name:'Games',         icon:'◇'}
+};
+
+const CONCEPTS = {
+  critique:   {name:'Critique',   note:'Attack it before reality does'},
+  extract:    {name:'Extract',    note:'Pull structure out of mess'},
+  diagnose:   {name:'Diagnose',   note:'Find the cause, not the symptom'},
+  generate:   {name:'Generate',   note:'Produce options worth choosing between'},
+  compare:    {name:'Compare',    note:'Judge on your terms, not theirs'},
+  plan:       {name:'Plan',       note:'Sequence, dependency, failure'},
+  translate:  {name:'Translate',  note:'Same idea, different reader'},
+  teach:      {name:'Teach',      note:'Find the gap in your own understanding'}
+};
+
+const F = { q:'', realm:null, concept:null, sort:'default' };
+
+const cardHTML = (nb, i=0) => `
+  <button class="card${nb.featured?' featured':''}" data-nb="${nb.id}"
+    style="--i:${Math.min(i,24)}">
+    <p class="eyebrow"><span class="gl">${REALMS[nb.realm]?.icon ?? ''}</span>${esc(nb.teaches)}</p>
     <h3>${esc(nb.title)}</h3>
     <p>${esc(nb.blurb)}</p>
     <div class="card-foot">
@@ -2303,14 +2901,47 @@ const cardHTML = nb => `
     </div>
   </button>`;
 
+const matches = nb => {
+  if (F.realm && nb.realm !== F.realm) return false;
+  if (F.concept && nb.concept !== F.concept) return false;
+  if (!F.q) return true;
+  const hay = `${nb.title} ${nb.blurb} ${nb.teaches} ${(nb.tags||[]).join(' ')}`.toLowerCase();
+  return F.q.toLowerCase().split(/\s+/).every(w => hay.includes(w));
+};
+
+const SORTS = {
+  default:  {name:'Curated',      fn:(a,b)=>0},
+  az:       {name:'A–Z',          fn:(a,b)=>a.title.localeCompare(b.title)},
+  shortest: {name:'Fewest cells', fn:(a,b)=>a.cells.length-b.cells.length},
+  longest:  {name:'Most cells',   fn:(a,b)=>b.cells.length-a.cells.length}
+};
+
+/* Counts come from the CURRENT result set, not the whole library, so a chip
+   never offers a filter that would return nothing. */
+function facetCounts(){
+  const r = {}, c = {};
+  for (const nb of NOTEBOOKS){
+    const qOk = !F.q || matches({...nb, realm:nb.realm, concept:nb.concept});
+    if (!qOk) continue;
+    if (!F.concept || nb.concept === F.concept) r[nb.realm] = (r[nb.realm]??0)+1;
+    if (!F.realm   || nb.realm   === F.realm)   c[nb.concept] = (c[nb.concept]??0)+1;
+  }
+  return {r, c};
+}
+
 function renderLibrary(){
   const featured = NOTEBOOKS.find(n=>n.featured);
+  const results = NOTEBOOKS.filter(matches).sort(SORTS[F.sort].fn);
+  const {r:rc, c:cc} = facetCounts();
+  const filtering = !!(F.q || F.realm || F.concept || F.sort !== 'default');
   view.innerHTML = `
     <header class="hero">
       <p class="eyebrow">${esc(t('libEyebrow'))}</p>
       <h1>${esc(t('libTitle'))}</h1>
       <p class="lede">${esc(t('libLede'))}</p>
-      <p class="hero-count">${NOTEBOOKS.length} notebooks · ${COLLECTIONS.length} collections · nothing to install</p>
+      <p class="hero-count">${NOTEBOOKS.length} notebooks · ${
+        new Set(NOTEBOOKS.map(n=>n.realm)).size} realms · ${
+        new Set(NOTEBOOKS.map(n=>n.concept)).size} kinds of thinking · nothing to install</p>
     </header>
 
     ${(() => {
@@ -2353,20 +2984,89 @@ function renderLibrary(){
       </div>
     </section>` : ''}
 
-    ${COLLECTIONS.map(col => {
-      const items = NOTEBOOKS.filter(n => n.collection === col.id);
-      if (!items.length) return '';
-      return `<section class="collection">
-        <div class="collection-head">
-          <h2>${esc(col.name)}</h2>
-          <p>${esc(col.blurb)}</p>
+    <div class="browse" id="browse">
+      <div class="filter-bar">
+        <div class="search">
+          <input type="search" id="q" placeholder="Search ${NOTEBOOKS.length} notebooks…" value="${esc(F.q)}" aria-label="Search notebooks">
         </div>
-        <div class="shelf">${items.map(cardHTML).join('')}</div>
-      </section>`;
-    }).join('')}
+        <label class="sort">
+          <span class="eyebrow">Sort</span>
+          <select id="sort">${Object.entries(SORTS).map(([k,v])=>
+            `<option value="${k}" ${F.sort===k?'selected':''}>${esc(v.name)}</option>`).join('')}</select>
+        </label>
+        ${filtering ? `<button class="ghost" id="clear-filters">Clear</button>` : ''}
+      </div>
+
+      ${Object.keys(rc).length || F.realm ? `<div class="facet">
+        <span class="facet-label">Realm</span>
+        <div class="chips">
+          ${Object.entries(REALMS).filter(([k])=>rc[k] || F.realm===k).map(([k,v])=>`
+            <button class="chip-btn" data-realm="${k}" aria-pressed="${F.realm===k}">
+              <span class="gl">${v.icon}</span>${esc(v.name)}<span class="ct">${rc[k] ?? 0}</span></button>`).join('')}
+        </div>
+      </div>` : ''}
+      ${Object.keys(cc).length || F.concept ? `<div class="facet">
+        <span class="facet-label">Concept</span>
+        <div class="chips">
+          ${Object.entries(CONCEPTS).filter(([k])=>cc[k] || F.concept===k).map(([k,v])=>`
+            <button class="chip-btn" data-concept="${k}" aria-pressed="${F.concept===k}"
+              title="${esc(v.note)}">${esc(v.name)}<span class="ct">${cc[k] ?? 0}</span></button>`).join('')}
+        </div>
+      </div>` : ''}
+
+      <p class="result-count">${results.length} of ${NOTEBOOKS.length}${
+        F.realm?` · ${esc(REALMS[F.realm].name)}`:''}${F.concept?` · ${esc(CONCEPTS[F.concept].name)}`:''}</p>
+
+      ${results.length ? `<div class="shelf" id="grid">${
+        results.map((nb,i)=>cardHTML(nb,i)).join('')}</div>`
+      : `<div class="empty">
+          <p>Nothing matches all of those at once.</p>
+          <div class="empty-outs">
+            ${F.q ? `<button class="btn secondary" data-drop="q">Drop “${esc(F.q)}”</button>`:''}
+            ${F.realm ? `<button class="btn secondary" data-drop="realm">Drop ${esc(REALMS[F.realm].name)}</button>`:''}
+            ${F.concept ? `<button class="btn secondary" data-drop="concept">Drop ${esc(CONCEPTS[F.concept].name)}</button>`:''}
+            <button class="btn secondary" id="clear-empty">Clear all</button>
+          </div>
+        </div>`}
+    </div>
 
     ${desktopStrip()}
     ${footer()}`;
+  /* Re-render through a view transition where available: the browser
+     cross-fades and slides the cards that moved, for free and correctly.
+     Everywhere else the stagger below carries it. */
+  const refilter = () => {
+    if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches)
+      return render();
+    const vt = document.startViewTransition(() => render());
+    /* An interrupted transition REJECTS. Clicking two chips quickly is normal
+       use, not an error — and an uncaught rejection here would surface as a
+       console error on a page that is working correctly. */
+    vt.finished.catch(() => {});
+    vt.ready.catch(() => {});
+  };
+  const q = $('#q');
+  if (q){
+    let timer;
+    q.oninput = () => { clearTimeout(timer); timer = setTimeout(() => {
+      F.q = q.value; render();
+      const f = $('#q'); if (f){ f.focus(); f.setSelectionRange(f.value.length, f.value.length); }
+    }, 160); };
+  }
+  const sort = $('#sort');
+  if (sort) sort.onchange = () => { F.sort = sort.value; refilter(); };
+  view.querySelectorAll('[data-realm]').forEach(b => b.onclick = () => {
+    F.realm = F.realm === b.dataset.realm ? null : b.dataset.realm; refilter(); });
+  view.querySelectorAll('[data-concept]').forEach(b => b.onclick = () => {
+    F.concept = F.concept === b.dataset.concept ? null : b.dataset.concept; refilter(); });
+  const clearF = () => { F.q=''; F.realm=null; F.concept=null; F.sort='default'; refilter(); };
+  $('#clear-filters') && ($('#clear-filters').onclick = clearF);
+  $('#clear-empty')   && ($('#clear-empty').onclick   = clearF);
+  /* Undo one filter at a time — a dead end should offer the step back, not
+     only a full reset. */
+  view.querySelectorAll('[data-drop]').forEach(b => b.onclick = () => {
+    F[b.dataset.drop] = b.dataset.drop === 'q' ? '' : null; refilter(); });
+
   view.querySelectorAll('[data-nb]').forEach(el =>
     el.onclick = () => {
       S.nbId = el.dataset.nb; S.view='notebook';
@@ -2388,6 +3088,11 @@ function renderNotebook(){
         <p class="eyebrow">${esc(nb.teaches)}</p>
         <h1 style="margin-block-start:var(--p-space-2)">${esc(nb.title)}</h1>
         <p class="lede">${esc(nb.blurb)}</p>
+        ${isEdited(nb.id) ? `<p class="forked">
+          <span class="verdict v-mixed"></span>Your copy — ${
+            Object.keys(editsFor(nb.id)).length} cell${Object.keys(editsFor(nb.id)).length===1?'':'s'} changed.
+          <button class="linkbtn" id="reset-edits">Reset to the original</button>
+        </p>`:''}
       </div>
       <div class="nb-actions">
         <button class="btn primary" id="run-all" ${busy?'disabled':''}>
@@ -2399,6 +3104,8 @@ function renderNotebook(){
             ${ICONS.save}<span class="lbl">${esc(t('exportNb'))}</span></button>
           <button class="btn seg" id="clear" title="${esc(t('clearRun'))}">
             ${ICONS.clear}<span class="lbl">${esc(t('clearRun'))}</span></button>
+          <button class="btn seg ${S.editing?'on':''}" id="edit" title="Customise cells"
+            aria-pressed="${!!S.editing}">${ICONS.edit}<span class="lbl">Customise</span></button>
         </div>
       </div>
     </div>
@@ -2454,6 +3161,26 @@ function renderNotebook(){
   $('#share').onclick = e => copyShare(nb, e.currentTarget);
   $('#export').onclick = () => exportNotebook(nb, run);
   $('#clear').onclick = () => { delete S.runs[nb.id]; render(); };
+  $('#edit').onclick = () => { S.editing = !S.editing; render(); };
+  const rst = $('#reset-edits');
+  if (rst) rst.onclick = () => resetEdits(nb.id);
+  view.querySelectorAll('[data-toggle]').forEach(b => b.onclick = () => {
+    const id = b.dataset.toggle;
+    setEdit(nb.id, id, {off: isOff(nb.id, {id}) ? null : true});
+  });
+  view.querySelectorAll('[data-revert]').forEach(b => b.onclick = () => {
+    delete (S.edits[nb.id] ?? {})[b.dataset.revert];
+    if (!Object.keys(S.edits[nb.id] ?? {}).length) delete S.edits[nb.id];
+    saveEdits(); render();
+  });
+  view.querySelectorAll('[data-type]').forEach(el => el.onchange = () => {
+    const raw = nb.cells.find(c=>c.id===el.dataset.type);
+    setEdit(nb.id, el.dataset.type, {outType: el.value === raw.output.type ? null : el.value});
+  });
+  view.querySelectorAll('[data-prompt]').forEach(el => el.onblur = () => {
+    const raw = nb.cells.find(c=>c.id===el.dataset.prompt);
+    setEdit(nb.id, el.dataset.prompt, {prompt: el.value.trim() === raw.prompt.trim() ? null : el.value});
+  });
   view.querySelectorAll('[data-cellprov]').forEach(el => el.onchange = () => {
     const id = el.dataset.cellprov;
     if (el.value) S.cellProvider[id] = el.value; else delete S.cellProvider[id];
@@ -2469,8 +3196,20 @@ function renderNotebook(){
   });
 }
 
-function cellHTML(nb, cell, i, run){
+function cellHTML(nb, raw, i, run){
+  const cell = eff(nb.id, raw);
+  const off = isOff(nb.id, raw);
+  const o = editsFor(nb.id)[raw.id] ?? {};
   const st = run.cells[cell.id];
+  if (off) return `
+    <section class="cell off" data-state="off">
+      <div class="cell-head">
+        <span class="cell-index">${String(i+1).padStart(2,'0')}</span>
+        <div class="cell-titles"><h3>${esc(cell.title)}</h3>
+          <p class="cell-intent">Skipped. Cells that read <code>${esc(cell.output.name)}</code> cannot run.</p></div>
+        <button class="btn secondary tiny" data-toggle="${raw.id}">Re-enable</button>
+      </div>
+    </section>`;
   const canRun = ready(nb, cell, run) && !st.ctrl;
   const ins = cell.inputs.map(r=>`<span><b>in</b> ${esc(r)}</span>`).join('');
   return `
@@ -2493,6 +3232,27 @@ function cellHTML(nb, cell, i, run){
       ${st.value!=null ? outputHTML(st.value, cell.output.type, st.state==='streaming', cell, st)
         : (st.raw ? '' : st.state==='running'?'<p class="meta">…</p>':`<p class="meta">${esc(t('emptyOut'))}</p>`)}
     </div>
+    ${S.editing ? `
+    <div class="cell-edit">
+      <div class="edit-row">
+        <label class="field-inline">
+          <span class="eyebrow">Output as</span>
+          <select data-type="${raw.id}">
+            ${['prose','list','table','markdown'].map(x=>
+              `<option value="${x}" ${cell.output.type===x?'selected':''}>${x}</option>`).join('')}
+          </select>
+        </label>
+        <button class="btn secondary tiny" data-toggle="${raw.id}">Skip this cell</button>
+        ${Object.keys(o).length ? `<button class="btn secondary tiny" data-revert="${raw.id}">Revert cell</button>`:''}
+        <span class="spacer"></span>
+        ${Object.keys(o).length ? '<span class="badge pass-badge">edited</span>':''}
+      </div>
+      <details class="edit-prompt" ${o.prompt?'open':''}>
+        <summary>Prompt</summary>
+        <textarea data-prompt="${raw.id}" rows="5">${esc(cell.prompt)}</textarea>
+        <p class="hint">Changes what a connected model is asked. The guided demo replays its script whatever you write here — that is what makes it a demo.</p>
+      </details>
+    </div>` : ''}
     <div class="cell-foot">
       <button class="btn secondary tiny" data-run="${cell.id}" ${canRun?'':'disabled'}>
         ${esc(st.state==='done'||st.state==='stale' ? t('reRun') : t('run'))}</button>
@@ -2546,6 +3306,7 @@ function outputHTML(v, type, streaming, cell, st){
     </div>${c}`;
   }
   if (type==='table'){
+    if (!v || !v.cols) v = reshape(v, 'table');
     /* data-col carries the header into each cell so the narrow layout can
        label rows once the thead is gone. */
     return `<div class="table-wrap"><table class="out-table">
@@ -2554,7 +3315,12 @@ function outputHTML(v, type, streaming, cell, st){
         `<td data-col="${esc(v.cols[i] ?? '')}">${inline(x)}</td>`).join('')}</tr>`).join('')}</tbody>
     </table></div>${c}`;
   }
-  if (type==='list') return `<div class="out"><ul>${v.map(x=>`<li>${inline(x)}</li>`).join('')}</ul></div>${c}`;
+  if (type==='list'){
+    /* Defensive: a value that is not a list here means something upstream
+       disagreed about the type. Render it rather than throwing. */
+    const items = Array.isArray(v) ? v : reshape(v, 'list');
+    return `<div class="out"><ul>${items.map(x=>`<li>${inline(x)}</li>`).join('')}</ul></div>${c}`;
+  }
   return `<div class="out">${String(v).split(/\n\n+/).map(p=>`<p>${inline(p).replace(/\n/g,'<br>')}</p>`).join('')}${c}</div>`;
 }
 
@@ -2592,9 +3358,12 @@ async function exportNotebook(nb, run){
     input:run.bag['input.'+nb.input.id] ?? '',
     /* Record which model each cell actually ran on — with per-cell resolution
        a single top-level provider would be a lie. */
-    cells:nb.cells.map(c=>({ id:c.id, title:c.title, output:c.output, requires:c.requires,
+    edited: isEdited(nb.id) || undefined,
+    edits: isEdited(nb.id) ? editsFor(nb.id) : undefined,
+    cells:nb.cells.map(raw=>{ const c = eff(nb.id, raw); return ({ id:c.id, title:c.title, output:c.output, requires:c.requires,
       via:run.cells[c.id].via ?? null,
-      state:run.cells[c.id].state, value:run.cells[c.id].value })) };
+      skipped: isOff(nb.id, raw) || undefined,
+      state:run.cells[c.id].state, value:run.cells[c.id].value }); }) };
   await saveFile(`${nb.id}.throughline.json`, JSON.stringify(doc, null, 2));
 }
 
@@ -2686,7 +3455,7 @@ function renderRail(){
         g.id === c.id ? 'loop-end' : ''].filter(Boolean).join(' ') : '';
       const st = run.cells[c.id];
       return `
-      <button class="pip ${loopCls}" data-goto="${c.id}">
+      <button class="pip ${loopCls}${isOff(nb.id,c)?' off':''}" data-goto="${c.id}">
         <span class="node" data-s="${st.state==='idle'?'':st.state}"></span>
         <span class="n">${String(i+1).padStart(2,'0')}</span>
         <span class="lbl">${esc(c.title)}</span>
@@ -3008,6 +3777,7 @@ const I = (p, extra='') => `<svg class="i" viewBox="0 0 16 16" fill="none" strok
 const ICONS = {
   run:    I('<path d="M5 3.2 12.2 8 5 12.8Z" fill="currentColor" stroke="none"/>'),
   share:  I('<path d="M8 10V2.6"/><path d="M5.4 5.2 8 2.6l2.6 2.6"/><path d="M3.2 9.2v3.6h9.6V9.2"/>'),
+  edit:   I('<path d="M10.4 2.8 13.2 5.6 5.8 13H3v-2.8Z"/>'),
   save:   I('<path d="M8 2.6V10"/><path d="M5.4 7.4 8 10l2.6-2.6"/><path d="M3.2 9.2v3.6h9.6V9.2"/>'),
   clear:  I('<path d="M13 8a5 5 0 1 1-1.6-3.7"/><path d="M13.2 2.6v3h-3"/>'),
   look:   I('<circle cx="8" cy="8" r="5.4"/><path d="M8 2.6a5.4 5.4 0 0 1 0 10.8Z" fill="currentColor" stroke="none"/>'),
@@ -3081,6 +3851,51 @@ function renderSwitcher(){
   menu.querySelector('#menu-connect').onclick = () => { closeMenu(); S.sheet='settings'; renderSheet(); };
 }
 const closeMenu = () => { const m=$('#model-menu'); m.hidden=true; $('#btn-model').setAttribute('aria-expanded','false'); };
+
+/* ── Edits ───────────────────────────────────────────────────────────────
+   A template you cannot change is a demo. Editing one forks it into YOUR
+   copy — stored on this device, exportable as a file, resettable to the
+   original at any time (P4: the notebook is a file, not a record).
+
+   Overrides are stored as a sparse diff against the shipped notebook, not a
+   full copy. So when a shipped notebook improves, your edits still apply to
+   the new version instead of pinning you to the old one. */
+const EDIT_DOC = 'edits';
+const editsFor = id => S.edits[id] ?? {};
+const isEdited = id => Object.keys(editsFor(id)).length > 0;
+
+/* The effective cell: shipped definition with your overrides on top. Every
+   read path goes through this, so nothing can accidentally use the original. */
+function eff(nbId, cell){
+  const o = editsFor(nbId)[cell.id];
+  if (!o) return cell;
+  return { ...cell, ...o,
+    output: { ...cell.output, ...(o.outType ? {type:o.outType} : {}) } };
+}
+
+async function saveEdits(){
+  try { await S.storage?.write(EDIT_DOC, {title:'Edits', items:S.edits}); }
+  catch(e){ console.warn('edits not persisted', e); }
+}
+async function loadEdits(){
+  try { S.edits = (await S.storage?.read(EDIT_DOC))?.items ?? {}; }
+  catch { S.edits = {}; }
+}
+async function setEdit(nbId, cellId, patch){
+  const nbEdits = S.edits[nbId] ??= {};
+  const cur = nbEdits[cellId] ??= {};
+  Object.assign(cur, patch);
+  for (const [k,v] of Object.entries(cur)) if (v === null || v === '') delete cur[k];
+  if (!Object.keys(cur).length) delete nbEdits[cellId];
+  if (!Object.keys(nbEdits).length) delete S.edits[nbId];
+  await saveEdits();
+  render();
+}
+async function resetEdits(nbId){
+  delete S.edits[nbId]; await saveEdits();
+  delete S.runs[nbId];
+  render();
+}
 
 /* ── Marks ───────────────────────────────────────────────────────────────
    Rating, stored on this device only. That is a real limitation and it
@@ -3273,6 +4088,7 @@ addEventListener('keydown', e => { if (e.key==='Escape' && S.sheet){ S.sheet=nul
   try { const a = IdbAdapter(); await a.init(); S.storage = a; }
   catch { S.storage = MemoryAdapter(); }
   await loadMarks();
+  await loadEdits();
   applyShareState();
   applyTheme(); render();
 })();

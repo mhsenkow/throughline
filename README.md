@@ -157,6 +157,8 @@ any path. Static hosts (Cloudflare Pages, Netlify, S3, GitHub Pages) work unchan
 | Shareable permutations encoded in the URL | **Real** |
 | Gate cells — the run can loop back, capped and visible | **Real** |
 | Three-tier tokens, **13 brands**, light/dark, zero component edits | **Real** |
+| Faceted browse: realm × concept, search, sort, animated grid | **Real** |
+| Editing a template forks it: skip cells, change output type, rewrite prompts | **Real** |
 | Responsive: fluid type, restructured tables, touch targets | **Real** |
 | App shell: fixed chrome, inner scroll canvas, cell rail with scroll spy | **Real** |
 | Appearance menu: 13 themes × 7 typefaces × 3 densities × mode × language | **Real** |
@@ -170,6 +172,50 @@ any path. Static hosts (Cloudflare Pages, Netlify, S3, GitHub Pages) work unchan
 | Guided demo provider | Scripted — deliberately, it is the R6 fix |
 | T2 File System Access backend | Detected, not implemented |
 | Tauri desktop build | Not started |
+
+## The library
+
+**25 notebooks across 14 realms.** The home page filters on two axes, because
+they answer different questions:
+
+- **Realm** — the world you work in: business, technology, design, writing,
+  music, worldbuilding, photography, manufacturing, gardening, food, health,
+  learning, home & repair, science, games.
+- **Concept** — the move the notebook makes: critique, extract, diagnose,
+  generate, compare, plan, translate, teach.
+
+Filing by domain alone would hide half the library from everyone. A gardener
+and a CFO both want *find the hole in this plan* — same concept, different
+realm. Facet counts come from the current result set, so a chip never offers a
+filter that returns nothing, and a selected chip stays visible even at zero so
+there is always a step back rather than only a full reset.
+
+Scaling honestly: the surface handles hundreds. The constraint is that every
+notebook here has hand-written demo output so it can be run before you connect
+anything (R6), and thin filler would violate the thing the brief cares most
+about — the library *is* the product.
+
+## Editing a template
+
+A template you cannot change is a demo. **Customise** on any notebook lets you:
+
+- **Skip a cell.** Downstream cells that read its output then cannot run, and
+  say so — the existing readiness rule does that work, no special case.
+- **Change an output type.** Ask for a table instead of prose. Under a live
+  model this changes the instruction; under the guided demo the scripted value
+  is **re-presented** in the new shape, never regenerated — a demo that invented
+  content to fill a table you asked for would be lying about what a model does.
+- **Rewrite the prompt.** Changes what a connected model is asked. The demo
+  replays its script regardless, which is what makes it a demo, and the editor
+  says so rather than letting you wonder.
+
+Edits are stored as a **sparse diff** against the shipped notebook, not a full
+copy — so when a shipped notebook improves, your changes still apply to the new
+version instead of pinning you to the old one. They persist on this device,
+travel in the export, and **Reset to the original** removes them.
+
+This is open decision #3 from the product brief answered: run *and* fork, with
+the fork staying local and file-shaped (P4).
 
 ## Model options
 
