@@ -117,6 +117,12 @@ img{max-width:100%}
    ═══════════════════════════════════════════════════════════════════════ */
 *,*::before,*::after{box-sizing:border-box}
 
+/* Numbers that sit in columns, tick upward, or get compared must not
+   reflow as they change. Tabular everywhere a digit is data. */
+.cell-index,.meta,.pip .n,.pass,.statusbar,.hero-count,.out-table td,.var-table{
+  font-variant-numeric:tabular-nums;
+}
+
 html,body{background:var(--surface-base); color:var(--ink-primary)}
 
 /* ── App shell ───────────────────────────────────────────────────────────
@@ -193,7 +199,7 @@ input,textarea,select{font:inherit;color:inherit}
   transition:background var(--motion-fast), transform var(--motion-fast);
 }
 .btn:hover{background:var(--accent-hover)}
-.btn:active{transform:translateY(1px)}
+.btn:active{background:var(--accent-hover)}
 .btn:disabled{opacity:.45; cursor:not-allowed}
 .btn.secondary{
   background:transparent; color:var(--ink-primary);
@@ -209,17 +215,52 @@ input,textarea,select{font:inherit;color:inherit}
 /* ── Shell ───────────────────────────────────────────────────────────── */
 .shell{max-width:74rem; margin-inline:auto; padding:var(--p-space-6) var(--p-space-5) var(--p-space-8)}
 .eyebrow{
-  font-size:var(--p-size-0); text-transform:uppercase;
+  font-size:var(--p-size-0); text-transform:uppercase; font-feature-settings:'kern' 1;
   letter-spacing:var(--p-tracking-wide); color:var(--ink-muted);
   font-weight:var(--p-weight-medium);
 }
 .lede{color:var(--ink-secondary); max-width:60ch; margin-block-start:var(--p-space-3)}
 
 /* ── Library ─────────────────────────────────────────────────────────── */
+.hero{max-inline-size:46rem; margin-block-end:var(--p-space-7)}
+.hero h1{font-size:clamp(2rem, 5.5vw, 3rem); margin-block-start:var(--p-space-3); max-inline-size:18ch}
+.hero-count{
+  margin-block-start:var(--p-space-4); font-size:var(--p-size-1);
+  color:var(--ink-muted); font-family:var(--font-mono);
+}
+
+/* The featured notebook earns its place by being the one that does something
+   the others do not — not by being newest. */
+.feature{
+  display:grid; grid-template-columns:1.4fr 1fr; gap:var(--p-space-6);
+  padding:var(--p-space-6); margin-block-end:var(--p-space-7);
+  background:var(--surface-raised); border:1px solid var(--border-subtle);
+  border-radius:var(--radius-lg); box-shadow:var(--elevation-1);
+}
+.feature h2{font-size:var(--p-size-7); margin-block:var(--p-space-2) var(--p-space-3)}
+.feature p{margin:0; color:var(--ink-secondary); font-size:var(--p-size-3); line-height:1.6}
+.feature .btn{margin-block-start:var(--p-space-4)}
+.feature-aside{
+  padding-inline-start:var(--p-space-6); border-inline-start:1px solid var(--border-subtle);
+}
+.feature-aside p{font-size:var(--p-size-2); margin-block-start:var(--p-space-2)}
+.feature-aside b{color:var(--ink-primary)}
+
+.collection{margin-block-end:var(--p-space-7)}
+.collection-head{
+  display:flex; align-items:baseline; gap:var(--p-space-4);
+  flex-wrap:wrap; margin-block-end:var(--p-space-4);
+  padding-block-end:var(--p-space-3); border-block-end:1px solid var(--border-subtle);
+}
+.collection-head h2{font-size:var(--p-size-6)}
+.collection-head p{margin:0; color:var(--ink-muted); font-size:var(--p-size-2)}
+
 .shelf{
-  display:grid; gap:var(--p-space-4); margin-block-start:var(--p-space-6);
+  display:grid; gap:var(--p-space-4);
   grid-template-columns:repeat(auto-fill,minmax(19rem,1fr));
 }
+.card.featured{border-color:color-mix(in oklab,var(--accent-base) 40%,var(--border-subtle))}
+.tag.loop{color:var(--accent-base); background:var(--accent-wash)}
 /* Surfaces blur what is behind them only when a theme asks for it. Default
    0px, so opaque themes pay nothing. */
 .card,.cell,.sheet,.menu,.topbar{backdrop-filter:blur(var(--surface-blur, 0px))}
@@ -229,9 +270,12 @@ input,textarea,select{font:inherit;color:inherit}
   padding:var(--p-space-5); background:var(--surface-raised);
   border:1px solid var(--border-subtle); border-radius:var(--radius-lg);
   box-shadow:var(--elevation-1);
-  transition:border-color var(--motion-fast), box-shadow var(--motion-base), transform var(--motion-fast);
+  transition:border-color var(--motion-fast), box-shadow var(--motion-base);
 }
-.card:hover{border-color:var(--border-strong); box-shadow:var(--elevation-2); transform:translateY(-2px)}
+/* No lift on hover. A card that rises to meet the cursor is decoration
+   pretending to be feedback; the border stating "this is now the one" is
+   the same information with none of the theatre. */
+.card:hover{border-color:var(--border-strong); box-shadow:var(--elevation-2)}
 .card h3{font-size:var(--p-size-6)}
 .card p{margin:0; color:var(--ink-secondary); font-size:var(--p-size-3); flex:1}
 .card-foot{
@@ -247,13 +291,44 @@ input,textarea,select{font:inherit;color:inherit}
 /* ── Notebook ────────────────────────────────────────────────────────── */
 .nb-head{
   display:flex; align-items:flex-start; gap:var(--p-space-5);
-  padding-block-end:var(--p-space-5); border-block-end:1px solid var(--border-subtle);
   flex-wrap:wrap;
 }
 .nb-head h1{font-size:var(--p-size-8); max-width:22ch}
 .nb-actions{display:flex; gap:var(--p-space-2); align-items:center; flex-wrap:wrap}
 
-.cells{display:flex; flex-direction:column; gap:var(--p-space-4); margin-block-start:var(--p-space-6)}
+/* ── The document ────────────────────────────────────────────────────────
+   The canvas is the tool; this is the thing on it. Cells stop being floating
+   cards and become sections of one page, divided by rules — which is what a
+   notebook actually is, and it removes a level of nested elevation that made
+   the cells fight the page for attention. */
+.doc{
+  background:var(--surface-raised);
+  border:1px solid var(--border-subtle);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--elevation-1);
+  overflow:hidden;
+}
+.doc-head{padding:var(--p-space-6) var(--p-space-6) var(--p-space-5)}
+.cells{display:flex; flex-direction:column}
+.doc .cell{
+  background:transparent; border:0; border-radius:0;
+  border-block-start:1px solid var(--border-subtle);
+}
+/* State reads as a tinted band plus a soft inline rule — no hard card edge. */
+.doc .cell[data-state="running"],.doc .cell[data-state="streaming"]{
+  background:color-mix(in oklab, var(--status-running) 5%, transparent);
+  box-shadow:inset 3px 0 0 var(--status-running);
+}
+.doc .cell[data-state="stale"]{
+  background:color-mix(in oklab, var(--status-stale) 5%, transparent);
+  box-shadow:inset 3px 0 0 var(--status-stale);
+}
+.doc .cell[data-state="error"]{
+  background:color-mix(in oklab, var(--status-error) 5%, transparent);
+  box-shadow:inset 3px 0 0 var(--status-error);
+}
+.doc .cell-foot{background:transparent}
+.doc .cell:first-child{border-block-start:0}
 
 .cell{
   background:var(--cell-bg); border:1px solid var(--cell-border);
@@ -268,7 +343,7 @@ input,textarea,select{font:inherit;color:inherit}
 
 .cell-head{
   display:flex; align-items:flex-start; gap:var(--p-space-3);
-  padding:var(--p-space-4) var(--p-space-5);
+  padding:var(--p-space-5) var(--p-space-6) var(--p-space-3);
 }
 .cell-index{
   font-family:var(--font-mono); font-size:var(--p-size-1); color:var(--cell-index-ink);
@@ -302,11 +377,11 @@ input,textarea,select{font:inherit;color:inherit}
 }
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
 
-.cell-body{padding:0 var(--p-space-5) var(--p-space-4); padding-inline-start:calc(var(--p-space-5) + var(--p-space-6))}
+.cell-body{padding:0 var(--p-space-6) var(--p-space-4); padding-inline-start:calc(var(--p-space-6) + var(--p-space-6))}
 .cell-foot{
   display:flex; align-items:center; gap:var(--p-space-2);
-  padding:var(--p-space-3) var(--p-space-5); padding-inline-start:calc(var(--p-space-5) + var(--p-space-6));
-  border-block-start:1px solid var(--border-subtle); background:var(--surface-base);
+  padding:var(--p-space-3) var(--p-space-6) var(--p-space-5);
+  padding-inline-start:calc(var(--p-space-6) + var(--p-space-6));
 }
 .meta{font-size:var(--p-size-0); color:var(--ink-muted); font-family:var(--font-mono)}
 
@@ -359,7 +434,7 @@ select{cursor:pointer}
 
 /* ── Variable inspector ──────────────────────────────────────────────── */
 details.vars{
-  margin-block-start:var(--p-space-5); border:1px solid var(--border-subtle);
+  margin-block-start:var(--p-space-4); border:1px solid var(--border-subtle);
   border-radius:var(--radius-lg); background:var(--surface-raised); overflow:hidden;
 }
 details.vars > summary{
@@ -459,7 +534,16 @@ details.vars[open] > summary::before{transform:rotate(90deg)}
   font-size:var(--p-size-0); text-transform:uppercase;
   letter-spacing:var(--p-tracking-wide); color:var(--ink-muted);
 }
+.rail-list{position:relative; display:flex; flex-direction:column; gap:1px}
+/* The spine. A notebook is a sequence, so the nav should look like one —
+   a thread with nodes on it, not a stack of rows with a hard active edge. */
+.rail-list::before{
+  content:''; position:absolute; z-index:0;
+  inset-block:1.05rem; inset-inline-start:calc(var(--p-space-3) + 5px);
+  inline-size:1px; background:var(--border-subtle);
+}
 .pip{
+  position:relative; z-index:1;
   display:flex; align-items:center; gap:var(--p-space-3); text-align:start;
   padding:var(--p-space-2) var(--p-space-3); border-radius:var(--radius-md);
   font-size:var(--p-size-1); color:var(--ink-secondary);
@@ -467,30 +551,41 @@ details.vars[open] > summary::before{transform:rotate(90deg)}
   inline-size:100%;
 }
 .pip:hover{background:var(--surface-raised); color:var(--ink-primary)}
-.pip[aria-current="true"]{
-  background:var(--surface-raised); color:var(--ink-primary);
-  box-shadow:inset 2px 0 0 var(--accent-base);
+.pip[aria-current="true"]{background:var(--surface-raised); color:var(--ink-primary)}
+.pip .node{
+  inline-size:11px; block-size:11px; border-radius:var(--radius-pill); flex:none;
+  background:var(--surface-sunken);
+  box-shadow:0 0 0 1.5px var(--border-strong) inset, 0 0 0 3px var(--surface-sunken);
+  transition:background var(--motion-fast), box-shadow var(--motion-base);
 }
-@media (max-width:900px){
-  .pip[aria-current="true"]{box-shadow:inset 0 -2px 0 var(--accent-base)}
+.pip[aria-current="true"] .node{box-shadow:0 0 0 3px var(--surface-sunken), 0 0 0 5px var(--accent-wash)}
+.pip .node[data-s="done"]{background:var(--status-done); box-shadow:0 0 0 3px var(--surface-sunken)}
+.pip .node[data-s="running"],.pip .node[data-s="streaming"]{background:var(--status-running); box-shadow:0 0 0 3px var(--surface-sunken)}
+.pip .node[data-s="stale"]{background:var(--status-stale); box-shadow:0 0 0 3px var(--surface-sunken)}
+.pip .node[data-s="error"]{background:var(--status-error); box-shadow:0 0 0 3px var(--surface-sunken)}
+.pip[aria-current="true"] .node[data-s]{box-shadow:0 0 0 3px var(--surface-sunken), 0 0 0 5px var(--accent-wash)}
+@media (prefers-reduced-motion:no-preference){
+  .pip .node[data-s="running"],.pip .node[data-s="streaming"]{animation:pulse 1.1s ease-in-out infinite}
 }
 .pip .n{
   font-family:var(--font-mono); font-size:var(--p-size-0);
   color:var(--ink-muted); font-variant-numeric:tabular-nums; flex:none;
 }
 .pip .lbl{flex:1; min-inline-size:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-.pip .st{
-  inline-size:7px; block-size:7px; border-radius:var(--radius-pill);
-  flex:none; background:var(--status-idle);
+
+/* A loop is drawn, not described: the spine doubles back beside the cells
+   a gate can return to. */
+.pip.in-loop::after{
+  content:''; position:absolute; z-index:0;
+  inset-block:-1px; inset-inline-start:calc(var(--p-space-3) - 1px);
+  inline-size:1px; background:var(--accent-base); opacity:.5;
 }
-.pip .st[data-s="done"]{background:var(--status-done)}
-.pip .st[data-s="running"],.pip .st[data-s="streaming"]{background:var(--status-running)}
-.pip .st[data-s="stale"]{background:var(--status-stale)}
-.pip .st[data-s="error"]{background:var(--status-error)}
-@media (prefers-reduced-motion:no-preference){
-  .pip .st[data-s="running"],.pip .st[data-s="streaming"]{animation:pulse 1.1s ease-in-out infinite}
+.pip.loop-start::after{inset-block-start:50%; border-start-start-radius:4px}
+.pip.loop-end::after{inset-block-end:50%}
+.pass{
+  font-family:var(--font-mono); font-size:var(--p-size-0);
+  color:var(--accent-base); flex:none;
 }
-.rail-sep{block-size:1px; background:var(--border-subtle); margin:var(--p-space-2) var(--p-space-3)}
 
 /* ── Status bar ──────────────────────────────────────────────────────────
    Persistent, honest state: where your data lives, what is running, what
@@ -562,6 +657,29 @@ pre.raw{
   color:var(--ink-secondary); white-space:pre-wrap; word-break:break-word;
   max-block-size:11rem; overflow:auto;
 }
+.gate{
+  padding:var(--p-space-4); border-radius:var(--radius-md);
+  border:1px solid var(--border-subtle); background:var(--surface-sunken);
+}
+.gate.back{
+  border-color:color-mix(in oklab, var(--accent-base) 35%, transparent);
+  background:var(--accent-wash);
+}
+.gate-verdict{
+  font-weight:var(--p-weight-medium); font-size:var(--p-size-2);
+  margin-block-end:var(--p-space-2);
+}
+.gate.back .gate-verdict{color:var(--accent-base)}
+.gate.through .gate-verdict{color:var(--status-done)}
+.gate p{margin:0; font-size:var(--p-size-2); color:var(--ink-secondary); line-height:1.6}
+.gate-rev{
+  margin-block-start:var(--p-space-3); padding-block-start:var(--p-space-3);
+  border-block-start:1px solid var(--border-subtle);
+}
+.gate-rev .eyebrow{display:block; margin-block-end:var(--p-space-2)}
+.gate-rev p{color:var(--ink-primary)}
+.badge.pass-badge{color:var(--accent-base); background:var(--accent-wash)}
+
 .class-note{
   display:flex; align-items:center; gap:var(--p-space-3); flex-wrap:wrap;
   padding:var(--p-space-3); margin-block-end:var(--p-space-3);
@@ -581,6 +699,10 @@ pre.raw{
 .prov-row{display:flex; gap:var(--p-space-2); align-items:center; flex-wrap:wrap}
 .prov-row input[type="password"]{flex:2; min-inline-size:9rem}
 .prov-row input[type="text"]{flex:1; min-inline-size:8rem; font-family:var(--font-mono); font-size:var(--p-size-1)}
+.share-fallback{
+  inline-size:min(22rem,100%); margin-block-start:var(--p-space-2);
+  font-family:var(--font-mono); font-size:var(--p-size-0);
+}
 a.link{color:var(--accent-base); text-decoration:none; font-size:var(--p-size-1)}
 a.link:hover{text-decoration:underline}
 .prov-result{
@@ -649,9 +771,10 @@ table.out-table{min-inline-size:32rem}
 @media (max-width:640px){
   .shell{padding:var(--p-space-5) var(--p-space-4) var(--p-space-7)}
   .topbar-in{padding:var(--p-space-3) var(--p-space-4)}
-  .cell-head{padding:var(--p-space-4)}
+  .cell-head{padding:var(--p-space-4) var(--p-space-4) var(--p-space-2)}
   .cell-body,.cell-foot{padding-inline:var(--p-space-4)}
   .cell-body,.cell-foot{padding-inline-start:var(--p-space-4)}
+  .doc-head{padding:var(--p-space-5) var(--p-space-4) var(--p-space-4)}
   .card{padding:var(--p-space-4)}
   .shelf{grid-template-columns:1fr}
   .wordmark span:last-child{
@@ -694,6 +817,9 @@ table.out-table{min-inline-size:32rem}
   .prov-row .btn{align-self:flex-start}
   .swatch{flex:1 1 8rem}
   .cap-list{grid-template-columns:1fr}
+  .feature{grid-template-columns:1fr; gap:var(--p-space-4); padding:var(--p-space-4)}
+  .feature-aside{padding-inline-start:0; border-inline-start:0;
+    padding-block-start:var(--p-space-4); border-block-start:1px solid var(--border-subtle)}
   .desktop-strip{padding:var(--p-space-4)}
   .var-table{grid-template-columns:1fr; gap:var(--p-space-1)}
   .var-table .v{white-space:normal}
@@ -786,6 +912,40 @@ const wc = (t) => ({
 const HELV = 'Helvetica,"Helvetica Neue",Arial,sans-serif';
 
 const BRANDS = {
+  rams: { group:'core',
+    name:'Braun', note:'Rams — functional, honest, as little as possible',
+    chips:['#e04403','#f2f1ed','#1a1a18'],
+    light: {
+      /* Warm neutrals, one accent doing real work. Braun used orange, green
+         and yellow as FUNCTIONAL markers — on, attention, fault — never as
+         decoration, so the status tokens carry them and nothing else does. */
+      '--surface-base':'#eceae4', '--surface-raised':'#faf9f6', '--surface-sunken':'#e2e0d9',
+      '--ink-primary':'#1a1a18', '--ink-secondary':'#55534e', '--ink-muted':'#8e8b85',
+      '--ink-inverse':'#faf9f6',
+      '--accent-base':'#e04403', '--accent-hover':'#b83703', '--accent-ink':'#ffffff',
+      '--accent-wash':'color-mix(in oklab, #e04403 9%, transparent)',
+      '--border-subtle':'#d5d3cd', '--border-strong':'#a8a49c', '--border-focus':'#e04403',
+      '--status-idle':'#a8a49c', '--status-running':'#0a6ebd',
+      '--status-done':'#3f7a2e', '--status-stale':'#d99400', '--status-error':'#c8321e',
+      '--font-display':"'Helvetica Neue',Helvetica,Arial,'Akzidenz-Grotesk',sans-serif",
+      '--font-body':"'Helvetica Neue',Helvetica,Arial,'Akzidenz-Grotesk',sans-serif",
+      '--weight-heading':'700', '--tracking-heading':'-0.02em',
+      '--radius-sm':'1px', '--radius-md':'2px', '--radius-lg':'3px', '--radius-pill':'999px',
+      /* No drop shadows. Depth is stated with a hairline, not implied with blur. */
+      '--elevation-1':'none', '--elevation-2':'none'
+    },
+    dark: {
+      '--surface-base':'#232320', '--surface-raised':'#2c2c28', '--surface-sunken':'#1a1a18',
+      '--ink-primary':'#f0efea', '--ink-secondary':'#b3b0a8', '--ink-muted':'#807d76',
+      '--ink-inverse':'#1a1a18',
+      '--accent-base':'#ff5c1a', '--accent-hover':'#ff7a42', '--accent-ink':'#1a1a18',
+      '--accent-wash':'color-mix(in oklab, #ff5c1a 14%, transparent)',
+      '--border-subtle':'#3b3b36', '--border-strong':'#5a5951', '--border-focus':'#ff5c1a',
+      '--status-idle':'#807d76', '--status-running':'#4f9fd8',
+      '--status-done':'#6aa84f', '--status-error':'#e2604c', '--status-stale':'#e8b53d',
+      '--elevation-1':'none', '--elevation-2':'none'
+    }
+  },
   throughline: { group:'core',
     name: 'Throughline', note: 'Default — editorial, restrained',
     chips: ['#5b4ce0', '#fcfcfb', '#141312'],
@@ -1008,7 +1168,7 @@ const t = (k, vars) => {
 
 const NOTEBOOKS = [
 {
-  id:'interrogate-decision', schemaVersion:'1.0.0',
+  id:'interrogate-decision', schemaVersion:'1.0.0', collection:'judgment',
   title:'Interrogate a Decision',
   blurb:'Takes a decision you have already half-made and finds the assumptions you did not know you were making — then tells you what evidence would change your mind.',
   teaches:'Assumption archaeology', tags:['reasoning','judgment'], capability:'reasoning',
@@ -1057,7 +1217,7 @@ const NOTEBOOKS = [
   ]
 },
 {
-  id:'meeting-commitments', schemaVersion:'1.0.0',
+  id:'meeting-commitments', schemaVersion:'1.0.0', collection:'work',
   title:'Meeting Notes → Commitments',
   blurb:'Separates what was actually decided from what was merely discussed, then finds every commitment nobody owns. The orphans are the point.',
   teaches:'Extraction with a judgment layer', tags:['work','extraction'], capability:'fast',
@@ -1101,7 +1261,7 @@ const NOTEBOOKS = [
   ]
 },
 {
-  id:'find-the-hole', schemaVersion:'1.0.0',
+  id:'find-the-hole', schemaVersion:'1.0.0', collection:'judgment',
   title:'Find the Hole in This Plan',
   blurb:'Reads a plan for its dependency structure rather than its content, then names the failure that is both most likely and least watched.',
   teaches:'Structural critique', tags:['planning','risk'], capability:'reasoning',
@@ -1146,7 +1306,7 @@ const NOTEBOOKS = [
   ]
 },
 {
-  id:'five-audiences', schemaVersion:'1.0.0',
+  id:'five-audiences', schemaVersion:'1.0.0', collection:'communication',
   title:'One Idea, Five Audiences',
   blurb:'Renders the same concept for five different readers, then shows you which version you could not write — because that is where your own understanding is thin.',
   teaches:'Range, and self-diagnosis', tags:['communication'], capability:'fast',
@@ -1177,7 +1337,7 @@ const NOTEBOOKS = [
   ]
 },
 {
-  id:'steelman', schemaVersion:'1.0.0',
+  id:'steelman', schemaVersion:'1.0.0', collection:'judgment',
   title:'Steelman Yourself',
   blurb:'Builds the strongest possible case against a position you hold, finds where the other side is genuinely right, and scores how much of your view survives.',
   teaches:'Adversarial self-review', tags:['reasoning','judgment'], capability:'reasoning',
@@ -1208,6 +1368,199 @@ const NOTEBOOKS = [
     inputs:['concede','opposing','precise'], output:{name:'survives', type:'prose'}, requires:'reasoning',
     prompt:'State what remains defensible in the original position after these concessions, what must be abandoned, and how the position should be restated. Respond in {{locale.outputLanguage}}.\n\n{{concede}}\n\n{{opposing}}\n\n{{precise}}',
     demo:()=>'What survives is narrower and better: central ownership of the *contract* — the token layer, the accessibility floor, the API shape — with federated authorship of components against it.\n\nWhat has to be abandoned is the claim as stated. "Design systems should be owned by a central team" does not survive, because it was never really an argument about ownership; it was an argument about drift visibility, and drift visibility turns out to be a tooling problem that centralisation solved by accident and expensively.\n\nRestated: *the contract should be central and enforced automatically; the components should be federated and their conformance should be measured, not reviewed.* That version keeps everything the original was actually worried about and drops the part that was org-chart preference wearing an argument.\n\nNote what happened — the concession about automated drift detection did most of the damage. The position was formed before that tooling was cheap, and had not been re-examined since.' }
+  ]
+}
+,
+{
+  id:'until-it-holds', schemaVersion:'1.1.0', collection:'judgment', featured:true,
+  title:'Revise Until It Holds',
+  blurb:'Attacks your claim, and if it does not survive, sends the run back to restate it — up to three times. The notebook loops until the claim stops falling over.',
+  teaches:'Recursion — the notebook decides to try again', tags:['reasoning','loop'], capability:'reasoning',
+  input:{ id:'claim', label:'A claim you want to make stick',
+    placeholder:'One sentence. The stronger the better.',
+    seed:'Remote work makes engineering teams less productive.' },
+  cells:[
+  { id:'sharpen', title:'Sharpen the claim',
+    intent:'Vague claims cannot fail, which is why they feel safe. This makes it specific enough to be attacked.',
+    inputs:['input.claim'], output:{name:'sharp', type:'prose'}, requires:'reasoning',
+    prompt:'Restate this claim as precisely as possible — scope, conditions, and what would count as it being wrong. If a revision is supplied, sharpen that instead. Respond in {{locale.outputLanguage}}.\n\nClaim: {{input.claim}}\nRevision, if any: {{revision}}',
+    demo:(b)=> (b.__pass ?? 1) === 1
+      ? 'Claim: engineering teams working fully remotely ship less per engineer per quarter than comparable co-located teams. Scope is unstated — team size, seniority, and domain are all unspecified, and "productive" is being measured as shipped output rather than outcome. It would be wrong if comparable remote teams matched or exceeded co-located output on the same measure.'
+      : 'Claim: engineering teams that moved to remote WITHOUT changing how they coordinate ship less per quarter, because the practices they relied on were co-located ones. Scope: teams above roughly eight people, in their first year after the change. Measured as cycle time from ready to merged. It would be wrong if such teams matched their own prior cycle time within a year without changing coordination practices.' },
+
+  { id:'attack', title:'Attack it',
+    intent:'The strongest available objection, written by someone who wants the claim to fall.',
+    inputs:['sharp'], output:{name:'attack', type:'prose'}, requires:'reasoning',
+    prompt:'Write the strongest objection to this claim. Aim to break it. Respond in {{locale.outputLanguage}}.\n\n{{sharp}}',
+    demo:(b)=> (b.__pass ?? 1) === 1
+      ? 'The claim confuses a change with a cause. Teams that went remote also went remote during a pandemic, changed hiring, lost people, and absorbed a macro shock — attributing the output drop to remoteness requires ruling out all of it, and the claim does not.\n\nWorse, "productive" is doing the heavy lifting unexamined. Shipped output per engineer is the measure most sensitive to coordination overhead and least sensitive to whether the right thing was built. Plenty of co-located teams ship more of the wrong thing faster.'
+      : 'This is much harder to attack, because it has stopped claiming remoteness causes the drop and started claiming unchanged coordination does. That is nearly tautological — teams that do not adapt to a change do worse after it — but it is not empty, since it makes a testable prediction about the first year and about cycle time specifically.\n\nThe remaining weakness is the eight-person threshold. Nothing in the argument produces that number; it is asserted.' },
+
+  { id:'gate', title:'Does it hold?',
+    intent:'The gate. If the claim survives, the run continues. If it does not, this cell rewrites it and sends the run back to cell 01.',
+    inputs:['sharp','attack'], output:{name:'gateOut', type:'gate'}, requires:'reasoning',
+    gate:{ to:'sharpen', writes:'revision', maxPasses:3 },
+    prompt:'Judge whether the claim survives the objection. If it does not, write a revised claim that would. Respond in {{locale.outputLanguage}}.\n\nClaim: {{sharp}}\n\nObjection: {{attack}}',
+    demo:(b)=> (b.__pass ?? 1) === 1
+      ? { verdict:'revise',
+          reason:'It does not hold. The objection identifies a confound the claim cannot rule out — remoteness arrived alongside several other changes — and the measure chosen is the one most flattering to the conclusion. As written, the claim would be defended by anyone who already believed it and dismissed by anyone who did not.',
+          revision:'Engineering teams that moved to remote without changing how they coordinate ship less, because the practices they depended on were co-located ones — measured as cycle time, in the first year after the change.' }
+      : { verdict:'continue',
+          reason:'It holds now. The revised claim survives the objection because it no longer asserts that remoteness itself causes the drop — it names unchanged coordination as the mechanism, which is testable and which the objection does not touch. The unearned eight-person threshold is a real weakness, but a weakness in precision rather than in the argument.' } },
+
+  { id:'standing', title:'What you can now say',
+    intent:'Only reached once the claim survives, or once the passes run out. Either way you learn something true.',
+    inputs:['sharp','gateOut'], output:{name:'standing', type:'prose'}, requires:'reasoning',
+    prompt:'State the claim that survived and what it costs to hold it. Respond in {{locale.outputLanguage}}.\n\n{{sharp}}\n\n{{gateOut}}',
+    demo:()=>'What survived: teams that went remote without changing their coordination practices lost cycle time, and the cause is the unchanged practices rather than the remoteness.\n\nWhat it costs you: the original claim was an argument against remote work, and this one is not. It is an argument for changing how you coordinate when the conditions change — which applies equally to a team that moves offices, doubles in size, or splits across time zones. You have traded a position people will fight you about for one they will mostly agree with, and that is usually what happens when a claim is made precise enough to test.\n\nWhat it still owes: the eight-person threshold is asserted, not derived. Either find the number or drop it.' }
+  ]
+},
+{
+  id:'pre-mortem', schemaVersion:'1.0.0', collection:'judgment',
+  title:'Pre-Mortem',
+  blurb:'Assumes the thing already failed, eighteen months from now, and works backwards to find out why. Reliably surfaces risks a forward-looking review misses.',
+  teaches:'Prospective hindsight', tags:['planning','risk'], capability:'reasoning',
+  input:{ id:'plan', label:'What you are about to commit to',
+    placeholder:'The initiative, the bet, the hire, the launch.',
+    seed:'We are going to build an internal AI assistant for our support team. Six months, three engineers, trained on our help centre and past tickets. Goal is to cut first-response time in half.' },
+  cells:[
+  { id:'obit', title:'It is eighteen months later. It failed.',
+    intent:'Not "what could go wrong" — it already did. The certainty is what unlocks the honest answers.',
+    inputs:['input.plan'], output:{name:'obit', type:'prose'}, requires:'reasoning',
+    prompt:'It is 18 months later and this failed completely. Write the short, unsparing account of what happened, in past tense, as if it is already known. Respond in {{locale.outputLanguage}}.\n\n{{input.plan}}',
+    demo:()=>'It shipped on time and nobody used it.\n\nThe assistant answered the questions the help centre already answered well, which were not the questions arriving in tickets. Support agents tried it for about three weeks, found that checking its answer took longer than writing their own, and quietly stopped. First-response time did not move.\n\nBy month nine the team had been reassigned. The assistant stayed up because nobody wanted to be the person who turned it off, and it slowly drifted out of date as the product changed. It is still running.' },
+  { id:'causes', title:'Working backwards',
+    intent:'Each cause, ranked by how early it was already true.',
+    inputs:['obit'], output:{name:'causes', type:'table'}, requires:'reasoning',
+    prompt:'From this failure account, work backwards to root causes. For each give the earliest point it was already true and whether it was knowable then. Return a table: Cause, Already true by, Knowable then?. Respond in {{locale.outputLanguage}}.\n\n{{obit}}',
+    demo:()=>({cols:['Cause','Already true by','Knowable then?'],rows:[
+      ['Training data was the help centre, but tickets are the questions the help centre failed to answer','Before a line of code','Yes — one afternoon reading 50 tickets'],
+      ['Verification cost exceeded writing cost, so agents rationally stopped','Design, not build','Yes — but only if anyone had timed it'],
+      ['Success was measured as response time, which agents do not control alone','Goal-setting','Yes — agents would have said so if asked'],
+      ['No owner after launch','The staffing plan','Yes — the plan funded a build, not a service'],
+      ['Nobody was accountable for turning it off','Never decided','No — this one is a governance gap, not a foresight one']]}) },
+  { id:'earliest', title:'The cheapest moment to have known',
+    intent:'Of all of it, the one check that would have changed the most, done before anything is committed.',
+    inputs:['causes'], output:{name:'earliest', type:'prose'}, requires:'reasoning',
+    prompt:'Identify the single earliest, cheapest check that would most likely have prevented this failure, and say exactly how to run it this week. Respond in {{locale.outputLanguage}}.\n\n{{causes}}',
+    demo:()=>'Read fifty real tickets against the help centre, and mark each one: already answered there, answered but hard to find, or not answered at all.\n\nThat single afternoon separates the three futures. If most tickets are already answered and merely hard to find, you do not need an assistant — you need search, and it is a far smaller project. If most are not answered anywhere, an assistant trained on the help centre cannot possibly work and the whole plan is aimed at the wrong corpus. Only the middle case justifies what is proposed.\n\nIt costs one person one afternoon and it can be done before anyone is hired, scoped, or committed. Every other cause in the table is downstream of getting this wrong.' },
+  { id:'tripwires', title:'Tripwires',
+    intent:'Signals to agree on now, while it is still cheap to admit them.',
+    inputs:['causes','earliest'], output:{name:'tripwires', type:'list'}, requires:'reasoning',
+    prompt:'Give specific, observable tripwires with thresholds and dates that would tell the team early that this is failing. No vague monitoring advice. Respond in {{locale.outputLanguage}}.\n\n{{causes}}\n\n{{earliest}}',
+    demo:()=>['**Week 3 after launch: daily active agents below 40% of the team.** Adoption never recovers from a bad first fortnight; if it is low here it will be lower at week 12.',
+      '**Median time-to-verify an answer exceeds median time-to-write one.** Time it directly with five agents. This is the number that actually decides whether the tool is used.',
+      '**Fewer than 30% of answers are sent without edit.** Heavy editing means agents are using it as a rough draft, which is a different and much less valuable product than the one being funded.',
+      '**No named owner with allocated time by launch day.** Not a tripwire that fires later — check it on the day, because after that nobody will.',
+      '**Agree the shutdown criterion now, in writing.** The failure account has it running eighteen months after it stopped working, and that is the cheapest thing on this list to prevent.'] }
+  ]
+},
+{
+  id:'ambiguity-report', schemaVersion:'1.0.0', collection:'work',
+  title:'Spec → Ambiguity Report',
+  blurb:'Finds every sentence two competent people would implement differently. The disagreements you find now are the ones you do not find in review.',
+  teaches:'Reading for divergence', tags:['work','specs'], capability:'reasoning',
+  input:{ id:'spec', label:'A spec, ticket, or requirement',
+    placeholder:'Paste it as written.',
+    seed:'Users should be able to export their data. The export should include all their content and be delivered quickly. Large exports may be processed in the background. Users should be notified when it is ready.' },
+  cells:[
+  { id:'ambig', title:'Where two people would diverge',
+    intent:'Not unclear writing — writing that is clear, and clearly means two different things.',
+    inputs:['input.spec'], output:{name:'ambig', type:'table'}, requires:'reasoning',
+    prompt:'Find every phrase that two competent engineers would implement differently. Give the phrase, the two readings, and which is more expensive. Return a table: Phrase, Reading A, Reading B. Respond in {{locale.outputLanguage}}.\n\n{{input.spec}}',
+    demo:()=>({cols:['Phrase','Reading A','Reading B'],rows:[
+      ['"all their content"','Everything they authored','Everything visible to them, including shared items they do not own — a permissions problem, not an export one'],
+      ['"delivered quickly"','Under a few seconds, synchronous','Same day, asynchronous. The next sentence implies B, contradicting this one'],
+      ['"large exports"','Above a size threshold','Above a time threshold. Different code, different failure modes'],
+      ['"may be processed in the background"','Implementation is free to choose','A stated requirement that it must support async. "May" is doing dangerous work here'],
+      ['"notified"','In-app','Email. Also unstated: what happens if they are offline when it completes']]}) },
+  { id:'unasked', title:'The questions the spec assumes are answered',
+    intent:'Not ambiguities — absences. What it never occurred to anyone to write down.',
+    inputs:['input.spec','ambig'], output:{name:'unasked', type:'list'}, requires:'reasoning',
+    prompt:'List the important questions this spec never addresses at all. Respond in {{locale.outputLanguage}}.\n\n{{input.spec}}\n\n{{ambig}}',
+    demo:()=>['**What format?** Not mentioned once. CSV, JSON and a zip of originals are three different projects.',
+      '**How long is the export available, and where does it live?** An export is a copy of everything a user has — a file nobody scoped the retention or access control for.',
+      '**Can they export twice?** Rate limiting is unstated, and this is the endpoint most attractive to abuse.',
+      '**What happens to deleted content?** Regulation may require it; users may expect it excluded. The spec takes no position.',
+      '**Is this a GDPR/portability obligation or a convenience feature?** The answer changes the deadline, the format, and who signs off — and it is the single most consequential thing not written down.'] },
+  { id:'rewrite', title:'The unambiguous version',
+    intent:'Same intent, no room to diverge. This is what should have been written.',
+    inputs:['ambig','unasked'], output:{name:'rewrite', type:'markdown'}, requires:'reasoning',
+    prompt:'Rewrite the spec so it cannot be read two ways. Mark decisions that still need a human with TBD and who should decide. Respond in {{locale.outputLanguage}}.\n\n{{ambig}}\n\n{{unasked}}',
+    demo:()=>'**Data export**\n\nA user can request an export of all content they authored. Content shared with them but owned by others is excluded — **TBD (Legal): does portability oblige us to include shared content?**\n\nThe export is generated asynchronously in all cases. There is no synchronous path; "quickly" is replaced by a stated target: **95% of exports available within 15 minutes**, and the user is told the estimate at request time.\n\nFormat is a single zip containing JSON for structured records and original files at original resolution. **TBD (Product): is CSV needed for spreadsheet users?**\n\nOn completion the user receives an email with a signed link, valid for **7 days**, after which the artefact is deleted. The link is single-user and does not require an active session.\n\nOne export per user per **24 hours**. A second request inside the window returns the existing artefact rather than generating a new one.\n\nDeleted content is excluded. **TBD (Legal): retention obligations may override this.**\n\nThis is a **TBD (Product): obligation or convenience?** — if obligation, the 15-minute target and 7-day window both need Legal review before build.' }
+  ]
+},
+{
+  id:'feedback-patterns', schemaVersion:'1.0.0', collection:'analysis',
+  title:'Feedback → Patterns',
+  blurb:'Turns a pile of comments into themes, separates the signal from the loudest voice, and names what to deliberately ignore.',
+  teaches:'Synthesis with a discard pile', tags:['analysis','research'], capability:'reasoning',
+  input:{ id:'feedback', label:'Raw feedback — reviews, survey text, notes',
+    placeholder:'One per line is fine. Messy is fine.',
+    seed:`- Setup took me three tries, the docs skip a step\n- Love it once it works\n- Too expensive for what it does\n- I can never find the export button\n- Why is there no dark mode??\n- Crashed twice on large files\n- The onboarding video is great\n- Setup instructions assume you already have an account\n- Pricing page is confusing, I still don't know what tier I'm on\n- Export is buried\n- It's fine\n- Would pay double if it had an API\n- Large file handling is unusable, this is a dealbreaker\n- Docs are out of date in places` },
+  cells:[
+  { id:'themes', title:'Themes, by weight',
+    intent:'Grouped by what people mean, not the words they used.',
+    inputs:['input.feedback'], output:{name:'themes', type:'table'}, requires:'reasoning',
+    prompt:'Group this feedback into themes by underlying meaning. Give a count and the strongest verbatim for each. Return a table: Theme, Mentions, Representative quote. Respond in {{locale.outputLanguage}}.\n\n{{input.feedback}}',
+    demo:()=>({cols:['Theme','Mentions','Representative quote'],rows:[
+      ['Setup fails partway','3','"Setup instructions assume you already have an account"'],
+      ['Export is undiscoverable','2','"I can never find the export button"'],
+      ['Large files break it','2','"Large file handling is unusable, this is a dealbreaker"'],
+      ['Pricing is unclear','2','"I still don\'t know what tier I\'m on"'],
+      ['Docs are stale','2','"Docs are out of date in places"'],
+      ['Dark mode','1','"Why is there no dark mode??"'],
+      ['Wants an API','1','"Would pay double if it had an API"']]}) },
+  { id:'signal', title:'Frequency is not importance',
+    intent:'Separates what is mentioned most from what actually costs you something.',
+    inputs:['themes'], output:{name:'signal', type:'prose'}, requires:'reasoning',
+    prompt:'Distinguish frequently-mentioned issues from consequential ones. Say which themes are loud but cheap, and which are quiet but expensive. Respond in {{locale.outputLanguage}}.\n\n{{themes}}',
+    demo:()=>'Setup is the most-mentioned and it is also genuinely the most costly, which is unusual — normally the loudest theme is not the most expensive one. Three mentions in fourteen, and every one describes a user who nearly did not get in at all. Everything downstream is conditional on this.\n\nLarge file handling is the quiet expensive one. Two mentions, but one of them says "dealbreaker" and the other says "unusable" — that is not a complaint, that is a churn event that already happened and got written down politely.\n\nThe API request is a single mention and worth more attention than its count suggests, because it is the only feedback here attached to willingness to pay more. One data point is not a strategy, but it is a question worth asking the next ten customers.\n\nDark mode is the reverse: emphatic, memorable, and cheap to ignore. It got two question marks and that is doing all the work.' },
+  { id:'ignore', title:'The discard pile',
+    intent:'Naming what you will not act on, and why, so it stops resurfacing in every meeting.',
+    inputs:['themes','signal'], output:{name:'ignore', type:'list'}, requires:'reasoning',
+    prompt:'List what should be deliberately not acted on, with the reason. Be willing to say a popular request should be declined. Respond in {{locale.outputLanguage}}.\n\n{{themes}}\n\n{{signal}}',
+    demo:()=>['**"It\'s fine" and "Love it once it works."** No action available. Keep them for morale, exclude them from analysis — undifferentiated positives inflate your sense of how you are doing.',
+      '**Dark mode, for now.** Real but not load-bearing. The honest reason is priority, not disagreement — say that out loud rather than letting it die silently, or it returns every quarter.',
+      '**"Too expensive for what it does."** Not actionable as stated, and price complaints are usually value-communication complaints. It belongs with the pricing-clarity theme, not with pricing.',
+      '**The onboarding video praise.** Genuinely good news, and a trap: the video works while the written setup fails, which means you may be tempted to make more videos instead of fixing the docs.'] }
+  ]
+},
+{
+  id:'difficult-message', schemaVersion:'1.0.0', collection:'communication',
+  title:'The Difficult Message',
+  blurb:'Drafts something hard to say, then reads it back as the person receiving it on their worst day — and shows you which sentence does the damage.',
+  teaches:'Adversarial reading of your own words', tags:['communication'], capability:'reasoning',
+  input:{ id:'situation', label:'What you need to say, and to whom',
+    placeholder:'The situation, plainly. You do not need to be diplomatic here.',
+    seed:'I need to tell a contractor we are not renewing. Their work was fine but we are bringing it in-house. They have been with us two years and I think they assume this is going to be renewed. They have not done anything wrong.' },
+  cells:[
+  { id:'draft', title:'The plain draft',
+    intent:'What you actually mean, before it gets softened into something that says nothing.',
+    inputs:['input.situation'], output:{name:'draft', type:'markdown'}, requires:'fast',
+    prompt:'Write this message directly and kindly. Lead with the decision. No euphemism, no padding. Respond in {{locale.outputLanguage}}.\n\n{{input.situation}}',
+    demo:()=>'Hi —\n\nI want to tell you directly rather than let you find out from a silence: we are not renewing the contract when it ends. This is not about your work, which has been consistently good. We are moving this function in-house.\n\nI know you have been planning around this continuing, and I am sorry to be the reason that changes. I would like to give you as much runway as I can — the contract runs to the end of March, and I am happy to talk about how we use that time.\n\nI would also like to be a reference for you, and I mean that as a specific offer rather than a polite one.\n\nCan we talk this week?' },
+  { id:'worst-read', title:'Read on their worst day',
+    intent:'The same words, received by someone who is worried about money and half-expecting bad news.',
+    inputs:['draft','input.situation'], output:{name:'worstRead', type:'table'}, requires:'reasoning',
+    prompt:'For each part of this message, give the most damaging plausible reading by a recipient who is anxious and expecting bad news. Return a table: Sentence, How it may land. Respond in {{locale.outputLanguage}}.\n\n{{draft}}\n\n{{input.situation}}',
+    demo:()=>({cols:['Sentence','How it may land'],rows:[
+      ['"rather than let you find out from a silence"','Implies you considered doing exactly that. Reads as a favour rather than the baseline.'],
+      ['"This is not about your work"','The sentence everyone hears as "this is about your work." Denial before accusation invites the accusation.'],
+      ['"moving this function in-house"','Sounds cheaper and permanent. Reads as: you were the expensive stopgap.'],
+      ['"I know you have been planning around this continuing"','Slightly presumptuous, and reminds them of the plans they now have to unmake.'],
+      ['"as much runway as I can"','Hedged. "As I can" sounds like there is a constraint they have not been told about.'],
+      ['"I mean that as a specific offer"','Good — the strongest line in the message, and the only one that costs you something.']]}) },
+  { id:'revision', title:'The version that survives that reading',
+    intent:'Not softer. The same decision, with the sentences that do collateral damage removed.',
+    inputs:['draft','worstRead'], output:{name:'revision', type:'markdown'}, requires:'reasoning',
+    prompt:'Rewrite so the damaging readings are not available, without softening the decision or adding padding. Respond in {{locale.outputLanguage}}.\n\n{{draft}}\n\n{{worstRead}}',
+    demo:()=>'Hi —\n\nWe are not renewing the contract when it ends in March. I wanted to tell you now so you have the most time possible.\n\nThe decision is about where the work sits, not about how it has been done. We are building the capability internally, and that was decided above this contract rather than because of it. Your work has been good and I would say so to anyone who asked.\n\nOn that: I will be a reference, and I will write it this month rather than waiting to be asked.\n\nThe contract runs to 31 March and I am not looking to shorten it. If a shorter or longer wind-down suits you better, tell me and I will try to make it work.\n\nCan we talk this week?' },
+  { id:'cost', title:'What this still costs',
+    intent:'What no wording fixes. Knowing this stops you rewriting it a sixth time.',
+    inputs:['revision','worstRead'], output:{name:'cost', type:'prose'}, requires:'reasoning',
+    prompt:'State plainly what remains painful regardless of wording, and what the sender should accept rather than keep editing. Respond in {{locale.outputLanguage}}.\n\n{{revision}}\n\n{{worstRead}}',
+    demo:()=>'They are losing income they were counting on, and no arrangement of sentences changes that. The revision removes the readings that would have added insult, which is the entire available win. It does not make the message good news and you should stop trying to.\n\nOne thing genuinely improved and it was not the wording: "I will write the reference this month rather than waiting to be asked" is a commitment with a date. The original offered to be a reference, which is what everyone says. This one can be checked.\n\nThe thing to accept: they may respond badly, and that will not mean you wrote it wrong. Two years of work ending is worth a bad reaction. Send it, then be available.' }
   ]
 }
 ];
@@ -1412,6 +1765,9 @@ async function runDemo(cell, bag, onDelta, signal){
       onDelta(value.slice(0, i)); await sleep(26 + Math.random()*48); }
     return value;
   }
+  if (value && typeof value === 'object' && 'verdict' in value){
+    await sleep(320); onDelta(value); return value;
+  }
   if (Array.isArray(value)){
     const acc=[]; for(const it of value){ if(signal?.aborted) throw new Error('aborted');
       acc.push(it); onDelta([...acc]); await sleep(160 + Math.random()*180); }
@@ -1427,10 +1783,19 @@ const SHAPE = {
   prose:'Respond with plain prose. No preamble, no headings, no markdown fences.',
   markdown:'Respond in markdown. No preamble.',
   list:'Respond with a JSON array of strings and nothing else. No fences, no commentary.',
-  table:'Respond with JSON of the form {"cols":["..."],"rows":[["..."]]} and nothing else. No fences, no commentary.'
+  table:'Respond with JSON of the form {"cols":["..."],"rows":[["..."]]} and nothing else. No fences, no commentary.',
+  gate:'Respond with JSON of the form {"verdict":"continue"|"revise","reason":"...","revision":"..."} and nothing else. Use "revise" only if the work genuinely fails; put the improved version in "revision".'
 };
 
 function coerce(text, type){
+  if (type==='gate'){
+    const m = text.match(/\{[\s\S]*\}/);
+    if (m){ try{
+      const v = JSON.parse(m[0]);
+      if (v?.verdict) return {verdict:v.verdict==='revise'?'revise':'continue', reason:String(v.reason??''), revision:String(v.revision??'')};
+    }catch{} }
+    return {verdict:'continue', reason:text.trim().slice(0,300), revision:''};
+  }
   if (type==='prose' || type==='markdown') return text.replace(/^```[a-z]*\n?|\n?```$/g,'').trim();
   const m = text.match(/[\[{][\s\S]*[\]}]/);
   if (m){ try{ const v = JSON.parse(m[0]);
@@ -1578,7 +1943,7 @@ async function runLive(providerId, prompt, type, onDelta, onText, signal){
   if (!fn) throw new Error(`No adapter for ${cfg.label}.`);
   const runCfg = {...cfg, _model: modelOf(providerId)};
   const sys = `${SHAPE[type]}\nAnswer in ${LOCALES[S.locale].outputLanguage}.`;
-  const structured = type === 'list' || type === 'table';
+  const structured = type === 'list' || type === 'table' || type === 'gate';
   const text = await fn({ sys, prompt, signal, cfg:runCfg, key:S.keys[providerId] ?? '', label:cfg.label,
     /* Prose streams straight into the cell. Structured output cannot be
        parsed half-formed, so its raw text streams into a progress view and
@@ -1648,7 +2013,7 @@ async function execCell(nb, cell, run, onChange){
     const onDelta = v => { cs.value = v; cs.state='streaming'; onChange(); };
     const onText  = txt => { cs.raw = txt; cs.state='streaming'; onChange(); };
     const value = providerId === 'demo'
-      ? await runDemo(cell, run.bag, onDelta, ctrl.signal)
+      ? await runDemo(cell, {...run.bag, __pass: run.passes[cell.id] ?? 1}, onDelta, ctrl.signal)
       : await runLive(providerId, renderPrompt(cell.prompt, nb, run), cell.output.type,
                       onDelta, onText, ctrl.signal);
     cs.value = value; cs.raw=''; cs.state='done'; cs.ms = Math.round(performance.now()-t0);
@@ -1664,19 +2029,57 @@ async function execCell(nb, cell, run, onChange){
   } finally { cs.ctrl=null; onChange(); }
 }
 
+/* ── Recursion ───────────────────────────────────────────────────────────
+   A gate cell judges the work so far and either lets the run continue or
+   sends it back to an earlier cell with a revision. Per PRODUCT-BRIEF P1
+   this is a CELL TYPE, not a change of topology: the notebook is still a
+   linear list you read top to bottom. It just may run parts of it twice.
+
+   Two rules make this safe rather than clever:
+   - maxPasses is hard. When it is spent the gate continues anyway and says
+     so, rather than looping or silently giving up.
+   - Every pass is visible. Nothing re-runs without the reason on screen. */
+
+const gateTargetIndex = (nb, cell) => nb.cells.findIndex(c => c.id === cell.gate.to);
+
 async function runAll(nb, run, onChange){
-  for (const cell of nb.cells){
+  let i = 0, steps = 0;
+  const HARD_CAP = nb.cells.length * 6;   // belt and braces against a cycle
+  while (i < nb.cells.length && steps++ < HARD_CAP){
+    const cell = nb.cells[i];
     if (!ready(nb, cell, run)) break;
     await execCell(nb, cell, run, onChange);
-    if (run.cells[cell.id].state === 'error') break;
+    const st = run.cells[cell.id];
+    if (st.state === 'error') break;
+
+    if (cell.gate && st.value?.verdict === 'revise'){
+      const passes = (run.passes[cell.id] ?? 1);
+      if (passes < cell.gate.maxPasses){
+        run.passes[cell.id] = passes + 1;
+        /* The revision becomes the input the loop re-reads. */
+        run.bag[cell.gate.writes] = st.value.revision;
+        const back = gateTargetIndex(nb, cell);
+        for (let k = back; k <= i; k++){
+          const c = nb.cells[k];
+          if (c.id !== cell.id) run.cells[c.id].state = 'idle';
+          run.cells[c.id].pass = run.passes[cell.id];
+        }
+        onChange();
+        i = back;
+        continue;
+      }
+      st.exhausted = true;   // out of passes: continue, and say so
+    }
+    i++;
   }
+  onChange();
 }
 
 /* ═════════ packages/ui — the viewer. Consumes engine, never reaches past it. ═════════ */
 
 const S = {
-  view:'library', nbId:null, locale:'en', brand:'throughline', mode:'light',
-  provider:'auto', keys:{}, cellProvider:{}, models:{}, tests:{}, builtin:'absent', dl:null,
+  view:'library', nbId:null, locale:'en', mode:'light',
+  brand:'rams', provider:'auto', keys:{}, cellProvider:{}, models:{}, tests:{}, builtin:'absent', dl:null,
   sheet:null, runs:{}, storage:null
 };
 
@@ -1713,27 +2116,68 @@ const resolveMode = () => document.documentElement.dataset.theme
   ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 
 const getRun = nb => S.runs[nb.id] ??= {
-  bag:{ ['input.'+nb.input.id]: nb.input.seed },
+  passes:{}, bag:{ ['input.'+nb.input.id]: nb.input.seed },
   cells:Object.fromEntries(nb.cells.map(c=>[c.id,{state:'idle',value:null,error:null,ms:0}]))
 };
 
 /* ── Library view ───────────────────────────────────────────────────── */
-function renderLibrary(){
-  view.innerHTML = `
-    <p class="eyebrow">${esc(t('libEyebrow'))}</p>
-    <h1 style="font-size:var(--p-size-8);max-width:16ch;margin-block-start:var(--p-space-3)">${esc(t('libTitle'))}</h1>
-    <p class="lede">${esc(t('libLede'))}</p>
-    <div class="shelf">${NOTEBOOKS.map(nb=>`
-      <button class="card" data-nb="${nb.id}">
-        <p class="eyebrow">${esc(nb.teaches)}</p>
-        <h3>${esc(nb.title)}</h3>
-        <p>${esc(nb.blurb)}</p>
-        <div class="card-foot">
-          <span>${esc(t('cells',{n:nb.cells.length}))}</span>
-          ${nb.tags.map(x=>`<span class="tag">${esc(x)}</span>`).join('')}
-        </div>
-      </button>`).join('')}
+const COLLECTIONS = [
+  {id:'judgment',     name:'Judgment',     blurb:'Pressure-test a decision, a plan, or a position you already hold.'},
+  {id:'work',         name:'Work',         blurb:'Turn the artefacts of a working week into something with owners and dates.'},
+  {id:'communication',name:'Communication',blurb:'Say the thing, then find out how it will actually be read.'},
+  {id:'analysis',     name:'Analysis',     blurb:'Make a pile of unstructured input into something you can act on.'}
+];
+
+const cardHTML = nb => `
+  <button class="card${nb.featured?' featured':''}" data-nb="${nb.id}">
+    <p class="eyebrow">${esc(nb.teaches)}</p>
+    <h3>${esc(nb.title)}</h3>
+    <p>${esc(nb.blurb)}</p>
+    <div class="card-foot">
+      <span>${esc(t('cells',{n:nb.cells.length}))}</span>
+      ${nb.cells.some(c=>c.gate)?'<span class="tag loop">↩ loops</span>':''}
+      ${nb.tags.map(x=>`<span class="tag">${esc(x)}</span>`).join('')}
     </div>
+  </button>`;
+
+function renderLibrary(){
+  const featured = NOTEBOOKS.find(n=>n.featured);
+  view.innerHTML = `
+    <header class="hero">
+      <p class="eyebrow">${esc(t('libEyebrow'))}</p>
+      <h1>${esc(t('libTitle'))}</h1>
+      <p class="lede">${esc(t('libLede'))}</p>
+      <p class="hero-count">${NOTEBOOKS.length} notebooks · ${COLLECTIONS.length} collections · nothing to install</p>
+    </header>
+
+    ${featured ? `<section class="feature">
+      <div class="feature-body">
+        <p class="eyebrow">Start here</p>
+        <h2>${esc(featured.title)}</h2>
+        <p>${esc(featured.blurb)}</p>
+        <button class="btn" data-nb="${featured.id}">Open ${esc(featured.title)}</button>
+      </div>
+      <div class="feature-aside">
+        <p class="eyebrow">What makes it different</p>
+        <p>Most notebooks run top to bottom once. This one has a <b>gate</b>: a cell
+        that judges the work and, if it does not hold, sends the run back to an
+        earlier cell with a revision — up to three times, every pass visible.
+        A loop is still a cell type, not a canvas.</p>
+      </div>
+    </section>` : ''}
+
+    ${COLLECTIONS.map(col => {
+      const items = NOTEBOOKS.filter(n => n.collection === col.id);
+      if (!items.length) return '';
+      return `<section class="collection">
+        <div class="collection-head">
+          <h2>${esc(col.name)}</h2>
+          <p>${esc(col.blurb)}</p>
+        </div>
+        <div class="shelf">${items.map(cardHTML).join('')}</div>
+      </section>`;
+    }).join('')}
+
     ${desktopStrip()}
     ${footer()}`;
   view.querySelectorAll('[data-nb]').forEach(el =>
@@ -1745,7 +2189,9 @@ function renderNotebook(){
   const nb = NOTEBOOKS.find(n=>n.id===S.nbId); const run = getRun(nb);
   const busy = Object.values(run.cells).some(c=>c.state==='running'||c.state==='streaming');
   view.innerHTML = `
-    <button class="ghost" id="back" style="margin-block-end:var(--p-space-5)">${esc(t('back'))}</button>
+    <button class="ghost" id="back" style="margin-block-end:var(--p-space-4)">${esc(t('back'))}</button>
+    <article class="doc">
+    <div class="doc-head">
     <div class="nb-head">
       <div style="flex:1;min-inline-size:20rem">
         <p class="eyebrow">${esc(nb.teaches)}</p>
@@ -1754,12 +2200,15 @@ function renderNotebook(){
       </div>
       <div class="nb-actions">
         <button class="btn" id="run-all" ${busy?'disabled':''}>${esc(busy?t('running'):t('runAll'))}</button>
+        <button class="btn secondary tiny" id="share">Share setup</button>
         <button class="btn secondary tiny" id="export">${esc(t('exportNb'))}</button>
         <button class="btn secondary tiny" id="clear">${esc(t('clearRun'))}</button>
       </div>
     </div>
 
-    <div class="cell" style="margin-block-start:var(--p-space-6)">
+    </div>
+
+    <div class="cell">
       <div class="cell-head">
         <span class="cell-index">00</span>
         <div class="cell-titles">
@@ -1773,6 +2222,7 @@ function renderNotebook(){
     </div>
 
     <div class="cells">${nb.cells.map((c,i)=>cellHTML(nb,c,i,run)).join('')}</div>
+    </article>
 
     <details class="vars"><summary>${esc(t('vars'))}</summary>
       <div class="var-table">${varRows(nb,run)}</div></details>
@@ -1795,6 +2245,7 @@ function renderNotebook(){
   ta.onblur = commit;
 
   $('#run-all').onclick = async () => { commit(); await runAll(nb, run, render); };
+  $('#share').onclick = e => copyShare(nb, e.currentTarget);
   $('#export').onclick = () => exportNotebook(nb, run);
   $('#clear').onclick = () => { delete S.runs[nb.id]; render(); };
   view.querySelectorAll('[data-cellprov]').forEach(el => el.onchange = () => {
@@ -1825,6 +2276,7 @@ function cellHTML(nb, cell, i, run){
         <p class="cell-intent">${esc(cell.intent)}</p>
         <div class="io-line">${ins}<span><b>out</b> ${esc(cell.output.name)} · ${esc(cell.output.type)}</span><span><b>needs</b> ${esc(cell.requires)}</span></div>
       </div>
+      ${st.pass > 1 ? `<span class="badge pass-badge">pass ${st.pass}</span>` : ''}
       <span class="badge" data-s="${st.state}">${esc(st.state)}</span>
     </div>
     <div class="cell-body">
@@ -1832,7 +2284,7 @@ function cellHTML(nb, cell, i, run){
       ${st.error ? `<div class="error-box">${esc(st.error)}</div>` : ''}
       ${belowClass(cell) && st.state!=='error' ? classNotice(cell) : ''}
       ${st.raw ? `<pre class="raw">${esc(st.raw)}<span class="caret"></span></pre>` : ''}
-      ${st.value!=null ? outputHTML(st.value, cell.output.type, st.state==='streaming')
+      ${st.value!=null ? outputHTML(st.value, cell.output.type, st.state==='streaming', cell, st)
         : (st.raw ? '' : st.state==='running'?'<p class="meta">…</p>':`<p class="meta">${esc(t('emptyOut'))}</p>`)}
     </div>
     <div class="cell-foot">
@@ -1875,8 +2327,18 @@ function classNotice(cell){
   </div>`;
 }
 
-function outputHTML(v, type, streaming){
+function outputHTML(v, type, streaming, cell, st){
   const c = streaming ? '<span class="caret"></span>' : '';
+  if (type==='gate'){
+    const back = v.verdict==='revise' && !st?.exhausted;
+    return `<div class="gate ${back?'back':'through'}">
+      <div class="gate-verdict">${back
+        ? `↩ Sending this back — pass ${esc(String(st?.pass ?? 2))} of ${esc(String(cell.gate.maxPasses))}`
+        : st?.exhausted ? '→ Out of passes. Continuing with what we have.' : '→ It holds. Continuing.'}</div>
+      <p>${inline(v.reason)}</p>
+      ${back && v.revision ? `<div class="gate-rev"><span class="eyebrow">Revised for the next pass</span><p>${inline(v.revision)}</p></div>` : ''}
+    </div>${c}`;
+  }
   if (type==='table'){
     /* data-col carries the header into each cell so the narrow layout can
        label rows once the thead is gone. */
@@ -2000,15 +2462,34 @@ function renderRail(){
   const nb = NOTEBOOKS.find(n=>n.id===S.nbId), run = getRun(nb);
   rail.innerHTML = `
     <div class="rail-label">${esc(nb.title)}</div>
-    <button class="pip" data-goto="__input"><span class="n">00</span>
-      <span class="lbl">${esc(nb.input.label)}</span><span class="st" data-s="done"></span></button>
-    <div class="rail-sep"></div>
-    ${nb.cells.map((c,i)=>`
-      <button class="pip" data-goto="${c.id}">
+    <div class="rail-list">
+      <button class="pip" data-goto="__input">
+        <span class="node" data-s="done"></span><span class="n">00</span>
+        <span class="lbl">${esc(nb.input.label)}</span>
+      </button>
+    </div>
+    <div class="rail-list">
+    ${nb.cells.map((c,i)=>{
+      /* A cell is inside a loop if some gate below it can send the run back
+         to it or above it. Drawn on the spine so the shape is legible before
+         it ever runs. */
+      const g = nb.cells.find(x => x.gate && (() => {
+        const from = nb.cells.findIndex(y=>y.id===x.gate.to);
+        const to = nb.cells.findIndex(y=>y.id===x.id);
+        return i >= from && i <= to;
+      })());
+      const loopCls = g ? ['in-loop',
+        nb.cells.findIndex(y=>y.id===g.gate.to) === i ? 'loop-start' : '',
+        g.id === c.id ? 'loop-end' : ''].filter(Boolean).join(' ') : '';
+      const st = run.cells[c.id];
+      return `
+      <button class="pip ${loopCls}" data-goto="${c.id}">
+        <span class="node" data-s="${st.state==='idle'?'':st.state}"></span>
         <span class="n">${String(i+1).padStart(2,'0')}</span>
         <span class="lbl">${esc(c.title)}</span>
-        <span class="st" data-s="${run.cells[c.id].state}"></span>
-      </button>`).join('')}`;
+        ${st.pass > 1 ? `<span class="pass">×${st.pass}</span>` : ''}
+      </button>`;}).join('')}
+    </div>`;
   rail.querySelectorAll('[data-goto]').forEach(b => b.onclick = () => {
     const id = b.dataset.goto;
     const el = id === '__input' ? view.querySelector('.cell') : view.querySelector(`[data-run="${id}"]`)?.closest('.cell');
@@ -2287,6 +2768,60 @@ function renderSwitcher(){
 }
 const closeMenu = () => { const m=$('#model-menu'); m.hidden=true; $('#btn-model').setAttribute('aria-expanded','false'); };
 
+/* ── Shareable permutations ──────────────────────────────────────────────
+   A combination worth showing off is: which notebook, which brand, which
+   language, which model, and what you put in. All five fit in a URL, so the
+   link is the record and nothing needs to be stored anywhere. */
+const b64 = {
+  enc: str => btoa(String.fromCharCode(...new TextEncoder().encode(str)))
+               .replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''),
+  dec: str => { try{
+    const b = atob(str.replace(/-/g,'+').replace(/_/g,'/'));
+    return new TextDecoder().decode(Uint8Array.from(b, c=>c.charCodeAt(0)));
+  }catch{ return ''; } }
+};
+
+function shareURL(nb){
+  const run = getRun(nb);
+  const p = new URLSearchParams();
+  p.set('n', nb.id);
+  if (S.brand !== 'rams')  p.set('b', S.brand);
+  if (S.locale !== 'en')   p.set('l', S.locale);
+  if (S.provider !== 'auto') p.set('m', S.provider);
+  const input = run.bag['input.'+nb.input.id] ?? '';
+  if (input && input !== nb.input.seed) p.set('i', b64.enc(input));
+  return `${location.origin}${location.pathname}?${p}`;
+}
+
+function applyShareState(){
+  const p = new URLSearchParams(location.search);
+  if (p.get('b') && BRANDS[p.get('b')]) S.brand = p.get('b');
+  if (p.get('l') && LOCALES[p.get('l')]) S.locale = p.get('l');
+  if (p.get('m') && (p.get('m')==='auto' || PROVIDERS[p.get('m')])) S.provider = p.get('m');
+  const nb = NOTEBOOKS.find(n => n.id === p.get('n'));
+  if (nb){
+    S.view = 'notebook'; S.nbId = nb.id;
+    const i = p.get('i');
+    if (i){ const text = b64.dec(i); if (text) getRun(nb).bag['input.'+nb.input.id] = text; }
+  }
+}
+
+async function copyShare(nb, btn){
+  const url = shareURL(nb);
+  try {
+    await navigator.clipboard.writeText(url);
+    btn.textContent = 'Link copied';
+  } catch {
+    /* Clipboard access is refused in plenty of contexts. Show the link
+       rather than failing silently — the user can still copy it by hand. */
+    btn.textContent = 'Copy this →';
+    const f = document.createElement('input');
+    f.className = 'share-fallback'; f.value = url; f.readOnly = true;
+    btn.after(f); f.select();
+  }
+  setTimeout(()=>{ btn.textContent = 'Share setup'; }, 2400);
+}
+
 /* ── Boot ───────────────────────────────────────────────────────────── */
 function render(){
   const focus = document.activeElement?.id;
@@ -2333,6 +2868,7 @@ addEventListener('keydown', e => { if (e.key==='Escape' && S.sheet){ S.sheet=nul
   if (isConnected('chrome')) S.provider = 'chrome';
   try { const a = IdbAdapter(); await a.init(); S.storage = a; }
   catch { S.storage = MemoryAdapter(); }
+  applyShareState();
   applyTheme(); render();
 })();
 </script>
