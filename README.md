@@ -16,19 +16,45 @@ python3 -m http.server 8719
 
 ## Deploy
 
-Target: **https://ibm.io/notebook** on GreenGeeks, behind Cloudflare.
+**Two hosts, and they are not the same machine.** This tripped up the first
+deploy, so it is written down.
+
+| | URL | Served by | How |
+|---|---|---|---|
+| **Production** | https://ibm.io/notebook/ | `portfolio` Cloudflare Worker (OpenNext/Next.js) | `public/notebook/index.html` in `mhsenkow/portfolio`, then `pnpm run deploy` |
+| **Staging** | https://mhsenkow.org/notebook/ | GreenGeeks `chi202` (Apache, direct — no Cloudflare) | `./deploy.sh` over SFTP |
+
+`ibm.io` resolves to Cloudflare and is handled entirely by the Worker. The
+`public_html/ibm.io` folder still sitting on GreenGeeks is legacy and serves
+nothing. Anything uploaded there is invisible.
+
+### Production
 
 ```bash
-./deploy.sh <ssh-host> <cpanel-user>
+cp index.html ~/portfolio/portfolio/public/notebook/index.html
+cd ~/portfolio/portfolio && pnpm run deploy
 ```
 
-Defaults to `~/public_html/notebook`. Uses the SSH key in your agent; no password
-is handled by the script. It syntax-checks the file before uploading, since a
-broken publish here is a broken site with no build step to catch it.
+Headers live in that repo's `public/_headers` under `/notebook/*` — same CSP as
+the `.htaccess` here, plus `static.cloudflareinsights.com`, because Cloudflare
+injects its analytics beacon into pages on this zone and the CSP otherwise
+blocks it. Remove both `cloudflareinsights` entries if you would rather keep
+`/notebook` beacon-free.
 
-The domain is proxied through Cloudflare, so **purge the cache after deploying**
-or you will keep seeing the old file:
-Cloudflare dashboard → Caching → Configuration → Purge Everything.
+### Staging
+
+```bash
+./deploy.sh
+```
+
+Uploads over **SFTP**, not rsync — GreenGeeks disables shell access on this plan
+("Shell access is not enabled on your account") but leaves the SFTP subsystem
+open, so key auth works and rsync does not. Syntax-checks before uploading,
+since a broken publish here is a broken site with no build step to catch it.
+
+`mhsenkow.org` is not proxied through Cloudflare, so changes are immediate.
+The `.htaccess` in this repo ships with it and is live: CSP, `no-cache`
+revalidation, and gzip (111 KB → 39 KB).
 
 Nothing else is needed — no base href, no rewrite rules, no origin config. Every
 asset reference is relative and routing is in-memory, so the same file works at
