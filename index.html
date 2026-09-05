@@ -201,6 +201,10 @@ input,textarea,select{font:inherit;color:inherit}
   display:grid; gap:var(--p-space-4); margin-block-start:var(--p-space-6);
   grid-template-columns:repeat(auto-fill,minmax(19rem,1fr));
 }
+/* Surfaces blur what is behind them only when a theme asks for it. Default
+   0px, so opaque themes pay nothing. */
+.card,.cell,.sheet,.menu,.topbar{backdrop-filter:blur(var(--surface-blur, 0px))}
+
 .card{
   text-align:start; display:flex; flex-direction:column; gap:var(--p-space-3);
   padding:var(--p-space-5); background:var(--surface-raised);
@@ -377,6 +381,7 @@ details.vars[open] > summary::before{transform:rotate(90deg)}
 
 .swatches{display:flex; gap:var(--p-space-2); flex-wrap:wrap}
 .swatch{
+  text-align:start;
   display:flex; flex-direction:column; gap:var(--p-space-2); align-items:flex-start;
   padding:var(--p-space-3); border-radius:var(--radius-md);
   border:1px solid var(--border-subtle); background:var(--surface-base);
@@ -501,9 +506,100 @@ a.link:hover{text-decoration:underline}
 .prov-result.bad{background:color-mix(in oklab,var(--status-error) 10%,transparent); color:var(--status-error)}
 
 .sr{position:absolute; inline-size:1px; block-size:1px; overflow:hidden; clip-path:inset(50%)}
+/* ═══════════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   Fluid where fluid works, restructured where it does not. The tables are
+   the real case: three columns of prose cannot narrow, so below 640px they
+   stop being a table and become labelled rows.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Fluid display type — no step changes, no sudden reflow. */
+.nb-head h1{font-size:clamp(1.75rem, 6vw, 2.5rem)}
+.shell > h1{font-size:clamp(1.875rem, 7vw, 2.5rem)}
+.card h3{font-size:clamp(1.125rem, 3.4vw, 1.375rem)}
+
+/* Topbar: the switcher must never wrap — it is a pill, and a wrapped pill
+   becomes an oval blob. Truncate instead. */
+.topbar-actions{
+  margin-inline-start:auto; display:flex; align-items:center;
+  gap:var(--p-space-1); flex-wrap:wrap; justify-content:flex-end;
+}
+.switcher{max-inline-size:min(18rem, 42vw); white-space:nowrap}
+.switcher #model-name{overflow:hidden; text-overflow:ellipsis; min-inline-size:0}
+.switcher .dot{flex:none}
+
+/* Tables scroll rather than crush — but only while they are still tables. */
+.table-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch}
+table.out-table{min-inline-size:32rem}
+
+@media (max-width:900px){
+  .topbar-in{flex-wrap:wrap; row-gap:var(--p-space-2)}
+}
+
 @media (max-width:640px){
-  .cell-body,.cell-foot{padding-inline-start:var(--p-space-5)}
-  .nb-head h1{font-size:var(--p-size-7)}
+  .shell{padding:var(--p-space-5) var(--p-space-4) var(--p-space-7)}
+  .topbar-in{padding:var(--p-space-3) var(--p-space-4)}
+  .cell-head{padding:var(--p-space-4)}
+  .cell-body,.cell-foot{padding-inline:var(--p-space-4)}
+  .cell-body,.cell-foot{padding-inline-start:var(--p-space-4)}
+  .card{padding:var(--p-space-4)}
+  .shelf{grid-template-columns:1fr}
+  .wordmark span:last-child{
+    max-inline-size:0; overflow:hidden; opacity:0; margin-inline-start:calc(var(--p-space-2) * -1);
+  }
+  .switcher{max-inline-size:min(15rem, 52vw)}
+
+  /* The popover stops being anchored and becomes a sheet under the bar —
+     a 19rem menu positioned from a centred trigger runs off a 360px screen. */
+  .menu{
+    position:fixed; inset-inline:var(--p-space-3); inset-block-start:3.75rem;
+    min-inline-size:0; max-block-size:70vh; overflow-y:auto;
+  }
+
+  /* Tables become labelled rows. Three columns of prose cannot be narrowed
+     into 360px, and horizontal scroll on the primary content is a worse
+     answer than restructuring it. */
+  table.out-table{min-inline-size:0; display:block}
+  .out-table thead{display:none}
+  .out-table tbody,.out-table tr{display:block}
+  .out-table tr{
+    padding-block:var(--p-space-3);
+    border-block-end:1px solid var(--border-subtle);
+  }
+  .out-table tr:last-child{border-block-end:0}
+  .out-table td{
+    display:grid; grid-template-columns:minmax(5.5rem,30%) 1fr;
+    gap:var(--p-space-3); border:0; padding:var(--p-space-1) 0;
+  }
+  .out-table td::before{
+    content:attr(data-col);
+    font-size:var(--p-size-0); text-transform:uppercase;
+    letter-spacing:var(--p-tracking-wide); color:var(--ink-muted);
+    line-height:1.5;
+  }
+
+  .sheet-backdrop{padding:var(--p-space-3)}
+  .sheet-body{padding:var(--p-space-4); gap:var(--p-space-4)}
+  .prov-row{flex-direction:column; align-items:stretch}
+  .prov-row .btn{align-self:flex-start}
+  .swatch{flex:1 1 8rem}
+  .cap-list{grid-template-columns:1fr}
+  .desktop-strip{padding:var(--p-space-4)}
+  .var-table{grid-template-columns:1fr; gap:var(--p-space-1)}
+  .var-table .v{white-space:normal}
+  .cell-foot{flex-wrap:wrap; row-gap:var(--p-space-2)}
+  .picker{inline-size:100%; justify-content:flex-end}
+}
+
+/* Touch targets. A 22px-tall pill is fine with a mouse and hostile to a thumb. */
+@media (pointer:coarse){
+  .btn,.ghost,.switcher,.menu-item,.swatch{min-block-size:44px}
+  .btn.tiny,.ghost{padding-inline:var(--p-space-3)}
+  .picker select{min-block-size:36px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important; transition-duration:.01ms !important}
 }
 </style>
 
@@ -517,11 +613,12 @@ a.link:hover{text-decoration:underline}
         </button>
         <div class="menu" id="model-menu" hidden></div>
       </div>
-      <span class="spacer"></span>
-      <button class="ghost" id="btn-brand">Brand</button>
-      <button class="ghost" id="btn-locale">Language</button>
-      <button class="ghost" id="btn-mode" aria-label="Toggle dark mode">◐</button>
-      <button class="ghost" id="btn-settings">Connect</button>
+      <div class="topbar-actions">
+        <button class="ghost" id="btn-brand">Brand</button>
+        <button class="ghost" id="btn-locale">Language</button>
+        <button class="ghost" id="btn-mode" aria-label="Toggle dark mode">◐</button>
+        <button class="ghost" id="btn-settings">Connect</button>
+      </div>
     </div>
   </header>
   <main class="shell" id="view"></main>
@@ -540,13 +637,45 @@ a.link:hover{text-decoration:underline}
    ══════════════════════════════════════════════════════════════════════════ */
 
 /* ═════════ packages/tokens — brands override Tier 2 only ═════════ */
+/* ── wordcount's design systems ─────────────────────────────────────────
+   Ported from ibm.io/wordcount, whose token vocabulary is bg/face/ink/mute/
+   rule/hair/accent/mark. That reconciles onto Throughline's semantic tier
+   one-for-one, which is the whole argument for having a semantic tier: two
+   products, two vocabularies, one component tree, no component edits.
+   Values are wordcount's actual hex, not approximations. Intermediate tokens
+   are derived with color-mix so each theme stays internally consistent. */
+const wc = (t) => ({
+  '--surface-base': t.bg, '--surface-raised': t.face,
+  '--surface-sunken': t.sunken ?? `color-mix(in oklab, ${t.bg} 88%, ${t.ink})`,
+  '--ink-primary': t.ink,
+  '--ink-secondary': `color-mix(in oklab, ${t.ink} 65%, ${t.mute})`,
+  '--ink-muted': t.mute, '--ink-inverse': t.bg,
+  '--accent-base': t.accent,
+  '--accent-hover': t.accentHover ?? `color-mix(in oklab, ${t.accent} 80%, ${t.ink})`,
+  '--accent-ink': t.on ?? '#ffffff',
+  '--accent-wash': `color-mix(in oklab, ${t.accent} 10%, transparent)`,
+  '--border-subtle': t.hair, '--border-strong': t.rule,
+  '--status-error': t.mark, '--status-done': t.oscar ?? t.accent,
+  '--status-stale': t.bird ?? t.mark, '--status-running': t.cookie ?? t.accent,
+  '--status-idle': t.mute,
+  ...(t.font ? {'--font-display': t.font, '--font-body': t.font} : {}),
+  ...(t.radius !== undefined ? {
+    '--radius-sm': `${t.radius}px`, '--radius-md': `${t.radius}px`,
+    '--radius-lg': `${t.radius * 1.6}px`, '--radius-pill': t.radius ? '999px' : '0px'} : {}),
+  ...(t.weight ? {'--weight-heading': t.weight} : {}),
+  ...(t.elev ? {'--elevation-1': t.elev[0], '--elevation-2': t.elev[1]} : {}),
+  ...(t.blur ? {'--surface-blur': t.blur} : {})
+});
+
+const HELV = 'Helvetica,"Helvetica Neue",Arial,sans-serif';
+
 const BRANDS = {
-  throughline: {
+  throughline: { group:'core',
     name: 'Throughline', note: 'Default — editorial, restrained',
     chips: ['#5b4ce0', '#fcfcfb', '#141312'],
     light: {}, dark: {}
   },
-  meridian: {
+  meridian: { group:'core',
     name: 'Meridian Trust', note: 'Financial — conservative, serif, tight',
     chips: ['#0f3d63', '#f7f6f3', '#1a1a1a'],
     light: {
@@ -567,7 +696,7 @@ const BRANDS = {
       '--border-subtle': '#2a343d', '--border-strong': '#3d4a55'
     }
   },
-  lumen: {
+  lumen: { group:'core',
     name: 'Lumen', note: 'Consumer — saturated, rounded, warm',
     chips: ['#ff5a3c', '#fff8f2', '#2b1810'],
     light: {
@@ -589,7 +718,7 @@ const BRANDS = {
       '--elevation-1': '0 2px 0 #3d241a', '--elevation-2': '0 6px 20px rgb(0 0 0 / 0.5)'
     }
   },
-  civic: {
+  civic: { group:'core',
     name: 'Civic Service', note: 'Government — AAA contrast, austere, square',
     chips: ['#00703c', '#ffffff', '#0b0c0c'],
     light: {
@@ -611,7 +740,98 @@ const BRANDS = {
       '--border-subtle': '#4a4d4e', '--border-strong': '#ffffff', '--border-focus': '#ffdd00',
       '--elevation-1': 'none', '--elevation-2': 'none'
     }
-  }
+  },
+  /* ── from wordcount ── */
+  wcLight: { name:'Wordcount Light', group:'wordcount', note:'Helvetica, warm grey, rust accent',
+    chips:['#c45c26','#f2f2f0','#111111'],
+    light: wc({bg:'#f2f2f0', face:'#fafaf8', ink:'#111111', mute:'#757575', rule:'#c8c8c4',
+      hair:'#e4e4e0', accent:'#c45c26', mark:'#c62828', oscar:'#00A651', bird:'#F5C518',
+      cookie:'#009FE3', font:HELV, radius:2}),
+    dark: wc({bg:'#161616', face:'#1c1c1c', ink:'#f0f0ee', mute:'#8a8a8a', rule:'#3a3a3a',
+      hair:'#2a2a2a', accent:'#e07a45', mark:'#e57373', oscar:'#66BB6A', bird:'#FFD54A',
+      cookie:'#4FC3F7', font:HELV, radius:2, on:'#161616'}) },
+
+  wcPaper: { name:'Paper', group:'wordcount', note:'Warm stock, oxidised ink, print feel',
+    chips:['#8b4510','#e8e2d6','#1c1914'],
+    light: wc({bg:'#e8e2d6', face:'#f3efe6', ink:'#1c1914', mute:'#6e685c', rule:'#c4bbaa',
+      hair:'#d9d1c3', accent:'#8b4510', mark:'#9b2c2c', oscar:'#166534', bird:'#a16207',
+      cookie:'#1d4ed8', radius:1, elev:['0 1px 0 #d9d1c3','0 2px 6px rgb(28 25 20 / .12)']}),
+    dark: wc({bg:'#1c1914', face:'#26221a', ink:'#e8e2d6', mute:'#948b78', rule:'#3d372c',
+      hair:'#2e2921', accent:'#c9863f', mark:'#d98080', oscar:'#5fa877', bird:'#c9a44a',
+      cookie:'#7aa2f7', radius:1, on:'#1c1914'}) },
+
+  wcContrast: { name:'Contrast', group:'wordcount', note:'AAA — pure black, yellow, square',
+    chips:['#ffff00','#000000','#ffffff'],
+    light: wc({bg:'#000000', face:'#000000', sunken:'#111111', ink:'#ffffff', mute:'#b0b0b0',
+      rule:'#ffffff', hair:'#666666', accent:'#ffff00', accentHover:'#ffffff', on:'#000000',
+      mark:'#ffff00', oscar:'#00ff00', bird:'#ffff00', cookie:'#00ffff', radius:0, weight:'700',
+      elev:['none','none']}),
+    dark: wc({bg:'#000000', face:'#000000', sunken:'#111111', ink:'#ffffff', mute:'#b0b0b0',
+      rule:'#ffffff', hair:'#666666', accent:'#ffff00', accentHover:'#ffffff', on:'#000000',
+      mark:'#ffff00', oscar:'#00ff00', bird:'#ffff00', cookie:'#00ffff', radius:0, weight:'700',
+      elev:['none','none']}) },
+
+  wcBrutal: { name:'Brutal', group:'wordcount', note:'Everything is a black rule. Red means red.',
+    chips:['#ff0000','#ffffff','#000000'],
+    light: wc({bg:'#ffffff', face:'#ffffff', sunken:'#f0f0f0', ink:'#000000', mute:'#000000',
+      rule:'#000000', hair:'#000000', accent:'#ff0000', accentHover:'#000000', on:'#ffffff',
+      mark:'#000000', oscar:'#000000', bird:'#ffff00', cookie:'#0000ff', radius:0, weight:'800',
+      elev:['4px 4px 0 #000000','8px 8px 0 #000000']}),
+    dark: wc({bg:'#000000', face:'#000000', sunken:'#141414', ink:'#ffffff', mute:'#ffffff',
+      rule:'#ffffff', hair:'#ffffff', accent:'#ff3b3b', accentHover:'#ffffff', on:'#000000',
+      mark:'#ffffff', oscar:'#ffffff', bird:'#ffff00', cookie:'#5b7bff', radius:0, weight:'800',
+      elev:['4px 4px 0 #ffffff','8px 8px 0 #ffffff']}) },
+
+  wcNes: { name:'NES', group:'wordcount', note:'8-bit blue, hard edges, cartridge red',
+    chips:['#e4002b','#209cee','#f8f8f8'],
+    light: wc({bg:'#209cee', face:'#f8f8f8', sunken:'#dee2e6', ink:'#212529', mute:'#495057',
+      rule:'#000000', hair:'#dee2e6', accent:'#e4002b', on:'#ffffff', mark:'#e4002b',
+      oscar:'#92cc41', bird:'#fce100', cookie:'#fce100', radius:0, weight:'700',
+      elev:['3px 3px 0 #212529','6px 6px 0 #212529']}),
+    dark: wc({bg:'#0b2c47', face:'#14243a', sunken:'#081c2e', ink:'#f8f8f8', mute:'#8fa6bd',
+      rule:'#f8f8f8', hair:'#2a3d55', accent:'#ff4d6d', on:'#0b2c47', mark:'#ff4d6d',
+      oscar:'#92cc41', bird:'#fce100', cookie:'#5bc0ff', radius:0, weight:'700',
+      elev:['3px 3px 0 #f8f8f8','6px 6px 0 #f8f8f8']}) },
+
+  wcGlass: { blur:true, name:'Glass', group:'wordcount', note:'Translucent surfaces over a cool wash',
+    chips:['#7c3aed','#e8eef8','#0f172a'],
+    light: wc({bg:'#e8eef8', face:'rgba(255,255,255,0.62)', sunken:'rgba(255,255,255,0.35)',
+      ink:'#0f172a', mute:'#64748b', rule:'rgba(148,163,184,0.45)', hair:'rgba(255,255,255,0.6)',
+      accent:'#7c3aed', on:'#ffffff', mark:'#dc2626', oscar:'#16a34a', bird:'#d97706',
+      cookie:'#2563eb', radius:12, blur:'16px', elev:['0 2px 12px rgb(15 23 42 / .08)','0 8px 30px rgb(15 23 42 / .14)']}),
+    dark: wc({bg:'#070b16', face:'rgba(15,23,42,0.72)', sunken:'rgba(2,6,16,0.6)',
+      ink:'#e2e8f0', mute:'#94a3b8', rule:'rgba(148,163,184,0.22)', hair:'rgba(148,163,184,0.14)',
+      accent:'#a78bfa', on:'#070b16', mark:'#f87171', oscar:'#4ade80', bird:'#fbbf24',
+      cookie:'#60a5fa', radius:12, blur:'16px', elev:['0 2px 12px rgb(0 0 0 / .5)','0 8px 30px rgb(0 0 0 / .6)']}) },
+
+  wcFrost: { blur:true, name:'Frost', group:'wordcount', note:'Deep night, violet light, frosted panes',
+    chips:['#a78bfa','#070b16','#e2e8f0'],
+    light: wc({bg:'#070b16', face:'rgba(15,23,42,0.72)', sunken:'rgba(2,6,16,0.6)',
+      ink:'#e2e8f0', mute:'#94a3b8', rule:'rgba(148,163,184,0.22)', hair:'rgba(148,163,184,0.14)',
+      accent:'#a78bfa', on:'#070b16', mark:'#f87171', oscar:'#4ade80', bird:'#fbbf24',
+      cookie:'#60a5fa', radius:10, blur:'18px'}),
+    dark: wc({bg:'#04060d', face:'rgba(10,16,30,0.8)', sunken:'rgba(0,0,0,0.55)',
+      ink:'#e2e8f0', mute:'#94a3b8', rule:'rgba(148,163,184,0.2)', hair:'rgba(148,163,184,0.12)',
+      accent:'#a78bfa', on:'#04060d', mark:'#f87171', oscar:'#4ade80', bird:'#fbbf24',
+      cookie:'#60a5fa', radius:10, blur:'18px'}) },
+
+  wcLoom: { name:'Loom', group:'wordcount', note:'Near-black with a single thread of gold',
+    chips:['#d4a84b','#0a0a0f','#e8e6e3'],
+    light: wc({bg:'#0a0a0f', face:'#12121a', sunken:'#06060a', ink:'#e8e6e3', mute:'#a8a5a0',
+      rule:'#2a2a35', hair:'#1a1a25', accent:'#d4a84b', on:'#0a0a0f', mark:'#ef4444',
+      oscar:'#22c55e', bird:'#d4a84b', cookie:'#8b5cf6', radius:4}),
+    dark: wc({bg:'#0a0a0f', face:'#12121a', sunken:'#06060a', ink:'#e8e6e3', mute:'#a8a5a0',
+      rule:'#2a2a35', hair:'#1a1a25', accent:'#d4a84b', on:'#0a0a0f', mark:'#ef4444',
+      oscar:'#22c55e', bird:'#d4a84b', cookie:'#8b5cf6', radius:4}) },
+
+  wcTank: { name:'Tank', group:'wordcount', note:'Submarine teal, phosphor green',
+    chips:['#57a253','#0b1a22','#c5e2e7'],
+    light: wc({bg:'#0b1a22', face:'#163040', sunken:'#071219', ink:'#c5e2e7', mute:'#69a1b3',
+      rule:'#23475a', hair:'#1d3b22', accent:'#57a253', on:'#0b1a22', mark:'#c33b3b',
+      oscar:'#79c069', bird:'#e6c92a', cookie:'#4a52c4', radius:3}),
+    dark: wc({bg:'#071219', face:'#102530', sunken:'#040c11', ink:'#c5e2e7', mute:'#69a1b3',
+      rule:'#23475a', hair:'#1d3b22', accent:'#79c069', on:'#071219', mark:'#c33b3b',
+      oscar:'#79c069', bird:'#e6c92a', cookie:'#6b73d6', radius:3}) },
 };
 
 /* ═════════ i18n — ICU-lite. Locale is a RUNTIME VARIABLE, not just chrome.
@@ -1540,9 +1760,12 @@ function classNotice(cell){
 function outputHTML(v, type, streaming){
   const c = streaming ? '<span class="caret"></span>' : '';
   if (type==='table'){
-    return `<div style="overflow-x:auto"><table class="out-table">
+    /* data-col carries the header into each cell so the narrow layout can
+       label rows once the thead is gone. */
+    return `<div class="table-wrap"><table class="out-table">
       <thead><tr>${v.cols.map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead>
-      <tbody>${v.rows.map(r=>`<tr>${r.map(x=>`<td>${inline(x)}</td>`).join('')}</tr>`).join('')}</tbody>
+      <tbody>${v.rows.map(r=>`<tr>${r.map((x,i)=>
+        `<td data-col="${esc(v.cols[i] ?? '')}">${inline(x)}</td>`).join('')}</tr>`).join('')}</tbody>
     </table></div>${c}`;
   }
   if (type==='list') return `<div class="out"><ul>${v.map(x=>`<li>${inline(x)}</li>`).join('')}</ul></div>${c}`;
@@ -1647,18 +1870,34 @@ function renderSheet(){
   wireSheet(el);
 }
 
+const brandGroup = (g) => Object.entries(BRANDS).filter(([,b])=>b.group===g).map(([k,b])=>`
+  <button class="swatch" data-brand="${k}" aria-pressed="${S.brand===k}">
+    <span class="chips">${b.chips.map(c=>`<span class="chip" style="background:${c}"></span>`).join('')}</span>
+    <strong>${esc(b.name)}</strong><span style="color:var(--ink-muted)">${esc(b.note)}</span>
+  </button>`).join('');
+
 const brandSheet = () => `
   <div class="sheet-sec">
-    <h3>Swap the brand · nothing below the token layer changes</h3>
-    <div class="swatches">${Object.entries(BRANDS).map(([k,b])=>`
-      <button class="swatch" data-brand="${k}" aria-pressed="${S.brand===k}">
-        <span class="chips">${b.chips.map(c=>`<span class="chip" style="background:${c}"></span>`).join('')}</span>
-        <strong>${esc(b.name)}</strong><span style="color:var(--ink-muted)">${esc(b.note)}</span>
-      </button>`).join('')}</div>
+    <h3>Built for Throughline</h3>
+    <div class="swatches">${brandGroup('core')}</div>
+  </div>
+  <div class="sheet-sec">
+    <h3>Ported from ibm.io/wordcount</h3>
+    <div class="swatches">${brandGroup('wordcount')}</div>
     <p class="hint" style="font-size:var(--p-size-1);color:var(--ink-muted)">
-      Four brands, one component tree, zero component edits. Each overrides only the
-      semantic tier — surface, ink, accent, border, radius, type, elevation, motion.
-      This is the three-brand proof from PRODUCT-BRIEF §9.3, live.</p>
+      Wordcount speaks a different token vocabulary — bg, face, ink, mute, rule,
+      hair, accent, mark. Each maps one-for-one onto the semantic tier here, so
+      all ten arrive with their real values and no component knows the
+      difference. That reconciliation is the argument for having a semantic
+      tier at all.</p>
+  </div>
+  <div class="sheet-sec">
+    <p class="hint" style="font-size:var(--p-size-1);color:var(--ink-muted)">
+      Thirteen systems, one component tree, zero component edits — including a
+      government AAA palette, a brutalist one where every border is a black rule,
+      and three translucent ones. Each overrides only the semantic tier: surface,
+      ink, accent, border, radius, type, elevation, motion. No component contains
+      a colour.</p>
   </div>`;
 
 const localeSheet = () => `

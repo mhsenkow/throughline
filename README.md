@@ -98,7 +98,8 @@ any path. Static hosts (Cloudflare Pages, Netlify, S3, GitHub Pages) work unchan
 | Per-cell re-execution; stale as display state, never auto-rerun | **Real** |
 | Storage adapter interface + IndexedDB backend with honest `capabilities()` | **Real** |
 | Export to file | **Real** |
-| Three-tier tokens, 4 brands, light/dark, zero component edits | **Real** |
+| Three-tier tokens, **13 brands**, light/dark, zero component edits | **Real** |
+| Responsive: fluid type, restructured tables, touch targets | **Real** |
 | i18n incl. RTL via logical properties; locale interpolated into prompts | **Real** |
 | Untrusted-output escaping | **Real** (minimal; swap for `rehype-sanitize` in the monorepo) |
 | Auto model resolution against each cell's `requires` class | **Real** |
@@ -149,8 +150,16 @@ own origin.
 1. Open any notebook and press **Run all**. Nothing is connected; nothing needs to be.
 2. Edit the input afterwards. Every downstream cell goes **stale** — dashed border,
    result preserved, nothing re-runs. That is the §5.3 contract.
-3. **Brand** → Lumen, then Civic Service. Same component tree, same markup, zero
-   component edits. Only the semantic token tier changed.
+3. **Brand** → thirteen systems, including the ten ported from
+   `ibm.io/wordcount`. Same component tree, same markup, zero component edits.
+   Wordcount's token vocabulary is `bg/face/ink/mute/rule/hair/accent/mark`;
+   each maps one-for-one onto the semantic tier here, which is the argument for
+   having a semantic tier at all. Try **Brutal** (every border is a black rule),
+   **Contrast** (AAA, black and yellow, square), and **Glass** (translucent with
+   a real backdrop blur).
+3b. Narrow the window past 640px. Tables stop being tables and become labelled
+   rows — three columns of prose cannot be narrowed to 360px, and horizontally
+   scrolling the primary content is a worse answer than restructuring it.
 4. **Language** → العربية. The layout mirrors. Nothing was flipped by hand.
 5. Open **Variables in this run**. The bag is inspectable — that visibility is the
    pedagogy, not a debug affordance.
