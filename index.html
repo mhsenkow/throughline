@@ -388,18 +388,68 @@ input,textarea,select{font:inherit;color:inherit}
 }
 .nb-head h1{font-size:var(--p-size-8); max-width:22ch}
 .nb-actions{display:flex; gap:var(--p-space-2); align-items:center; flex-wrap:wrap}
+.doc-head{padding-inline-end:calc(var(--p-space-6) + 2rem)}
 
 /* ── The document ────────────────────────────────────────────────────────
    The canvas is the tool; this is the thing on it. Cells stop being floating
    cards and become sections of one page, divided by rules — which is what a
    notebook actually is, and it removes a level of nested elevation that made
    the cells fight the page for attention. */
+/* The rail has zero width and full document height, so its sticky child
+   travels the whole sheet and stops at its end rather than the viewport's. */
+.doc-rail{
+  position:absolute; inset-block:0; inset-inline-end:0;
+  inline-size:0; z-index:12; pointer-events:none;
+}
+.doc-tools{
+  position:sticky; inset-block-start:var(--p-space-5);
+  display:flex; flex-direction:column; gap:1px;
+  transform:translateX(50%);            /* half on the sheet, half off it */
+  pointer-events:auto;
+}
+[dir="rtl"] .doc-tools{transform:translateX(-50%)}
+.tool{
+  position:relative;
+  display:flex; align-items:center; justify-content:center;
+  inline-size:2.25rem; block-size:2.25rem; padding:0;
+  border-radius:var(--radius-md);
+  background:var(--surface-raised); color:var(--ink-muted);
+  box-shadow:inset 0 0 0 1px var(--border-subtle);
+  transition:color var(--motion-fast), background var(--motion-fast),
+             box-shadow var(--motion-fast);
+}
+.tool .i{inline-size:1em; block-size:1em; flex:none}
+/* The label sits OUTSIDE the button box. A column flex container stretches
+   its children to one shared width, so an in-flow label could never widen a
+   single button — and widening the container would shift the straddle. */
+.tool .lbl{
+  position:absolute; inset-inline-end:calc(100% + var(--p-space-2)); inset-block:0;
+  display:flex; align-items:center; white-space:nowrap;
+  padding-inline:var(--p-space-3); border-radius:var(--radius-md);
+  background:var(--surface-raised); color:var(--ink-primary);
+  box-shadow:inset 0 0 0 1px var(--border-subtle);
+  font-size:var(--p-size-1);
+  opacity:0; pointer-events:none; transform:translateX(var(--p-space-2));
+  transition:opacity var(--motion-fast), transform var(--motion-base);
+}
+.tool:hover,.tool:focus-visible{color:var(--ink-primary); box-shadow:inset 0 0 0 1px var(--border-strong)}
+.tool:hover .lbl,.tool:focus-visible .lbl{opacity:1; transform:none}
+@media (pointer:coarse){ .tool .lbl{display:none} }
+.tool.on{color:var(--accent-base); box-shadow:inset 0 0 0 1px var(--accent-base)}
+.doc-tools .share-pop{
+  inset-block-start:0; inset-inline-end:calc(100% + var(--p-space-3));
+  inset-inline-start:auto;
+}
+
 .doc{
+  position:relative;
   background:var(--surface-raised);
   border:1px solid var(--border-subtle);
   border-radius:var(--radius-lg);
   box-shadow:var(--elevation-1);
-  overflow:hidden;
+}
+.doc > :last-child{
+  border-end-start-radius:var(--radius-lg); border-end-end-radius:var(--radius-lg);
 }
 .doc-head{padding:var(--p-space-6) var(--p-space-6) var(--p-space-5)}
 .cells{display:flex; flex-direction:column}
@@ -3082,6 +3132,18 @@ function renderNotebook(){
   view.innerHTML = `
     <button class="ghost" id="back" style="margin-block-end:var(--p-space-4)">${esc(t('back'))}</button>
     <article class="doc">
+    <!-- Tools live with the document and travel with it. The rail straddles
+         the sheet's edge: half on the page, half on the canvas — present
+         without taking a place in the reading column. -->
+    <div class="doc-rail" aria-hidden="false">
+      <div class="doc-tools" role="group" aria-label="Notebook actions">
+        <button class="tool" id="share"><span class="lbl">Share</span>${ICONS.share}</button>
+        <button class="tool" id="export"><span class="lbl">${esc(t('exportNb'))}</span>${ICONS.save}</button>
+        <button class="tool" id="clear"><span class="lbl">${esc(t('clearRun'))}</span>${ICONS.clear}</button>
+        <button class="tool ${S.editing?'on':''}" id="edit" aria-pressed="${!!S.editing}">
+          <span class="lbl">Customise</span>${ICONS.edit}</button>
+      </div>
+    </div>
     <div class="doc-head">
     <div class="nb-head">
       <div style="flex:1;min-inline-size:20rem">
@@ -3097,16 +3159,7 @@ function renderNotebook(){
       <div class="nb-actions">
         <button class="btn primary" id="run-all" ${busy?'disabled':''}>
           ${ICONS.run}<span class="lbl">${esc(busy?t('running'):t('runAll'))}</span></button>
-        <div class="seg-group" role="group" aria-label="Notebook actions">
-          <button class="btn seg" id="share" title="Share setup">
-            ${ICONS.share}<span class="lbl">Share</span></button>
-          <button class="btn seg" id="export" title="${esc(t('exportNb'))}">
-            ${ICONS.save}<span class="lbl">${esc(t('exportNb'))}</span></button>
-          <button class="btn seg" id="clear" title="${esc(t('clearRun'))}">
-            ${ICONS.clear}<span class="lbl">${esc(t('clearRun'))}</span></button>
-          <button class="btn seg ${S.editing?'on':''}" id="edit" title="Customise cells"
-            aria-pressed="${!!S.editing}">${ICONS.edit}<span class="lbl">Customise</span></button>
-        </div>
+
       </div>
     </div>
 
@@ -4019,7 +4072,7 @@ function applyShareState(){
    button onto a second line — feedback should never move the thing you
    just clicked. */
 function sharePopover(anchor, url, copied){
-  anchor.closest('.nb-actions')?.querySelector('.share-pop')?.remove();
+  document.querySelector('.share-pop')?.remove();
   const has = url.includes('#i=');
   const el = document.createElement('div');
   el.className = 'share-pop';
@@ -4029,7 +4082,7 @@ function sharePopover(anchor, url, copied){
     <p class="share-hint">${has
       ? 'Carries your input in the fragment — kept out of server logs, but anyone with the link can read it.'
       : 'Setup only. Your input is not included.'}</p>`;
-  anchor.closest('.nb-actions').appendChild(el);
+  anchor.closest('.doc-tools').appendChild(el);
   if (!copied) el.querySelector('.share-url').select();
   const close = e => { if (!el.contains(e.target)){ el.remove(); removeEventListener('click', close); } };
   setTimeout(()=>addEventListener('click', close), 0);
