@@ -40,12 +40,25 @@ python3 - "$PORT_REPO/public/_headers" "$HASH" <<'PY'
 import sys, re
 path, h = sys.argv[1], sys.argv[2]
 s = open(path).read()
+
+# Carry the PREVIOUS hash alongside the new one for one cycle.
+#
+# Cloudflare edge nodes do not update in lockstep. For a few seconds after a
+# deploy, one node can serve the old HTML while another serves the new policy
+# — and a visitor landing on that pair gets a page whose script is blocked
+# outright. Accepting both hashes closes the window entirely, and the stale
+# one ages out on the next publish.
+prev = ''
+m = re.search(r"script-src '(sha256-[^']+)'", s)
+if m and m.group(1) != f'sha256-{h}':
+    prev = f" '{m.group(1)}'"
+
 block = f"""/notebook/*
   Cache-Control: public, max-age=60
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()
-  Content-Security-Policy: default-src 'self'; script-src 'sha256-{h}' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://generativelanguage.googleapis.com https://api.groq.com https://openrouter.ai https://api.anthropic.com https://api.openai.com http://localhost:11434 http://127.0.0.1:11434; base-uri 'none'; object-src 'none'; form-action 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'sha256-{h}'{prev} https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://cloudflareinsights.com https://generativelanguage.googleapis.com https://api.groq.com https://openrouter.ai https://api.anthropic.com https://api.openai.com http://localhost:11434 http://127.0.0.1:11434; base-uri 'none'; object-src 'none'; form-action 'none'
 """
 if '/notebook/*' in s:
     s = re.sub(r'/notebook/\*\n(?:  .*\n)*', block, s)

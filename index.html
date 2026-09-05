@@ -657,6 +657,31 @@ pre.raw{
   color:var(--ink-secondary); white-space:pre-wrap; word-break:break-word;
   max-block-size:11rem; overflow:auto;
 }
+.mark{
+  padding:var(--p-space-5) var(--p-space-6);
+  border-block-start:1px solid var(--border-subtle);
+  display:flex; align-items:center; gap:var(--p-space-4); flex-wrap:wrap;
+  background:var(--surface-base);
+}
+.mark.marked{background:var(--accent-wash)}
+.mark-q{flex:1; min-inline-size:16rem}
+.mark-q strong{display:block; font-size:var(--p-size-3)}
+.mark-q .hint{display:block; font-size:var(--p-size-1); color:var(--ink-muted); margin-block-start:var(--p-space-1)}
+.mark-controls{display:flex; gap:var(--p-space-2); flex-wrap:wrap}
+.btn.secondary.on{
+  background:var(--accent-base); color:var(--accent-ink);
+  box-shadow:inset 0 0 0 1px var(--accent-base);
+}
+.mark-note{flex-basis:100%; font-size:var(--p-size-2)}
+.verdict{
+  display:inline-block; inline-size:7px; block-size:7px; border-radius:var(--radius-pill);
+  margin-inline-end:var(--p-space-2); vertical-align:middle;
+}
+.verdict.v-works{background:var(--status-done)}
+.verdict.v-mixed{background:var(--status-stale)}
+.verdict.v-no{background:var(--status-error)}
+.card.mark-card{border-color:color-mix(in oklab,var(--accent-base) 25%,var(--border-subtle))}
+
 .gate{
   padding:var(--p-space-4); border-radius:var(--radius-md);
   border:1px solid var(--border-subtle); background:var(--surface-sunken);
@@ -771,6 +796,7 @@ table.out-table{min-inline-size:32rem}
 @media (max-width:640px){
   .shell{padding:var(--p-space-5) var(--p-space-4) var(--p-space-7)}
   .topbar-in{padding:var(--p-space-3) var(--p-space-4)}
+  .mark{padding:var(--p-space-4)}
   .cell-head{padding:var(--p-space-4) var(--p-space-4) var(--p-space-2)}
   .cell-body,.cell-foot{padding-inline:var(--p-space-4)}
   .cell-body,.cell-foot{padding-inline-start:var(--p-space-4)}
@@ -2080,7 +2106,7 @@ async function runAll(nb, run, onChange){
 const S = {
   view:'library', nbId:null, locale:'en', mode:'light',
   brand:'rams', provider:'auto', keys:{}, cellProvider:{}, models:{}, tests:{}, builtin:'absent', dl:null,
-  sheet:null, runs:{}, storage:null
+  sheet:null, runs:{}, storage:null, marks:{}
 };
 
 /* Keys live here and nowhere else — never written to storage, never sent to
@@ -2150,6 +2176,30 @@ function renderLibrary(){
       <p class="hero-count">${NOTEBOOKS.length} notebooks · ${COLLECTIONS.length} collections · nothing to install</p>
     </header>
 
+    ${(() => {
+      const marked = NOTEBOOKS.filter(n => markOf(n.id));
+      if (!marked.length) return '';
+      return `<section class="collection">
+        <div class="collection-head">
+          <h2>Your marks</h2>
+          <p>On this device only. Open one to restore the exact setup you marked.</p>
+        </div>
+        <div class="shelf">${marked.map(n=>{
+          const m = markOf(n.id);
+          return `<button class="card mark-card" data-nb="${n.id}" data-restore="1">
+            <p class="eyebrow"><span class="verdict v-${m.verdict}"></span>${
+              m.verdict==='works'?'Worked':m.verdict==='mixed'?'Mixed':'Didn\u2019t work'}</p>
+            <h3>${esc(n.title)}</h3>
+            <p>${m.note ? esc(m.note) : esc(n.blurb)}</p>
+            <div class="card-foot">
+              <span>${esc(BRANDS[m.setup?.brand]?.name ?? '—')}</span>
+              <span>${esc(LOCALES[m.setup?.locale]?.name ?? '—')}</span>
+              <span>${esc(new Date(m.at).toLocaleDateString())}</span>
+            </div>
+          </button>`;}).join('')}</div>
+      </section>`;
+    })()}
+
     ${featured ? `<section class="feature">
       <div class="feature-body">
         <p class="eyebrow">Start here</p>
@@ -2181,7 +2231,11 @@ function renderLibrary(){
     ${desktopStrip()}
     ${footer()}`;
   view.querySelectorAll('[data-nb]').forEach(el =>
-    el.onclick = () => { S.nbId = el.dataset.nb; S.view='notebook'; render(); scrollTop(); });
+    el.onclick = () => {
+      S.nbId = el.dataset.nb; S.view='notebook';
+      if (el.dataset.restore) restoreMark(NOTEBOOKS.find(n=>n.id===S.nbId));
+      render(); scrollTop();
+    });
 }
 
 /* ── Notebook view ──────────────────────────────────────────────────── */
@@ -2222,6 +2276,7 @@ function renderNotebook(){
     </div>
 
     <div class="cells">${nb.cells.map((c,i)=>cellHTML(nb,c,i,run)).join('')}</div>
+    ${markHTML(nb)}
     </article>
 
     <details class="vars"><summary>${esc(t('vars'))}</summary>
@@ -2245,6 +2300,14 @@ function renderNotebook(){
   ta.onblur = commit;
 
   $('#run-all').onclick = async () => { commit(); await runAll(nb, run, render); };
+  view.querySelectorAll('[data-mark]').forEach(b => b.onclick = () => {
+    const v = b.dataset.mark;
+    saveMark(nb, v === 'clear' ? null : v, markOf(nb.id)?.note);
+  });
+  const note = $('#mark-note');
+  if (note) note.onblur = () => {
+    const m = markOf(nb.id); if (m && m.note !== note.value) saveMark(nb, m.verdict, note.value);
+  };
   $('#share').onclick = e => copyShare(nb, e.currentTarget);
   $('#export').onclick = () => exportNotebook(nb, run);
   $('#clear').onclick = () => { delete S.runs[nb.id]; render(); };
@@ -2364,6 +2427,22 @@ function varRows(nb, run){
 
 /* Export is infrastructure, not a feature (ENG-BRIEF §4.3 / R9).
    The file is the durable artifact; local storage is a cache in front of it. */
+/* One save path for every file the app hands over: mediated in the artifact
+   host, a blob link when self-hosted. */
+async function saveFile(filename, text){
+  let mediated = null;
+  try { mediated = await window.claude?.use?.('downloads') ?? null; } catch { mediated = null; }
+  if (mediated){
+    try { await mediated.save({ filename, data: text }); }
+    catch(e){ if (e?.code && e.code !== 'declined') exportFailed(e.message || e.code); }
+    return;
+  }
+  const url = URL.createObjectURL(new Blob([text], {type:'application/json'}));
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
 async function exportNotebook(nb, run){
   const doc = { schemaVersion:nb.schemaVersion, exported:new Date().toISOString(),
     notebook:{id:nb.id, title:nb.title}, locale:S.locale, defaultProvider:S.provider,
@@ -2373,24 +2452,7 @@ async function exportNotebook(nb, run){
     cells:nb.cells.map(c=>({ id:c.id, title:c.title, output:c.output, requires:c.requires,
       via:run.cells[c.id].via ?? null,
       state:run.cells[c.id].state, value:run.cells[c.id].value })) };
-  const json = JSON.stringify(doc, null, 2);
-  const filename = `${nb.id}.throughline.json`;
-
-  /* Two hosts, two save paths. Self-hosted (the real deployment) a blob link
-     is direct. Inside the claude.ai viewer saves are mediated and a plain
-     link is inert, so ask the host — and if the host is there, do not fall
-     back, because the fallback does nothing in that frame. */
-  let mediated = null;
-  try { mediated = await window.claude?.use?.('downloads') ?? null; } catch { mediated = null; }
-  if (mediated){
-    try { await mediated.save({ filename, data: json }); }
-    catch(e){ if (e?.code && e.code !== 'declined') exportFailed(e.message || e.code); }
-    return;
-  }
-  const url = URL.createObjectURL(new Blob([json],{type:'application/json'}));
-  const a = document.createElement('a');
-  a.href = url; a.download = filename; a.click();
-  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  await saveFile(`${nb.id}.throughline.json`, JSON.stringify(doc, null, 2));
 }
 
 function exportFailed(msg){
@@ -2651,6 +2713,20 @@ const settingsSheet = () => {
       <span>In this tab, in memory. Never written to storage, never sent to this page's own origin — only to the provider you chose. Closing the tab discards them.</span></div>
   </div>
   <div class="sheet-sec">
+    <h3>Your marks</h3>
+    <div class="status-row">
+      <span class="dot ${Object.keys(S.marks).length?'ok':'off'}"></span>
+      <span>${Object.keys(S.marks).length
+        ? `${Object.keys(S.marks).length} marked on this device. The browser can clear this without warning — export to keep them.`
+        : 'Nothing marked yet. Marks live on this device only; there is no server that could hold them.'}</span>
+    </div>
+    <div class="prov-row">
+      <button class="btn secondary tiny" id="marks-out" ${Object.keys(S.marks).length?'':'disabled'}>Export marks</button>
+      <button class="btn secondary tiny" id="marks-in">Import marks</button>
+      <input type="file" id="marks-file" accept="application/json" hidden>
+    </div>
+  </div>
+  <div class="sheet-sec">
     <h3>${esc(t('storage'))}</h3>
     <div class="status-row">
       <span class="dot ${cap.durable?'ok':'warn'}"></span>
@@ -2670,6 +2746,24 @@ function wireSheet(el){
     S.brand = b.dataset.brand; applyTheme(); renderSheet(); render(); });
   el.querySelectorAll('[data-locale]').forEach(b => b.onclick = () => {
     S.locale = b.dataset.locale; applyTheme(); renderSheet(); render(); });
+  const mOut = el.querySelector('#marks-out');
+  if (mOut) mOut.onclick = () => saveFile('throughline-marks.json',
+    JSON.stringify({kind:'throughline.marks', v:1, exported:new Date().toISOString(), items:S.marks}, null, 2));
+  const mIn = el.querySelector('#marks-in'), mFile = el.querySelector('#marks-file');
+  if (mIn) mIn.onclick = () => mFile.click();
+  if (mFile) mFile.onchange = async () => {
+    const f = mFile.files?.[0]; if (!f) return;
+    try {
+      const doc = JSON.parse(await f.text());
+      if (doc?.kind !== 'throughline.marks') throw new Error('Not a marks file.');
+      /* Merge rather than replace — importing from a second device should not
+         silently delete what is already here. Newer wins on conflict. */
+      for (const [k, v] of Object.entries(doc.items ?? {}))
+        if (!S.marks[k] || (v.at ?? 0) > (S.marks[k].at ?? 0)) S.marks[k] = v;
+      await S.storage?.write(MARK_DOC, {title:'Marks', items:S.marks});
+      renderSheet(); render();
+    } catch(e){ alert(`Could not import: ${e.message}`); }
+  };
   const def = el.querySelector('#defprov');
   if (def) def.onchange = () => { S.provider = def.value; renderSheet(); render(); };
   el.querySelectorAll('[data-key]').forEach(inp => {
@@ -2767,6 +2861,65 @@ function renderSwitcher(){
   menu.querySelector('#menu-connect').onclick = () => { closeMenu(); S.sheet='settings'; renderSheet(); };
 }
 const closeMenu = () => { const m=$('#model-menu'); m.hidden=true; $('#btn-model').setAttribute('aria-expanded','false'); };
+
+/* ── Marks ───────────────────────────────────────────────────────────────
+   Rating, stored on this device only. That is a real limitation and it
+   changes what the feature is: you cannot see anyone else's marks, because
+   there is no server that could hold them (P3). What you get instead is your
+   own record of what worked, and a link to hand someone when it did — which
+   makes showing off a combination a peer-to-peer act rather than a leaderboard.
+
+   A mark captures the SETUP, not just the verdict, so "this worked" is
+   reproducible rather than a memory. */
+const MARK_DOC = 'marks';
+
+async function loadMarks(){
+  try { S.marks = (await S.storage?.read(MARK_DOC))?.items ?? {}; }
+  catch { S.marks = {}; }
+}
+async function saveMark(nb, verdict, note){
+  const run = getRun(nb);
+  if (verdict === null) delete S.marks[nb.id];
+  else S.marks[nb.id] = {
+    verdict, note: note ?? '', at: Date.now(),
+    setup: { brand:S.brand, locale:S.locale, provider:S.provider,
+             input: run.bag['input.'+nb.input.id] ?? '' }
+  };
+  try { await S.storage?.write(MARK_DOC, {title:'Marks', items:S.marks}); }
+  catch(e){ console.warn('mark not persisted', e); }
+  render();
+}
+const markOf = nbId => S.marks?.[nbId];
+
+/* Replays the setup a mark captured, so a remembered success is repeatable
+   rather than merely recorded. */
+function restoreMark(nb){
+  const m = markOf(nb.id); if (!m?.setup) return;
+  if (BRANDS[m.setup.brand]) S.brand = m.setup.brand;
+  if (LOCALES[m.setup.locale]) S.locale = m.setup.locale;
+  if (m.setup.provider === 'auto' || PROVIDERS[m.setup.provider]) S.provider = m.setup.provider;
+  if (m.setup.input) getRun(nb).bag['input.'+nb.input.id] = m.setup.input;
+  applyTheme();
+}
+
+function markHTML(nb){
+  const m = markOf(nb.id);
+  return `<section class="mark ${m?'marked':''}">
+    <div class="mark-q">
+      <strong>${m ? 'You marked this' : 'Did this work?'}</strong>
+      <span class="hint">${m
+        ? `Saved on this device ${esc(new Date(m.at).toLocaleDateString())} — with the brand, language, model and input you used.`
+        : 'Kept on this device only. Nobody else sees it, because there is no server that could.'}</span>
+    </div>
+    <div class="mark-controls">
+      <button class="btn secondary tiny ${m?.verdict==='works'?'on':''}" data-mark="works">Worked</button>
+      <button class="btn secondary tiny ${m?.verdict==='mixed'?'on':''}" data-mark="mixed">Mixed</button>
+      <button class="btn secondary tiny ${m?.verdict==='no'?'on':''}" data-mark="no">Didn't</button>
+      ${m ? `<button class="btn secondary tiny" data-mark="clear">Clear</button>` : ''}
+    </div>
+    ${m ? `<input type="text" id="mark-note" class="mark-note" placeholder="What made it work? (optional)" value="${esc(m.note)}">` : ''}
+  </section>`;
+}
 
 /* ── Shareable permutations ──────────────────────────────────────────────
    A combination worth showing off is: which notebook, which brand, which
@@ -2868,6 +3021,7 @@ addEventListener('keydown', e => { if (e.key==='Escape' && S.sheet){ S.sheet=nul
   if (isConnected('chrome')) S.provider = 'chrome';
   try { const a = IdbAdapter(); await a.init(); S.storage = a; }
   catch { S.storage = MemoryAdapter(); }
+  await loadMarks();
   applyShareState();
   applyTheme(); render();
 })();

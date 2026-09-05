@@ -41,6 +41,28 @@ at all.
 
 Headers live in that repo's `public/_headers` under `/notebook/*`.
 
+## Marks, and why there is no leaderboard
+
+You can mark a notebook **Worked / Mixed / Didn't**, with a note. A mark captures
+the whole setup — brand, language, model, and your input — so opening it from
+*Your marks* restores the exact configuration, not just the memory of it.
+
+**Marks are stored on this device and nowhere else.** That is a limitation, not
+an oversight: there is no server that could hold them (P3), so you cannot see
+anyone else's marks and no aggregate rating exists. What replaces it is the
+share link — you mark what worked, and you send the URL. Showing off a
+combination is peer-to-peer rather than a platform feature.
+
+Per R9 the browser can clear this without warning, so **Connect → Your marks**
+exports them to a file and imports them back. Import merges rather than
+replaces, newest wins, so pulling marks from a second device does not delete
+what is already here.
+
+A shared rating system would need shared state, and that means a server. It is
+buildable — a KV or D1 binding on the existing Worker, holding anonymous counts
+and never notebook content — but it narrows P3 and should be a deliberate
+decision rather than a drift.
+
 ## Security posture
 
 **Keys.** Whatever you paste lives in `S.keys` — a plain object in tab memory.
@@ -97,7 +119,10 @@ any path. Static hosts (Cloudflare Pages, Netlify, S3, GitHub Pages) work unchan
 | Engine — state machine, variable bag, staleness closure | **Real**, DOM-free |
 | Per-cell re-execution; stale as display state, never auto-rerun | **Real** |
 | Storage adapter interface + IndexedDB backend with honest `capabilities()` | **Real** |
-| Export to file | **Real** |
+| Export to file (notebooks and marks) | **Real** |
+| Marks: local rating that captures and restores the setup | **Real** |
+| Shareable permutations encoded in the URL | **Real** |
+| Gate cells — the run can loop back, capped and visible | **Real** |
 | Three-tier tokens, **13 brands**, light/dark, zero component edits | **Real** |
 | Responsive: fluid type, restructured tables, touch targets | **Real** |
 | App shell: fixed chrome, inner scroll canvas, cell rail with scroll spy | **Real** |
