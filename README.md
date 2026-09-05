@@ -100,6 +100,7 @@ any path. Static hosts (Cloudflare Pages, Netlify, S3, GitHub Pages) work unchan
 | Export to file | **Real** |
 | Three-tier tokens, **13 brands**, light/dark, zero component edits | **Real** |
 | Responsive: fluid type, restructured tables, touch targets | **Real** |
+| App shell: fixed chrome, inner scroll canvas, cell rail with scroll spy | **Real** |
 | i18n incl. RTL via logical properties; locale interpolated into prompts | **Real** |
 | Untrusted-output escaping | **Real** (minimal; swap for `rehype-sanitize` in the monorepo) |
 | Auto model resolution against each cell's `requires` class | **Real** |
@@ -163,6 +164,12 @@ own origin.
 4. **Language** → العربية. The layout mirrors. Nothing was flipped by hand.
 5. Open **Variables in this run**. The bag is inspectable — that visibility is the
    pedagogy, not a debug affordance.
+5b. Watch the **rail** on the left while you scroll and while cells run. It is the
+   run's state at a glance: what is done, what went stale when you edited the
+   input, what failed, and where you currently are. Below 900px it becomes a
+   horizontal strip; below 640px the titles drop and the number plus state dot
+   carry it. The **status bar** holds progress, storage durability, and the model
+   actually answering.
 6. **Connect** → Enterprise gateway. Read the refusal. It is a CORS constraint, not
    a credential one, and it is why the desktop build exists.
 7. Paste any free key, then **pin** a cell to a model whose class is below what the

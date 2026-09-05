@@ -119,12 +119,32 @@ img{max-width:100%}
 
 html,body{background:var(--surface-base); color:var(--ink-primary)}
 
+/* ── App shell ───────────────────────────────────────────────────────────
+   Three rows: chrome, scrolling canvas, chrome. The canvas sits a level
+   below the chrome and the cells sit a level above the canvas, so the
+   surface hierarchy reads as a tool rather than a document. All three
+   grounds come from existing semantic tokens, so every brand inherits it. */
 .nb-root{
-  min-height:100vh; background:var(--surface-base); color:var(--ink-primary);
+  block-size:100dvh; display:grid; grid-template-rows:auto minmax(0,1fr) auto;
+  background:var(--surface-base); color:var(--ink-primary);
   font-family:var(--font-body); font-size:var(--p-size-4); line-height:1.55;
-  -webkit-font-smoothing:antialiased;
+  -webkit-font-smoothing:antialiased; overflow:hidden;
   transition:background var(--motion-base), color var(--motion-base);
 }
+.workspace{
+  overflow-y:auto; overflow-x:hidden; background:var(--surface-sunken);
+  scroll-behavior:smooth;
+}
+@media (prefers-reduced-motion:reduce){ .workspace{scroll-behavior:auto} }
+.workspace-in{
+  max-inline-size:80rem; margin-inline:auto; min-block-size:100%;
+  display:grid; grid-template-columns:13.5rem minmax(0,1fr); align-items:start;
+  gap:var(--p-space-5);
+  padding:var(--p-space-6) var(--p-space-5) var(--p-space-7);
+}
+.workspace-in.solo{grid-template-columns:minmax(0,1fr)}
+.workspace-in.solo .rail{display:none}
+.shell{max-inline-size:none; margin:0; padding:0; min-inline-size:0}
 .nb-root h1,.nb-root h2,.nb-root h3{
   font-family:var(--font-display); font-weight:var(--weight-heading);
   letter-spacing:var(--tracking-heading); line-height:1.15; margin:0;
@@ -134,12 +154,11 @@ input,textarea,select{font:inherit;color:inherit}
 
 /* ── Top bar ─────────────────────────────────────────────────────────── */
 .topbar{
-  position:sticky; top:0; z-index:20; background:var(--topbar-bg);
+  z-index:20; background:var(--topbar-bg);
   border-block-end:1px solid var(--border-subtle);
-  backdrop-filter:saturate(1.4) blur(8px);
 }
 .topbar-in{
-  max-width:74rem; margin-inline:auto; padding:var(--p-space-3) var(--p-space-5);
+  max-inline-size:80rem; margin-inline:auto; padding:var(--p-space-3) var(--p-space-5);
   display:flex; align-items:center; gap:var(--p-space-4);
 }
 .wordmark{
@@ -426,6 +445,72 @@ details.vars[open] > summary::before{transform:rotate(90deg)}
 }
 .foot a{color:var(--ink-secondary)}
 
+/* ── Cell rail ───────────────────────────────────────────────────────────
+   Not decoration: it is the run's state at a glance. Which cells are done,
+   which went stale when you edited the input, which failed — the thing you
+   most want to know without scrolling to find out. */
+.rail{
+  position:sticky; inset-block-start:0; align-self:start;
+  display:flex; flex-direction:column; gap:1px;
+  padding-block:var(--p-space-2);
+}
+.rail-label{
+  padding:var(--p-space-2) var(--p-space-3) var(--p-space-2);
+  font-size:var(--p-size-0); text-transform:uppercase;
+  letter-spacing:var(--p-tracking-wide); color:var(--ink-muted);
+}
+.pip{
+  display:flex; align-items:center; gap:var(--p-space-3); text-align:start;
+  padding:var(--p-space-2) var(--p-space-3); border-radius:var(--radius-md);
+  font-size:var(--p-size-1); color:var(--ink-secondary);
+  transition:background var(--motion-fast), color var(--motion-fast);
+  inline-size:100%;
+}
+.pip:hover{background:var(--surface-raised); color:var(--ink-primary)}
+.pip[aria-current="true"]{
+  background:var(--surface-raised); color:var(--ink-primary);
+  box-shadow:inset 2px 0 0 var(--accent-base);
+}
+@media (max-width:900px){
+  .pip[aria-current="true"]{box-shadow:inset 0 -2px 0 var(--accent-base)}
+}
+.pip .n{
+  font-family:var(--font-mono); font-size:var(--p-size-0);
+  color:var(--ink-muted); font-variant-numeric:tabular-nums; flex:none;
+}
+.pip .lbl{flex:1; min-inline-size:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.pip .st{
+  inline-size:7px; block-size:7px; border-radius:var(--radius-pill);
+  flex:none; background:var(--status-idle);
+}
+.pip .st[data-s="done"]{background:var(--status-done)}
+.pip .st[data-s="running"],.pip .st[data-s="streaming"]{background:var(--status-running)}
+.pip .st[data-s="stale"]{background:var(--status-stale)}
+.pip .st[data-s="error"]{background:var(--status-error)}
+@media (prefers-reduced-motion:no-preference){
+  .pip .st[data-s="running"],.pip .st[data-s="streaming"]{animation:pulse 1.1s ease-in-out infinite}
+}
+.rail-sep{block-size:1px; background:var(--border-subtle); margin:var(--p-space-2) var(--p-space-3)}
+
+/* ── Status bar ──────────────────────────────────────────────────────────
+   Persistent, honest state: where your data lives, what is running, what
+   is answering. */
+.statusbar{
+  display:flex; align-items:center; gap:var(--p-space-4);
+  padding:var(--p-space-2) var(--p-space-5);
+  border-block-start:1px solid var(--border-subtle);
+  background:var(--topbar-bg);
+  font-size:var(--p-size-0); color:var(--ink-muted);
+  overflow-x:auto; white-space:nowrap;
+}
+.statusbar .seg{display:flex; align-items:center; gap:var(--p-space-2); flex:none}
+.statusbar a{color:var(--ink-secondary)}
+.progress{
+  inline-size:5rem; block-size:3px; border-radius:var(--radius-pill);
+  background:var(--border-subtle); overflow:hidden; flex:none;
+}
+.progress i{display:block; block-size:100%; background:var(--status-done); transition:inline-size var(--motion-base)}
+
 .switch-wrap{position:relative}
 .switcher{
   display:inline-flex; align-items:center; gap:var(--p-space-2);
@@ -534,6 +619,31 @@ table.out-table{min-inline-size:32rem}
 
 @media (max-width:900px){
   .topbar-in{flex-wrap:wrap; row-gap:var(--p-space-2)}
+  /* The rail stops being a sidebar and becomes a scrollable strip above the
+     canvas — same information, one axis fewer. */
+  .workspace-in{grid-template-columns:minmax(0,1fr); gap:var(--p-space-4)}
+  .rail{
+    /* Sticky here too — a nav that scrolls away is not a nav. Needs its own
+       ground or the canvas shows through it. */
+    position:sticky; inset-block-start:calc(var(--p-space-4) * -1); z-index:5;
+    flex-direction:row; align-items:center; gap:var(--p-space-1);
+    overflow-x:auto; padding-block:var(--p-space-2);
+    margin-block-start:calc(var(--p-space-4) * -1);
+    background:var(--surface-sunken);
+    border-block-end:1px solid var(--border-subtle);
+  }
+  .rail-label{display:none}
+  .rail-sep{display:none}
+  .pip{inline-size:auto; flex:none; padding-inline:var(--p-space-3)}
+  .pip .lbl{max-inline-size:9rem}
+}
+
+@media (max-width:640px){
+  /* Titles go; the number and state dot carry the information. */
+  .pip .lbl{display:none}
+  .pip{gap:var(--p-space-2)}
+  .workspace-in{padding:var(--p-space-4) var(--p-space-4) var(--p-space-6)}
+  .statusbar{padding-inline:var(--p-space-4); gap:var(--p-space-3)}
 }
 
 @media (max-width:640px){
@@ -621,7 +731,13 @@ table.out-table{min-inline-size:32rem}
       </div>
     </div>
   </header>
-  <main class="shell" id="view"></main>
+  <div class="workspace" id="workspace">
+    <div class="workspace-in">
+      <nav class="rail" id="rail" aria-label="Cells in this notebook"></nav>
+      <main class="shell" id="view"></main>
+    </div>
+  </div>
+  <footer class="statusbar" id="statusbar"></footer>
 </div>
 
 <script type="module">
@@ -1577,6 +1693,8 @@ const inline = s => esc(s)
 
 const $ = sel => document.querySelector(sel);
 const view = $('#view'), root = $('#root');
+const workspace = $('#workspace'), rail = $('#rail'), statusbar = $('#statusbar');
+const scrollTop = () => workspace.scrollTo({top:0, behavior:'auto'});
 
 function applyTheme(){
   const b = BRANDS[S.brand], html = document.documentElement;
@@ -1619,7 +1737,7 @@ function renderLibrary(){
     ${desktopStrip()}
     ${footer()}`;
   view.querySelectorAll('[data-nb]').forEach(el =>
-    el.onclick = () => { S.nbId = el.dataset.nb; S.view='notebook'; render(); window.scrollTo(0,0); });
+    el.onclick = () => { S.nbId = el.dataset.nb; S.view='notebook'; render(); scrollTop(); });
 }
 
 /* ── Notebook view ──────────────────────────────────────────────────── */
@@ -1661,7 +1779,7 @@ function renderNotebook(){
     ${desktopStrip()}
     ${footer()}`;
 
-  $('#back').onclick = () => { S.view='library'; S.nbId=null; render(); window.scrollTo(0,0); };
+  $('#back').onclick = () => { S.view='library'; S.nbId=null; render(); scrollTop(); };
   const ta = $('#nb-input');
   const commit = () => {
     const key = 'input.'+nb.input.id;
@@ -1842,14 +1960,84 @@ function desktopStrip(){
   </div>`;
 }
 
-function footer(){
-  const cap = S.storage?.capabilities() ?? {label:'—'};
-  return `<div class="foot">
-    <span>Throughline · MVP</span>
-    <span>${esc(cap.label)}</span>
+/* The old in-page footer is now the persistent status bar, so the view
+   itself renders nothing at the bottom. */
+function footer(){ return ''; }
+
+function renderStatusbar(){
+  const cap = S.storage?.capabilities() ?? {durable:false, label:'—'};
+  const nb = S.nbId ? NOTEBOOKS.find(n=>n.id===S.nbId) : null;
+  let progress = '';
+  if (nb){
+    const run = getRun(nb);
+    const done = nb.cells.filter(c=>run.cells[c.id].state==='done').length;
+    const busy = nb.cells.some(c=>['running','streaming'].includes(run.cells[c.id].state));
+    const pct = Math.round(done / nb.cells.length * 100);
+    progress = `<span class="seg">
+      <span class="progress"><i style="inline-size:${pct}%"></i></span>
+      <span>${busy ? esc(t('running')) : `${done} / ${nb.cells.length} complete`}</span>
+    </span><span class="seg" aria-hidden="true">·</span>`;
+  }
+  const active = S.provider === 'auto' ? autoPick({requires:'reasoning'}) : S.provider;
+  statusbar.innerHTML = `
+    ${progress}
+    <span class="seg"><span class="dot ${cap.durable?'ok':'warn'}"></span>${esc(cap.label)}</span>
     <span class="spacer"></span>
-    <a href="https://github.com/mhsenkow/throughline" target="_blank" rel="noopener noreferrer">Source</a>
-  </div>`;
+    <span class="seg">${esc(PROVIDERS[active]?.label ?? '—')}</span>
+    <span class="seg" aria-hidden="true">·</span>
+    <span class="seg"><a href="https://github.com/mhsenkow/throughline" target="_blank" rel="noopener noreferrer">Source</a></span>`;
+}
+
+/* Representational nav. In the library there is nothing to represent, so it
+   collapses and the canvas goes full width. */
+function renderRail(){
+  const wrap = document.querySelector('.workspace-in');
+  if (S.view !== 'notebook'){
+    observer?.disconnect(); observer = null;
+    wrap.classList.add('solo'); rail.innerHTML=''; return;
+  }
+  wrap.classList.remove('solo');
+  const nb = NOTEBOOKS.find(n=>n.id===S.nbId), run = getRun(nb);
+  rail.innerHTML = `
+    <div class="rail-label">${esc(nb.title)}</div>
+    <button class="pip" data-goto="__input"><span class="n">00</span>
+      <span class="lbl">${esc(nb.input.label)}</span><span class="st" data-s="done"></span></button>
+    <div class="rail-sep"></div>
+    ${nb.cells.map((c,i)=>`
+      <button class="pip" data-goto="${c.id}">
+        <span class="n">${String(i+1).padStart(2,'0')}</span>
+        <span class="lbl">${esc(c.title)}</span>
+        <span class="st" data-s="${run.cells[c.id].state}"></span>
+      </button>`).join('')}`;
+  rail.querySelectorAll('[data-goto]').forEach(b => b.onclick = () => {
+    const id = b.dataset.goto;
+    const el = id === '__input' ? view.querySelector('.cell') : view.querySelector(`[data-run="${id}"]`)?.closest('.cell');
+    el?.scrollIntoView({block:'start'});
+  });
+  spy(nb);
+}
+
+/* Scroll spy. Without it the rail is a list; with it, it is a position.
+   Rebuilt on every render, so the old observer must be released or they
+   accumulate and fight over aria-current. */
+let observer = null;
+function spy(nb){
+  observer?.disconnect();
+  const cells = [...view.querySelectorAll('.cell')];
+  if (!cells.length) return;
+  const ids = ['__input', ...nb.cells.map(c=>c.id)];
+  const visible = new Map();
+  observer = new IntersectionObserver(entries => {
+    for (const e of entries) visible.set(e.target, e.isIntersecting ? e.intersectionRatio : 0);
+    let best = null, bestRatio = 0;
+    cells.forEach((el, i) => {
+      const r = visible.get(el) ?? 0;
+      if (r > bestRatio){ bestRatio = r; best = ids[i]; }
+    });
+    rail.querySelectorAll('[data-goto]').forEach(b =>
+      b.setAttribute('aria-current', String(b.dataset.goto === best)));
+  }, { root: workspace, threshold: [0, 0.25, 0.5, 0.75, 1], rootMargin: '-15% 0px -55% 0px' });
+  cells.forEach(el => observer.observe(el));
 }
 
 /* ── Sheets ─────────────────────────────────────────────────────────── */
@@ -2102,14 +2290,14 @@ const closeMenu = () => { const m=$('#model-menu'); m.hidden=true; $('#btn-model
 /* ── Boot ───────────────────────────────────────────────────────────── */
 function render(){
   const focus = document.activeElement?.id;
-  const scroll = window.scrollY;
+  const scroll = workspace.scrollTop;
   S.view === 'library' ? renderLibrary() : renderNotebook();
-  renderSwitcher();
+  renderSwitcher(); renderRail(); renderStatusbar();
   if (focus === 'nb-input'){
     const ta = $('#nb-input');
     if (ta){ const end = ta.value.length; ta.focus(); ta.setSelectionRange(end,end); }
   }
-  window.scrollTo(0, scroll);
+  workspace.scrollTop = scroll;
 }
 
 $('#btn-model').onclick = e => {
@@ -2123,7 +2311,7 @@ addEventListener('click', e => {
   const m = $('#model-menu');
   if (!m.hidden && !e.target.closest('.switch-wrap')) closeMenu();
 });
-$('#home').onclick = () => { S.view='library'; S.nbId=null; render(); window.scrollTo(0,0); };
+$('#home').onclick = () => { S.view='library'; S.nbId=null; render(); scrollTop(); };
 $('#btn-brand').onclick = () => { S.sheet = S.sheet==='brand'?null:'brand'; renderSheet(); };
 $('#btn-locale').onclick = () => { S.sheet = S.sheet==='locale'?null:'locale'; renderSheet(); };
 $('#btn-settings').onclick = () => { S.sheet = S.sheet==='settings'?null:'settings'; renderSheet(); };
