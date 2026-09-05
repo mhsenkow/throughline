@@ -613,8 +613,80 @@ details.vars[open] > summary::before{transform:rotate(90deg)}
 }
 .sheet-head h2{font-size:var(--p-size-6); flex:1}
 .sheet-body{padding:var(--p-space-5); display:flex; flex-direction:column; gap:var(--p-space-5)}
+.sheet-body.flush{padding:0; gap:0}
 .sheet-sec{display:flex; flex-direction:column; gap:var(--p-space-3)}
 .sheet-sec > h3{font-size:var(--p-size-2); text-transform:uppercase; letter-spacing:var(--p-tracking-wide); color:var(--ink-muted); font-family:var(--font-body)}
+
+.sheet.wide{inline-size:min(62rem,100%)}
+.connect{display:grid; grid-template-columns:17rem minmax(0,1fr); min-block-size:26rem}
+.connect-list{
+  padding:var(--p-space-4); border-inline-end:1px solid var(--border-subtle);
+  display:flex; flex-direction:column; gap:var(--p-space-4);
+  max-block-size:min(34rem,74vh); overflow-y:auto;
+}
+.group{display:flex; flex-direction:column; gap:1px}
+.group-name{margin:0; font-size:var(--p-size-2); font-weight:var(--p-weight-medium)}
+.group-note{margin:0 0 var(--p-space-2); font-size:var(--p-size-0); color:var(--ink-muted)}
+.prov-row-btn{
+  display:flex; align-items:center; gap:var(--p-space-3); text-align:start;
+  padding:var(--p-space-2) var(--p-space-3); border-radius:var(--radius-md);
+  font-size:var(--p-size-2); transition:background var(--motion-fast);
+}
+.prov-row-btn:hover{background:var(--surface-sunken)}
+.prov-row-btn.sel{background:var(--accent-wash)}
+.prov-row-btn .grow{flex:1; min-inline-size:0}
+.prov-row-btn strong{display:block; font-weight:var(--p-weight-medium)}
+.prov-row-btn .sub{display:block; font-size:var(--p-size-0); color:var(--ink-muted)}
+.rec{
+  flex:none; font-size:var(--p-size-0); padding:2px var(--p-space-2);
+  border-radius:var(--radius-pill); background:var(--accent-base); color:var(--accent-ink);
+}
+.connect-detail{padding:var(--p-space-5); max-block-size:min(34rem,74vh); overflow-y:auto}
+.detail{display:flex; flex-direction:column; gap:var(--p-space-4)}
+.detail-head{display:flex; align-items:flex-start; gap:var(--p-space-3)}
+.detail-head h3{font-size:var(--p-size-6)}
+.detail-vendor{margin:var(--p-space-1) 0 0; font-size:var(--p-size-1); color:var(--ink-muted)}
+.status{
+  margin-inline-start:auto; flex:none; font-size:var(--p-size-0);
+  text-transform:uppercase; letter-spacing:var(--p-tracking-wide);
+  padding:var(--p-space-1) var(--p-space-2); border-radius:var(--radius-pill);
+  background:var(--surface-sunken);
+}
+.status.ok{color:var(--status-done)} .status.warn{color:var(--status-stale)} .status.off{color:var(--ink-muted)}
+.detail-plain{margin:0; font-size:var(--p-size-4); color:var(--ink-primary); max-inline-size:44ch}
+
+/* Numbered steps, one visible action each. A completed step recedes rather
+   than disappearing, so the sequence stays legible. */
+.step{
+  display:flex; gap:var(--p-space-3);
+  padding:var(--p-space-4); border-radius:var(--radius-md);
+  background:var(--surface-sunken); border:1px solid var(--border-subtle);
+}
+.step.done{opacity:.6}
+.step-n{
+  flex:none; inline-size:1.5rem; block-size:1.5rem; border-radius:var(--radius-pill);
+  display:grid; place-items:center; font-size:var(--p-size-0);
+  background:var(--accent-base); color:var(--accent-ink); font-variant-numeric:tabular-nums;
+}
+.step.done .step-n{background:var(--status-done)}
+.step-body{flex:1; min-inline-size:0; display:flex; flex-direction:column; gap:var(--p-space-3)}
+.step-body p{margin:0; font-size:var(--p-size-2); color:var(--ink-secondary)}
+.step-body b{color:var(--ink-primary)}
+.step-body .row{display:flex; gap:var(--p-space-2); align-items:center; flex-wrap:wrap}
+.step-body select,.step-body input[type="text"]{inline-size:auto; min-inline-size:12rem}
+.fine{margin:0; font-size:var(--p-size-1); color:var(--ink-muted); line-height:1.5}
+.result{
+  padding:var(--p-space-3) var(--p-space-4); border-radius:var(--radius-md);
+  font-size:var(--p-size-2); line-height:1.5;
+}
+.result.ok{background:color-mix(in oklab,var(--status-done) 12%,transparent); color:var(--status-done)}
+.result.bad{background:color-mix(in oklab,var(--status-error) 10%,transparent); color:var(--status-error)}
+.connect-foot{
+  display:flex; align-items:center; gap:var(--p-space-3); flex-wrap:wrap;
+  padding:var(--p-space-3) var(--p-space-5);
+  border-block-start:1px solid var(--border-subtle);
+  font-size:var(--p-size-1); color:var(--ink-muted);
+}
 
 .sheet-tabs{
   display:flex; gap:1px; padding:0 var(--p-space-5);
@@ -1019,37 +1091,16 @@ table.out-table{min-inline-size:32rem}
 @media (max-width:640px){
   .shell{padding:var(--p-space-5) var(--p-space-4) var(--p-space-7)}
   .topbar-in{padding:var(--p-space-3) var(--p-space-4)}
-  .cell-edit{
-  padding:var(--p-space-3) var(--p-space-6);
-  padding-inline-start:calc(var(--p-space-6) + var(--p-space-6));
-  background:var(--surface-sunken);
-  border-block-start:1px dashed var(--border-subtle);
-  display:flex; flex-direction:column; gap:var(--p-space-3);
-}
-.edit-row{display:flex; align-items:center; gap:var(--p-space-3); flex-wrap:wrap}
-.field-inline{display:flex; align-items:center; gap:var(--p-space-2)}
-.field-inline select{inline-size:auto; padding:var(--p-space-1) var(--p-space-2); font-size:var(--p-size-1)}
-.edit-prompt > summary{
-  cursor:pointer; font-size:var(--p-size-1); color:var(--ink-secondary);
-  list-style:none; padding-block:var(--p-space-1);
-}
-.edit-prompt > summary::-webkit-details-marker{display:none}
-.edit-prompt > summary::before{content:'▸ '; font-size:var(--p-size-0)}
-.edit-prompt[open] > summary::before{content:'▾ '}
-.edit-prompt textarea{font-family:var(--font-mono); font-size:var(--p-size-1); margin-block-start:var(--p-space-2)}
-.edit-prompt .hint{font-size:var(--p-size-1); color:var(--ink-muted); margin-block:var(--p-space-2) 0}
-.cell.off{opacity:.55}
-.cell.off .cell-head{padding-block:var(--p-space-3)}
-.pip.off{opacity:.4}
-.pip.off .lbl{text-decoration:line-through}
-.btn.seg.on{background:var(--accent-wash); color:var(--accent-base)}
-.forked{
-  display:flex; align-items:center; gap:var(--p-space-2); flex-wrap:wrap;
-  margin-block-start:var(--p-space-3); font-size:var(--p-size-2); color:var(--ink-secondary);
-}
-.linkbtn{color:var(--accent-base); text-decoration:underline; font-size:inherit}
-
-.mark{padding:var(--p-space-4)}
+  /* Connect panel: one column, chosen provider first — on a phone the list
+     is a menu you leave, not a sidebar you sit beside. */
+  .sheet.wide{inline-size:100%}
+  .connect{grid-template-columns:1fr}
+  .connect-list{border-inline-end:0; border-block-start:1px solid var(--border-subtle);
+    max-block-size:16rem; order:2}
+  .connect-detail{order:1; max-block-size:none; padding:var(--p-space-4)}
+  .connect-foot{padding-inline:var(--p-space-4)}
+  .cell-edit{padding-inline:var(--p-space-4)}
+  .mark{padding:var(--p-space-4)}
   .cell-head{padding:var(--p-space-4) var(--p-space-4) var(--p-space-2)}
   .cell-body,.cell-foot{padding-inline:var(--p-space-4)}
   .cell-body,.cell-foot{padding-inline-start:var(--p-space-4)}
@@ -2360,64 +2411,144 @@ const CLASSES = ['fast','reasoning'];
 
 const PROVIDERS = {
   demo: {
-    label:'Guided demo', vendor:'Nothing — scripted', tier:'demo',
+    label:'Guided demo', vendor:'Nothing — scripted', tier:'demo', group:'nosetup',
     key:'none', reach:'none', classes:['fast','reasoning'],
-    note:'Pre-scripted responses. No network request is made at all. Every notebook is fully experienceable here before you connect anything.' },
+    plain:'Try any notebook right now. Nothing to set up, nothing to sign up for.',
+    note:'Pre-scripted responses. No network request is made at all.' },
 
   chrome: {
-    label:'Built into your browser', vendor:'Chrome · Gemini Nano', tier:'device',
+    label:'Your browser', vendor:'Chrome · Gemini Nano', tier:'device', group:'nosetup',
     key:'none', reach:'device', classes:['fast'], model:'',
+    plain:'Free forever, and nothing you type ever leaves this computer.',
     signup:'https://developer.chrome.com/docs/ai/get-started',
-    note:'Runs on your machine. Free, no key, no network — the model never sees a server. Chrome 138+ on supported hardware; first use downloads the model.' },
+    note:'Runs on your machine. Chrome 138+ on supported hardware; the model downloads once.' },
 
   ollama: {
-    label:'Ollama on this machine', vendor:'localhost:11434', tier:'local',
+    label:'Ollama', vendor:'On this machine', tier:'local', group:'nosetup',
     key:'none', reach:'localhost', classes:['fast'], model:'llama3.2',
+    models:['llama3.2','llama3.1:8b','qwen2.5:7b','mistral','phi4','gemma2:9b','deepseek-r1:8b'],
+    plain:'Free and private, if you already run Ollama.',
     signup:'https://ollama.com/download',
-    note:'Free and local. Needs Ollama running, and OLLAMA_ORIGINS set to allow this page’s origin. Not reachable from an https page over http — self-host or use the desktop build. Class below reflects the default 3B model; point it at a larger one and it serves more.' },
+    note:'Needs Ollama running with OLLAMA_ORIGINS allowing this page. An https page cannot reach http://localhost.' },
+
+  lmstudio: {
+    label:'LM Studio', vendor:'On this machine', tier:'local', group:'nosetup',
+    key:'none', reach:'localhost', classes:['fast'], model:'local-model',
+    base:'http://localhost:1234/v1',
+    plain:'Free and private, if you already run LM Studio.',
+    signup:'https://lmstudio.ai',
+    note:'Start the local server in LM Studio and enable CORS in its settings.' },
 
   google: {
-    label:'Google AI Studio', vendor:'Gemini', tier:'free',
+    label:'Google AI Studio', vendor:'Gemini', tier:'free', group:'free', recommended:true,
     key:'free', reach:'expected', classes:['fast','reasoning'], model:'gemini-2.0-flash',
+    models:['gemini-2.0-flash','gemini-2.5-flash','gemini-2.0-flash-lite','gemini-2.5-pro'],
+    plain:'The easiest good option. Free, takes about a minute, works with everything here.',
     signup:'https://aistudio.google.com/apikey',
-    note:FREE_NOTE + ' Generous free quota; the best free starting point for most notebooks here.' },
-
-  groq: {
-    label:'Groq', vendor:'Llama, Qwen, others', tier:'free',
-    key:'free', reach:'expected', classes:['fast','reasoning'], model:'llama-3.3-70b-versatile',
-    base:'https://api.groq.com/openai/v1', signup:'https://console.groq.com/keys',
-    note:FREE_NOTE + ' Very fast. Open-weight models, so reasoning-class cells will read thinner than a frontier model.' },
+    note:'Generous free quota.' },
 
   openrouter: {
-    label:'OpenRouter', vendor:'Many models, some free', tier:'free',
+    label:'OpenRouter', vendor:'Hundreds of models, one key', tier:'free', group:'free',
     key:'free', reach:'expected', classes:['fast','reasoning'],
     model:'meta-llama/llama-3.3-70b-instruct:free',
+    models:['meta-llama/llama-3.3-70b-instruct:free','deepseek/deepseek-r1:free',
+            'google/gemma-3-27b-it:free','qwen/qwen-2.5-72b-instruct:free',
+            'mistralai/mistral-small-3.2-24b-instruct:free','anthropic/claude-sonnet-4.5',
+            'openai/gpt-4o','google/gemini-2.5-pro'],
     base:'https://openrouter.ai/api/v1', signup:'https://openrouter.ai/keys',
-    note:FREE_NOTE + ' Model ids ending in :free cost nothing. One key reaches dozens of models — change the model field to switch.' },
+    plain:'One key reaches almost every model there is. Anything ending :free costs nothing.',
+    note:'Change the model to switch vendors without changing keys.' },
+
+  groq: {
+    label:'Groq', vendor:'Very fast open models', tier:'free', group:'free',
+    key:'free', reach:'expected', classes:['fast','reasoning'], model:'llama-3.3-70b-versatile',
+    models:['llama-3.3-70b-versatile','llama-3.1-8b-instant','qwen/qwen3-32b',
+            'deepseek-r1-distill-llama-70b','gemma2-9b-it'],
+    base:'https://api.groq.com/openai/v1', signup:'https://console.groq.com/keys',
+    plain:'Free and remarkably fast. Answers arrive almost instantly.',
+    note:'Open-weight models, so reasoning-class cells read thinner than a frontier model.' },
+
+  huggingface: {
+    label:'Hugging Face', vendor:'Open model router', tier:'free', group:'free',
+    key:'free', reach:'expected', classes:['fast','reasoning'],
+    model:'meta-llama/Llama-3.3-70B-Instruct',
+    models:['meta-llama/Llama-3.3-70B-Instruct','Qwen/Qwen2.5-72B-Instruct',
+            'deepseek-ai/DeepSeek-R1','mistralai/Mistral-Small-24B-Instruct-2501',
+            'google/gemma-2-27b-it','microsoft/phi-4'],
+    base:'https://router.huggingface.co/v1', signup:'https://huggingface.co/settings/tokens',
+    plain:'A free token reaches the open-model world — Llama, Qwen, DeepSeek, Mistral.',
+    note:'Create a token with Inference permission. Free tier is rate-limited.' },
+
+  cerebras: {
+    label:'Cerebras', vendor:'Very fast inference', tier:'free', group:'free',
+    key:'free', reach:'expected', classes:['fast','reasoning'], model:'llama-3.3-70b',
+    models:['llama-3.3-70b','llama3.1-8b','qwen-3-32b'],
+    base:'https://api.cerebras.ai/v1', signup:'https://cloud.cerebras.ai',
+    plain:'Free tier, extremely fast.', note:'Open-weight models.' },
+
+  mistral: {
+    label:'Mistral', vendor:'European models', tier:'free', group:'free',
+    key:'free', reach:'unverified', classes:['fast','reasoning'], model:'mistral-small-latest',
+    models:['mistral-small-latest','mistral-large-latest','open-mistral-nemo','magistral-small-latest'],
+    base:'https://api.mistral.ai/v1', signup:'https://console.mistral.ai/api-keys',
+    plain:'Free tier available. European provider.',
+    note:'Browser reachability not verified here — press Test and it will tell you plainly.' },
+
+  deepseek: {
+    label:'DeepSeek', vendor:'Strong reasoning, low cost', tier:'paid', group:'paid',
+    key:'paid', reach:'expected', classes:['fast','reasoning'], model:'deepseek-chat',
+    models:['deepseek-chat','deepseek-reasoner'],
+    base:'https://api.deepseek.com/v1', signup:'https://platform.deepseek.com/api_keys',
+    plain:'Very inexpensive, unusually good at the reasoning notebooks.', note:'' },
+
+  together: {
+    label:'Together AI', vendor:'Open model host', tier:'paid', group:'paid',
+    key:'paid', reach:'expected', classes:['fast','reasoning'],
+    model:'meta-llama/Llama-3.3-70B-Instruct-Turbo',
+    models:['meta-llama/Llama-3.3-70B-Instruct-Turbo','Qwen/Qwen2.5-72B-Instruct-Turbo',
+            'deepseek-ai/DeepSeek-R1'],
+    base:'https://api.together.xyz/v1', signup:'https://api.together.ai/settings/api-keys',
+    plain:'Pay-as-you-go across many open models.', note:'' },
+
+  xai: {
+    label:'xAI', vendor:'Grok', tier:'paid', group:'paid',
+    key:'paid', reach:'expected', classes:['fast','reasoning'], model:'grok-3',
+    models:['grok-3','grok-3-mini','grok-4'],
+    base:'https://api.x.ai/v1', signup:'https://console.x.ai',
+    plain:'Paid.', note:'' },
 
   anthropic: {
-    label:'Anthropic', vendor:'Claude', tier:'frontier',
+    label:'Anthropic', vendor:'Claude', tier:'frontier', group:'paid',
     key:'paid', reach:'expected', classes:['fast','reasoning'], model:'claude-sonnet-5',
+    models:['claude-sonnet-5','claude-opus-5','claude-haiku-4-5-20251001'],
     signup:'https://console.anthropic.com/settings/keys',
+    plain:'Paid, and the strongest results on the reasoning notebooks here.',
     note:'Reachable from a browser with the direct-browser-access opt-in header.' },
 
   openai: {
-    label:'OpenAI', vendor:'GPT', tier:'frontier',
+    label:'OpenAI', vendor:'GPT', tier:'frontier', group:'paid',
     key:'paid', reach:'expected', classes:['fast','reasoning'], model:'gpt-4o',
+    models:['gpt-4o','gpt-4o-mini','o3-mini','gpt-4.1'],
     base:'https://api.openai.com/v1', signup:'https://platform.openai.com/api-keys',
-    note:'Reachable from a browser.' },
+    plain:'Paid.', note:'' },
 
   gateway: {
-    label:'Enterprise gateway', vendor:'Bedrock · Vertex · Azure', tier:'blocked',
+    label:'Work account', vendor:'Bedrock · Vertex · Azure', tier:'blocked', group:'paid',
     key:'paid', reach:'blocked', classes:['fast','reasoning'],
-    note:'Typically not CORS-enabled. This is a constraint on where the request originates, not on your credentials — no key fixes it. Requires the desktop build or a self-hosted deployment.' }
+    plain:'Company AI accounts cannot be reached from a web page. Not your fault, and no key fixes it.',
+    note:'Requires the desktop build or a self-hosted deployment.' }
 };
 
 const modelOf = id => S.models[id] ?? PROVIDERS[id].model ?? '';
 
-const TIER_RANK = { frontier:4, free:3, local:2, device:1, demo:0, blocked:-1 };
-const TIER_LABEL = { demo:'No setup', device:'On your device', local:'On your machine',
-  free:'Free tier · key required', frontier:'Paid', blocked:'Desktop only' };
+const TIER_RANK = { frontier:4, paid:3.5, free:3, local:2, device:1, demo:0, blocked:-1 };
+const TIER_LABEL = { demo:'Ready now', device:'On your device', local:'On your machine',
+  free:'Free', paid:'Paid', frontier:'Paid', blocked:'Not from a web page' };
+const GROUPS = [
+  {id:'nosetup', name:'Ready now, or nearly', note:'No account, no card, nothing to sign up for.'},
+  {id:'free',    name:'Free, with a key',      note:'A key is free and takes about a minute to get.'},
+  {id:'paid',    name:'Paid accounts',         note:'If you already have one.'}
+];
 
 /* Connected = usable right now. Demo always is; the on-device model is if the
    browser exposes it; everything else needs a key the user pasted. */
@@ -2685,8 +2816,28 @@ const ADAPTERS = {
   }
 };
 
+/* Almost everything speaks the OpenAI wire format now, which is the single
+   biggest reason this list could grow at all. */
 const ADAPTER_FOR = { chrome:'chrome', ollama:'ollama', google:'google', anthropic:'anthropic',
-  groq:'openaiCompatible', openrouter:'openaiCompatible', openai:'openaiCompatible' };
+  groq:'openaiCompatible', openrouter:'openaiCompatible', openai:'openaiCompatible',
+  huggingface:'openaiCompatible', cerebras:'openaiCompatible', mistral:'openaiCompatible',
+  deepseek:'openaiCompatible', together:'openaiCompatible', xai:'openaiCompatible',
+  lmstudio:'openaiCompatible' };
+
+/* Provider errors are written for developers. These are the four that
+   actually happen, said the way a person would say them. */
+function humanError(msg, id){
+  const m = String(msg);
+  if (/401|403|invalid.*key|unauthor/i.test(m))
+    return 'That key was not accepted. Check you copied all of it, with no spaces.';
+  if (/429|rate.?limit|quota/i.test(m))
+    return 'The key works, but you have hit the free limit for now. Try again shortly.';
+  if (/404|model|not found/i.test(m))
+    return `The key works, but that model name was not recognised. Pick a different one from the list.`;
+  if (/failed to fetch|networkerror|cors|load failed/i.test(m))
+    return `Could not reach ${PROVIDERS[id]?.label ?? 'the service'} from a web page. This is a browser restriction, not a problem with your key.`;
+  return m.slice(0, 180);
+}
 
 async function runLive(providerId, prompt, type, onDelta, onText, signal){
   const cfg = PROVIDERS[providerId];
@@ -2844,7 +2995,7 @@ async function runAll(nb, run, onChange){
 const S = {
   view:'library', nbId:null, locale:'en', mode:'light',
   brand:'rams', provider:'auto', keys:{}, cellProvider:{}, models:{}, tests:{}, builtin:'absent', dl:null,
-  editing:false, edits:{},
+  editing:false, edits:{}, connectSel:null, testing:null,
   typeset:'brand', density:'comfortable', modePref:'system', lookTab:0,
   sheet:null, runs:{}, storage:null, marks:{}
 };
@@ -3554,10 +3705,10 @@ function renderSheet(){
   const title = { look:'Appearance', settings:t('connect') }[S.sheet];
   const el = document.createElement('div');
   el.className='sheet-backdrop';
-  el.innerHTML = `<div class="sheet" role="dialog" aria-modal="true">
+  el.innerHTML = `<div class="sheet ${S.sheet==='settings'?'wide':''}" role="dialog" aria-modal="true">
     <div class="sheet-head"><h2>${esc(title)}</h2>
       <button class="ghost" id="sheet-x" aria-label="Close">✕</button></div>
-    <div class="sheet-body">${body}</div></div>`;
+    <div class="sheet-body ${S.sheet==='settings'?'flush':''}">${body}</div></div>`;
   root.appendChild(el);
   el.onclick = e => { if (e.target===el) { S.sheet=null; renderSheet(); } };
   el.querySelector('#sheet-x').onclick = () => { S.sheet=null; renderSheet(); };
@@ -3671,92 +3822,142 @@ const localeSheet = () => `
       your locale.</p>
   </div>`;
 
+/* One provider at a time, with a single next step visible. The old version
+   showed nine cards each with a key field and a model id — accurate, and a
+   wall. This asks a question and then does one thing at a time. */
+function connectDetail(id){
+  const p = PROVIDERS[id];
+  const on = isConnected(id), test = S.tests[id];
+  const needsKey = p.key !== 'none';
+  const step = on ? 3 : (needsKey && S.keys[id]) ? 2 : 1;
+
+  const built = id === 'chrome';
+  const chromeState = built ? S.builtin : null;
+
+  return `
+  <div class="detail">
+    <div class="detail-head">
+      <div>
+        <h3>${esc(p.label)}</h3>
+        <p class="detail-vendor">${esc(p.vendor)} · ${esc(TIER_LABEL[p.tier])}</p>
+      </div>
+      <span class="status ${on?'ok':p.reach==='blocked'?'off':'warn'}">
+        ${on ? 'Ready' : p.reach==='blocked' ? 'Unavailable' : 'Not set up'}</span>
+    </div>
+    <p class="detail-plain">${esc(p.plain)}</p>
+
+    ${p.reach === 'blocked' ? `
+      <div class="step done"><p>${esc(p.note)}</p></div>` : ''}
+
+    ${built ? `
+      <div class="step ${chromeState==='available'||chromeState==='readily'?'done':''}">
+        <span class="step-n">1</span>
+        <div class="step-body">
+          ${chromeState==='absent'
+            ? `<p><b>This browser does not have it.</b> You need Chrome 138 or newer on a
+                 computer with enough memory. Everything else on this list still works.</p>`
+            : chromeState==='downloadable'
+            ? `<p><b>Download the model once.</b> A few gigabytes. After that it runs offline,
+                 free, forever, and nothing you type leaves this computer.</p>
+               <button class="btn" id="dl-builtin">Download it now</button>`
+            : chromeState==='downloading'
+            ? `<p>Downloading${S.dl!=null?` — ${S.dl}%`:'…'} You can close this and carry on.</p>`
+            : `<p>Downloaded and ready.</p><button class="btn secondary" data-test="${id}">Check it works</button>`}
+        </div>
+      </div>` : ''}
+
+    ${id==='ollama' || id==='lmstudio' ? `
+      <div class="step">
+        <span class="step-n">1</span>
+        <div class="step-body">
+          <p>Make sure ${esc(p.label)} is running on this computer, then check the connection.</p>
+          <p class="fine">${esc(p.note)}</p>
+          <div class="row">
+            ${modelPicker(id)}
+            <button class="btn" data-test="${id}">Check the connection</button>
+          </div>
+        </div>
+      </div>` : ''}
+
+    ${needsKey && p.reach !== 'blocked' ? `
+      <div class="step ${step>1?'done':''}">
+        <span class="step-n">1</span>
+        <div class="step-body">
+          <p>Get a key from ${esc(p.label)}. It opens in a new tab.</p>
+          <a class="btn" href="${p.signup}" target="_blank" rel="noopener noreferrer">
+            Open the ${esc(p.label)} key page ↗</a>
+        </div>
+      </div>
+      <div class="step ${step>2?'done':''}">
+        <span class="step-n">2</span>
+        <div class="step-body">
+          <p>Paste it here. It stays in this tab and is never sent anywhere but ${esc(p.label)}.</p>
+          <input type="password" data-key="${id}" value="${esc(S.keys[id] ?? '')}"
+                 placeholder="Paste your key" autocomplete="off" spellcheck="false"
+                 aria-label="${esc(p.label)} key">
+          ${S.testing===id ? `<p class="fine">Checking…</p>` : ''}
+        </div>
+      </div>
+      <div class="step ${on?'done':''}">
+        <span class="step-n">3</span>
+        <div class="step-body">
+          <p>Pick a model. The first one is a good default.</p>
+          ${modelPicker(id)}
+        </div>
+      </div>` : ''}
+
+    ${test ? `<div class="result ${test.ok?'ok':'bad'}">${esc(test.msg)}</div>` : ''}
+    ${p.note && !built && p.reach !== 'blocked' && id!=='ollama' && id!=='lmstudio'
+      ? `<p class="fine">${esc(p.note)}</p>` : ''}
+  </div>`;
+}
+
+function modelPicker(id){
+  const p = PROVIDERS[id];
+  if (!p.models) return `<input type="text" data-model="${id}" value="${esc(modelOf(id))}"
+    placeholder="model" aria-label="Model">`;
+  const cur = modelOf(id), known = p.models.includes(cur);
+  return `<select data-model="${id}" aria-label="Model">
+    ${p.models.map(m=>`<option value="${esc(m)}" ${cur===m?'selected':''}>${esc(m)}</option>`).join('')}
+    ${known ? '' : `<option value="${esc(cur)}" selected>${esc(cur)} (custom)</option>`}
+  </select>`;
+}
+
 const settingsSheet = () => {
   const cap = S.storage?.capabilities() ?? {durable:false,label:'—'};
-  const groups = [['demo','device','local'], ['free'], ['frontier','blocked']];
-  const heads = ['Runs with no account', 'Free, with a key you can get in a minute', 'Paid and enterprise'];
+  const sel = S.connectSel ?? (connected().find(id=>id!=='demo') ?? 'google');
   return `
-  <div class="sheet-sec">
-    <h3>Default for every cell</h3>
-    <div class="field">
-      <select id="defprov">
-        <option value="auto" ${S.provider==='auto'?'selected':''}>Auto — best connected model for each cell</option>
-        ${connected().map(id=>`<option value="${id}" ${S.provider===id?'selected':''}>Always ${esc(PROVIDERS[id].label)}</option>`).join('')}
-      </select>
-      <span class="hint">Auto reads each cell's declared capability class and picks the strongest connected model that serves it. Any cell can still be pinned individually from its footer.</span>
-    </div>
+  <div class="connect">
+    <aside class="connect-list">
+      <div class="sheet-sec" style="padding:0 0 var(--p-space-3)">
+        <h3>Use for every cell</h3>
+        <select id="defprov">
+          <option value="auto" ${S.provider==='auto'?'selected':''}>Pick the best one automatically</option>
+          ${connected().map(id=>`<option value="${id}" ${S.provider===id?'selected':''}>Always ${esc(PROVIDERS[id].label)}</option>`).join('')}
+        </select>
+      </div>
+      ${GROUPS.map(g=>`
+        <div class="group">
+          <p class="group-name">${esc(g.name)}</p>
+          <p class="group-note">${esc(g.note)}</p>
+          ${Object.entries(PROVIDERS).filter(([,p])=>p.group===g.id).map(([id,p])=>{
+            const on = isConnected(id);
+            return `<button class="prov-row-btn ${sel===id?'sel':''}" data-sel="${id}">
+              <span class="dot ${on?'ok':p.reach==='blocked'?'off':'warn'}"></span>
+              <span class="grow"><strong>${esc(p.label)}</strong>
+                <span class="sub">${esc(p.vendor)}</span></span>
+              ${p.recommended && !on ? '<span class="rec">Start here</span>' : ''}
+            </button>`;}).join('')}
+        </div>`).join('')}
+    </aside>
+    <div class="connect-detail">${connectDetail(sel)}</div>
   </div>
-  ${groups.map((tiers,gi)=>`
-  <div class="sheet-sec">
-    <h3>${esc(heads[gi])}</h3>
-    ${Object.entries(PROVIDERS).filter(([,p])=>tiers.includes(p.tier)).map(([id,p])=>{
-      const on = isConnected(id), test = S.tests[id];
-      return `
-      <div class="prov ${on?'on':''}">
-        <div class="prov-head">
-          <span class="dot ${on?'ok':(p.reach==='blocked'?'off':'warn')}"></span>
-          <div style="flex:1">
-            <strong>${esc(p.label)}</strong>
-            <span class="meta"> · ${esc(p.vendor)}</span>
-            <div class="hint">${esc(p.note)}</div>
-          </div>
-          <span class="tag">${esc(TIER_LABEL[p.tier])}</span>
-        </div>
-        ${id==='chrome' ? `
-          <div class="prov-row">
-            ${S.builtin==='absent' ? `<span class="hint">Not exposed by this browser.</span>`
-              : S.builtin==='downloadable' ? `<button class="btn tiny" id="dl-builtin">Download the model</button><span class="hint">A few GB, once. Then it runs offline, free, forever.</span>`
-              : S.builtin==='downloading' ? `<span class="hint">Downloading${S.dl!=null?` — ${S.dl}%`:'…'}</span>`
-              : `<button class="btn secondary tiny" data-test="${id}">Test</button>`}
-          </div>` : ''}
-        ${p.key==='none' && id!=='demo' && id!=='chrome' ? `
-          <div class="prov-row">
-            <input type="text" data-model="${id}" value="${esc(modelOf(id))}" placeholder="model" aria-label="Model">
-            <button class="btn secondary tiny" data-test="${id}">Test</button>
-          </div>` : ''}
-        ${p.key!=='none' ? `
-          <div class="prov-row">
-            <input type="password" data-key="${id}" value="${esc(S.keys[id] ?? '')}"
-                   placeholder="${p.key==='free'?'free API key':'API key'}" autocomplete="off" aria-label="${esc(p.label)} key">
-            <input type="text" data-model="${id}" value="${esc(modelOf(id))}" placeholder="model" aria-label="Model">
-            <button class="btn secondary tiny" data-test="${id}" ${S.keys[id]?'':'disabled'}>Test</button>
-          </div>
-          ${p.signup?`<a class="hint link" href="${p.signup}" target="_blank" rel="noopener noreferrer">Get a key ↗</a>`:''}` : ''}
-        ${test ? `<div class="prov-result ${test.ok?'ok':'bad'}">${esc(test.msg)}</div>` : ''}
-      </div>`;
-    }).join('')}
-  </div>`).join('')}
-  <div class="sheet-sec">
-    <h3>Where keys live</h3>
-    <div class="status-row"><span class="dot ok"></span>
-      <span>In this tab, in memory. Never written to storage, never sent to this page's own origin — only to the provider you chose. Closing the tab discards them.</span></div>
-  </div>
-  <div class="sheet-sec">
-    <h3>Your marks</h3>
-    <div class="status-row">
-      <span class="dot ${Object.keys(S.marks).length?'ok':'off'}"></span>
-      <span>${Object.keys(S.marks).length
-        ? `${Object.keys(S.marks).length} marked on this device. The browser can clear this without warning — export to keep them.`
-        : 'Nothing marked yet. Marks live on this device only; there is no server that could hold them.'}</span>
-    </div>
-    <div class="prov-row">
-      <button class="btn secondary tiny" id="marks-out" ${Object.keys(S.marks).length?'':'disabled'}>Export marks</button>
-      <button class="btn secondary tiny" id="marks-in">Import marks</button>
-      <input type="file" id="marks-file" accept="application/json" hidden>
-    </div>
-  </div>
-  <div class="sheet-sec">
-    <h3>${esc(t('storage'))}</h3>
-    <div class="status-row">
-      <span class="dot ${cap.durable?'ok':'warn'}"></span>
-      <span>${esc(S.storage?.label ?? '—')} — ${esc(cap.label)}</span>
-    </div>
-    <div class="status-row">
-      <span class="dot ${T2_AVAILABLE?'ok':'off'}"></span>
-      <span>${T2_AVAILABLE
-        ? 'This browser supports saving to a real folder on disk (T2). Available as an upgrade.'
-        : 'This browser cannot save to a folder on disk. Export, or use the desktop build.'}</span>
-    </div>
+  <div class="connect-foot">
+    <span class="seg"><span class="dot ${cap.durable?'ok':'warn'}"></span>${esc(cap.label)}</span>
+    <span class="spacer"></span>
+    <button class="btn secondary tiny" id="marks-out" ${Object.keys(S.marks).length?'':'disabled'}>Export marks</button>
+    <button class="btn secondary tiny" id="marks-in">Import marks</button>
+    <input type="file" id="marks-file" accept="application/json" hidden>
   </div>`;
 };
 
@@ -3793,12 +3994,24 @@ function wireSheet(el){
   };
   const def = el.querySelector('#defprov');
   if (def) def.onchange = () => { S.provider = def.value; renderSheet(); render(); };
+  el.querySelectorAll('[data-sel]').forEach(b => b.onclick = () => {
+    S.connectSel = b.dataset.sel; renderSheet(); });
+
+  /* Test automatically once a key looks complete. Nobody should have to know
+     that a separate "Test" button exists, or which error means what. */
   el.querySelectorAll('[data-key]').forEach(inp => {
+    let t;
     inp.oninput = () => {
       const id = inp.dataset.key;
-      if (inp.value) S.keys[id] = inp.value; else delete S.keys[id];
-      const btn = el.querySelector(`[data-test="${id}"]`);
-      if (btn) btn.disabled = !inp.value;
+      if (inp.value.trim()) S.keys[id] = inp.value.trim(); else delete S.keys[id];
+      clearTimeout(t);
+      if ((inp.value.trim().length) < 12) return;
+      t = setTimeout(async () => {
+        S.testing = id; renderSheet();
+        const r = await testProvider(id);
+        S.tests[id] = r.ok ? r : {ok:false, msg:humanError(r.msg, id)};
+        S.testing = null; renderSheet(); render();
+      }, 700);
     };
   });
   el.querySelectorAll('[data-model]').forEach(inp => {
@@ -3817,7 +4030,8 @@ function wireSheet(el){
   el.querySelectorAll('[data-test]').forEach(btn => btn.onclick = async () => {
     const id = btn.dataset.test;
     btn.disabled = true; btn.textContent = 'Testing…';
-    S.tests[id] = await testProvider(id);
+    const r = await testProvider(id);
+    S.tests[id] = r.ok ? r : {ok:false, msg:humanError(r.msg, id)};
     renderSheet(); render();
   });
 }

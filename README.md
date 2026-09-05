@@ -217,6 +217,27 @@ travel in the export, and **Reset to the original** removes them.
 This is open decision #3 from the product brief answered: run *and* fork, with
 the fork staying local and file-shaped (P4).
 
+## Connecting a model
+
+**Sixteen providers**, grouped by what they cost you rather than by vendor:
+
+| Ready now, or nearly | Free, with a key | Paid |
+|---|---|---|
+| Guided demo · Your browser (Gemini Nano) · Ollama · LM Studio | Google AI Studio · OpenRouter · Groq · Hugging Face · Cerebras · Mistral | DeepSeek · Together · xAI · Anthropic · OpenAI |
+
+The panel is master-detail: pick one on the left, follow numbered steps on the
+right — open the key page, paste, pick a model. **The key is tested
+automatically** a moment after you paste it, so nobody has to know a Test
+button exists or what a 401 means; errors are rewritten into sentences
+("That key was not accepted. Check you copied all of it, with no spaces.").
+Model names come from a list rather than a text field you have to already know
+the answer to. Below 640px it is one column with the steps above the list.
+
+Two entries worth knowing: **OpenRouter** reaches almost every model through
+one key and anything ending `:free` costs nothing; **Hugging Face** opens the
+open-model world with a free token. Both speak the OpenAI wire format, which is
+the reason this list could grow at all.
+
 ## Model options
 
 Every cell resolves **Auto** against what you have connected, matching the cell's
