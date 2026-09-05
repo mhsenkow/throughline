@@ -1,0 +1,7 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "throughline", "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8719"], "port": 8719 }
+  ]
+}

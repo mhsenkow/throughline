@@ -1,0 +1,1779 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Throughline</title>
+<meta name="description" content="Runnable notebooks that show you what AI can actually do.">
+
+<style>
+/* Baseline reset — harmless duplication when this file is published as an
+   Artifact (which supplies its own), required when it is served standalone
+   from a static host at any path. */
+html,body{margin:0}
+img{max-width:100%}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TIER 1 — PRIMITIVES
+   Raw values. Never referenced by a component rule. Brands replace these
+   wholesale. Everything below Tier 2 is the brand contract.
+   ═══════════════════════════════════════════════════════════════════════ */
+:root {
+  --p-gray-0:#ffffff; --p-gray-25:#fcfcfb; --p-gray-50:#f6f5f3; --p-gray-100:#eceae6;
+  --p-gray-200:#dedbd5; --p-gray-300:#c2beb6; --p-gray-400:#94908a; --p-gray-500:#6b6862;
+  --p-gray-600:#4a4844; --p-gray-700:#33312e; --p-gray-800:#22201e; --p-gray-900:#141312;
+  --p-accent-400:#7a6cf0; --p-accent-500:#5b4ce0; --p-accent-600:#4a3cc4;
+  --p-amber-500:#b8860b; --p-red-500:#c0392b; --p-green-500:#2d7a4f; --p-blue-500:#2b6cb0;
+
+  --p-font-display:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;
+  --p-font-body:ui-sans-serif,-apple-system,'Segoe UI',Inter,system-ui,sans-serif;
+  --p-font-mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+
+  --p-size-0:0.6875rem; --p-size-1:0.75rem;  --p-size-2:0.8125rem; --p-size-3:0.875rem;
+  --p-size-4:0.9375rem; --p-size-5:1.0625rem; --p-size-6:1.375rem; --p-size-7:1.875rem;
+  --p-size-8:2.5rem;
+
+  --p-space-1:0.25rem; --p-space-2:0.5rem;  --p-space-3:0.75rem; --p-space-4:1rem;
+  --p-space-5:1.5rem;  --p-space-6:2rem;    --p-space-7:3rem;    --p-space-8:4.5rem;
+
+  --p-radius-0:0px; --p-radius-1:3px; --p-radius-2:6px; --p-radius-3:10px; --p-radius-4:18px;
+  --p-dur-1:110ms; --p-dur-2:220ms; --p-dur-3:420ms;
+  --p-weight-normal:400; --p-weight-medium:500; --p-weight-bold:650;
+  --p-tracking-tight:-0.015em; --p-tracking-wide:0.06em;
+
+/* ═══════════════════════════════════════════════════════════════════════
+   TIER 2 — SEMANTIC   ← the brand contract. A brand overrides ONLY this.
+   ═══════════════════════════════════════════════════════════════════════ */
+  --surface-base:var(--p-gray-25);
+  --surface-raised:var(--p-gray-0);
+  --surface-sunken:var(--p-gray-50);
+  --surface-inverse:var(--p-gray-900);
+
+  --ink-primary:var(--p-gray-900);
+  --ink-secondary:var(--p-gray-600);
+  --ink-muted:var(--p-gray-400);
+  --ink-inverse:var(--p-gray-0);
+
+  --accent-base:var(--p-accent-500);
+  --accent-hover:var(--p-accent-600);
+  --accent-ink:var(--p-gray-0);
+  --accent-wash:color-mix(in oklab, var(--accent-base) 8%, transparent);
+
+  --border-subtle:var(--p-gray-200);
+  --border-strong:var(--p-gray-300);
+  --border-focus:var(--accent-base);
+
+  --status-idle:var(--p-gray-400);
+  --status-running:var(--p-blue-500);
+  --status-done:var(--p-green-500);
+  --status-stale:var(--p-amber-500);
+  --status-error:var(--p-red-500);
+
+  --font-display:var(--p-font-display);
+  --font-body:var(--p-font-body);
+  --font-mono:var(--p-font-mono);
+  --weight-heading:var(--p-weight-bold);
+  --tracking-heading:var(--p-tracking-tight);
+
+  --radius-sm:var(--p-radius-1);
+  --radius-md:var(--p-radius-2);
+  --radius-lg:var(--p-radius-3);
+  --radius-pill:999px;
+
+  --elevation-1:0 1px 2px rgb(0 0 0 / 0.05), 0 1px 1px rgb(0 0 0 / 0.03);
+  --elevation-2:0 2px 8px rgb(0 0 0 / 0.07), 0 1px 2px rgb(0 0 0 / 0.04);
+
+  --motion-fast:var(--p-dur-1);
+  --motion-base:var(--p-dur-2);
+  --motion-slow:var(--p-dur-3);
+
+/* ── TIER 3 — COMPONENT (aliases; the escape hatch) ─────────────────── */
+  --cell-bg:var(--surface-raised);
+  --cell-border:var(--border-subtle);
+  --cell-index-ink:var(--ink-muted);
+  --topbar-bg:var(--surface-base);
+  --code-bg:var(--surface-sunken);
+}
+
+/* Dark pair — every brand ships both. Only Tier 2 is redefined. */
+:root[data-mode="dark"] {
+  --surface-base:var(--p-gray-900);
+  --surface-raised:var(--p-gray-800);
+  --surface-sunken:#0d0c0c;
+  --surface-inverse:var(--p-gray-50);
+  --ink-primary:var(--p-gray-50);
+  --ink-secondary:var(--p-gray-300);
+  --ink-muted:var(--p-gray-500);
+  --ink-inverse:var(--p-gray-900);
+  --accent-base:var(--p-accent-400);
+  --accent-hover:#9184f5;
+  --accent-ink:var(--p-gray-900);
+  --border-subtle:#332f2c;
+  --border-strong:#494540;
+  --elevation-1:0 1px 2px rgb(0 0 0 / 0.4);
+  --elevation-2:0 2px 10px rgb(0 0 0 / 0.5);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   COMPONENTS — no literal colors, sizes, radii, or durations below.
+   Enforced in CI by stylelint (see ENGINEERING-BRIEF §7).
+   ═══════════════════════════════════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box}
+
+html,body{background:var(--surface-base); color:var(--ink-primary)}
+
+.nb-root{
+  min-height:100vh; background:var(--surface-base); color:var(--ink-primary);
+  font-family:var(--font-body); font-size:var(--p-size-4); line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  transition:background var(--motion-base), color var(--motion-base);
+}
+.nb-root h1,.nb-root h2,.nb-root h3{
+  font-family:var(--font-display); font-weight:var(--weight-heading);
+  letter-spacing:var(--tracking-heading); line-height:1.15; margin:0;
+}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+input,textarea,select{font:inherit;color:inherit}
+
+/* ── Top bar ─────────────────────────────────────────────────────────── */
+.topbar{
+  position:sticky; top:0; z-index:20; background:var(--topbar-bg);
+  border-block-end:1px solid var(--border-subtle);
+  backdrop-filter:saturate(1.4) blur(8px);
+}
+.topbar-in{
+  max-width:74rem; margin-inline:auto; padding:var(--p-space-3) var(--p-space-5);
+  display:flex; align-items:center; gap:var(--p-space-4);
+}
+.wordmark{
+  display:flex; align-items:center; gap:var(--p-space-2);
+  font-family:var(--font-display); font-weight:var(--weight-heading);
+  font-size:var(--p-size-5); letter-spacing:var(--tracking-heading);
+}
+.wordmark .glyph{
+  inline-size:var(--p-space-4); block-size:var(--p-space-4); flex:none;
+  border-radius:var(--radius-sm); background:var(--accent-base);
+  position:relative; overflow:hidden;
+}
+.wordmark .glyph::after{
+  content:''; position:absolute; inset-inline-start:0; inset-block-start:50%;
+  inline-size:100%; block-size:1px; background:var(--accent-ink); opacity:.9;
+}
+.spacer{flex:1}
+
+.ghost{
+  padding:var(--p-space-1) var(--p-space-3); border-radius:var(--radius-md);
+  color:var(--ink-secondary); font-size:var(--p-size-2);
+  transition:background var(--motion-fast), color var(--motion-fast);
+}
+.ghost:hover{background:var(--surface-sunken); color:var(--ink-primary)}
+.ghost[aria-pressed="true"]{background:var(--accent-wash); color:var(--accent-base)}
+
+.btn{
+  display:inline-flex; align-items:center; gap:var(--p-space-2);
+  padding:var(--p-space-2) var(--p-space-4); border-radius:var(--radius-md);
+  background:var(--accent-base); color:var(--accent-ink);
+  font-size:var(--p-size-3); font-weight:var(--p-weight-medium);
+  transition:background var(--motion-fast), transform var(--motion-fast);
+}
+.btn:hover{background:var(--accent-hover)}
+.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.45; cursor:not-allowed}
+.btn.secondary{
+  background:transparent; color:var(--ink-primary);
+  box-shadow:inset 0 0 0 1px var(--border-strong);
+}
+.btn.secondary:hover{background:var(--surface-sunken)}
+.btn.tiny{padding:var(--p-space-1) var(--p-space-3); font-size:var(--p-size-1)}
+
+:where(button,select,input,textarea,a):focus-visible{
+  outline:2px solid var(--border-focus); outline-offset:2px; border-radius:var(--radius-sm);
+}
+
+/* ── Shell ───────────────────────────────────────────────────────────── */
+.shell{max-width:74rem; margin-inline:auto; padding:var(--p-space-6) var(--p-space-5) var(--p-space-8)}
+.eyebrow{
+  font-size:var(--p-size-0); text-transform:uppercase;
+  letter-spacing:var(--p-tracking-wide); color:var(--ink-muted);
+  font-weight:var(--p-weight-medium);
+}
+.lede{color:var(--ink-secondary); max-width:60ch; margin-block-start:var(--p-space-3)}
+
+/* ── Library ─────────────────────────────────────────────────────────── */
+.shelf{
+  display:grid; gap:var(--p-space-4); margin-block-start:var(--p-space-6);
+  grid-template-columns:repeat(auto-fill,minmax(19rem,1fr));
+}
+.card{
+  text-align:start; display:flex; flex-direction:column; gap:var(--p-space-3);
+  padding:var(--p-space-5); background:var(--surface-raised);
+  border:1px solid var(--border-subtle); border-radius:var(--radius-lg);
+  box-shadow:var(--elevation-1);
+  transition:border-color var(--motion-fast), box-shadow var(--motion-base), transform var(--motion-fast);
+}
+.card:hover{border-color:var(--border-strong); box-shadow:var(--elevation-2); transform:translateY(-2px)}
+.card h3{font-size:var(--p-size-6)}
+.card p{margin:0; color:var(--ink-secondary); font-size:var(--p-size-3); flex:1}
+.card-foot{
+  display:flex; align-items:center; gap:var(--p-space-3); flex-wrap:wrap;
+  font-size:var(--p-size-1); color:var(--ink-muted);
+  padding-block-start:var(--p-space-3); border-block-start:1px solid var(--border-subtle);
+}
+.tag{
+  padding:var(--p-space-1) var(--p-space-2); border-radius:var(--radius-pill);
+  background:var(--surface-sunken); color:var(--ink-secondary); font-size:var(--p-size-0);
+}
+
+/* ── Notebook ────────────────────────────────────────────────────────── */
+.nb-head{
+  display:flex; align-items:flex-start; gap:var(--p-space-5);
+  padding-block-end:var(--p-space-5); border-block-end:1px solid var(--border-subtle);
+  flex-wrap:wrap;
+}
+.nb-head h1{font-size:var(--p-size-8); max-width:22ch}
+.nb-actions{display:flex; gap:var(--p-space-2); align-items:center; flex-wrap:wrap}
+
+.cells{display:flex; flex-direction:column; gap:var(--p-space-4); margin-block-start:var(--p-space-6)}
+
+.cell{
+  background:var(--cell-bg); border:1px solid var(--cell-border);
+  border-radius:var(--radius-lg); overflow:hidden;
+  transition:border-color var(--motion-base), box-shadow var(--motion-base);
+}
+.cell[data-state="running"],.cell[data-state="streaming"]{
+  border-color:var(--status-running); box-shadow:0 0 0 3px color-mix(in oklab,var(--status-running) 12%,transparent);
+}
+.cell[data-state="error"]{border-color:var(--status-error)}
+.cell[data-state="stale"]{border-color:var(--status-stale); border-style:dashed}
+
+.cell-head{
+  display:flex; align-items:flex-start; gap:var(--p-space-3);
+  padding:var(--p-space-4) var(--p-space-5);
+}
+.cell-index{
+  font-family:var(--font-mono); font-size:var(--p-size-1); color:var(--cell-index-ink);
+  padding-block-start:var(--p-space-1); font-variant-numeric:tabular-nums; flex:none;
+}
+.cell-titles{flex:1; min-width:0}
+.cell-titles h3{font-size:var(--p-size-5); font-family:var(--font-body); font-weight:var(--p-weight-bold)}
+.cell-intent{color:var(--ink-secondary); font-size:var(--p-size-2); margin-block-start:var(--p-space-1)}
+
+.io-line{
+  display:flex; gap:var(--p-space-3); flex-wrap:wrap;
+  font-family:var(--font-mono); font-size:var(--p-size-0); color:var(--ink-muted);
+  margin-block-start:var(--p-space-2);
+}
+.io-line b{font-weight:var(--p-weight-normal); color:var(--ink-secondary)}
+
+.badge{
+  display:inline-flex; align-items:center; gap:var(--p-space-1); flex:none;
+  padding:var(--p-space-1) var(--p-space-2); border-radius:var(--radius-pill);
+  font-size:var(--p-size-0); font-weight:var(--p-weight-medium);
+  text-transform:uppercase; letter-spacing:var(--p-tracking-wide);
+  background:var(--surface-sunken); color:var(--ink-muted);
+}
+.badge::before{content:''; inline-size:6px; block-size:6px; border-radius:var(--radius-pill); background:currentColor}
+.badge[data-s="running"],.badge[data-s="streaming"]{color:var(--status-running)}
+.badge[data-s="done"]{color:var(--status-done)}
+.badge[data-s="stale"]{color:var(--status-stale)}
+.badge[data-s="error"]{color:var(--status-error)}
+@media (prefers-reduced-motion:no-preference){
+  .badge[data-s="running"]::before,.badge[data-s="streaming"]::before{animation:pulse 1.1s ease-in-out infinite}
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+.cell-body{padding:0 var(--p-space-5) var(--p-space-4); padding-inline-start:calc(var(--p-space-5) + var(--p-space-6))}
+.cell-foot{
+  display:flex; align-items:center; gap:var(--p-space-2);
+  padding:var(--p-space-3) var(--p-space-5); padding-inline-start:calc(var(--p-space-5) + var(--p-space-6));
+  border-block-start:1px solid var(--border-subtle); background:var(--surface-base);
+}
+.meta{font-size:var(--p-size-0); color:var(--ink-muted); font-family:var(--font-mono)}
+
+.out{font-size:var(--p-size-3); line-height:1.65}
+.out p{margin:0 0 var(--p-space-3)}
+.out p:last-child{margin-block-end:0}
+.out ul{margin:0; padding-inline-start:var(--p-space-5); display:flex; flex-direction:column; gap:var(--p-space-2)}
+.out strong{font-weight:var(--p-weight-bold)}
+.out em{color:var(--ink-secondary)}
+.caret{
+  display:inline-block; inline-size:0.5em; block-size:1.05em; vertical-align:text-bottom;
+  background:var(--accent-base); margin-inline-start:2px;
+}
+@media (prefers-reduced-motion:no-preference){ .caret{animation:pulse .9s steps(2) infinite} }
+
+table.out-table{border-collapse:collapse; inline-size:100%; font-size:var(--p-size-2)}
+table.out-table th,table.out-table td{
+  text-align:start; padding:var(--p-space-2) var(--p-space-3);
+  border-block-end:1px solid var(--border-subtle); vertical-align:top;
+}
+table.out-table th{
+  font-size:var(--p-size-0); text-transform:uppercase; letter-spacing:var(--p-tracking-wide);
+  color:var(--ink-muted); font-weight:var(--p-weight-medium);
+}
+.flag{color:var(--status-stale); font-weight:var(--p-weight-medium)}
+
+.field{display:flex; flex-direction:column; gap:var(--p-space-2)}
+.field label{font-size:var(--p-size-2); font-weight:var(--p-weight-medium)}
+.field .hint{font-size:var(--p-size-1); color:var(--ink-muted)}
+textarea,input[type="text"],input[type="password"],select{
+  inline-size:100%; padding:var(--p-space-3); background:var(--surface-base);
+  border:1px solid var(--border-strong); border-radius:var(--radius-md);
+  font-size:var(--p-size-3); font-family:inherit;
+  transition:border-color var(--motion-fast);
+}
+textarea{min-block-size:6.5rem; resize:vertical; line-height:1.55}
+textarea:focus,input:focus,select:focus{border-color:var(--border-focus); outline:none}
+select{cursor:pointer}
+
+.error-box{
+  padding:var(--p-space-3) var(--p-space-4); border-radius:var(--radius-md);
+  background:color-mix(in oklab,var(--status-error) 8%,transparent);
+  border:1px solid color-mix(in oklab,var(--status-error) 30%,transparent);
+  color:var(--status-error); font-size:var(--p-size-2);
+}
+.stale-note{
+  display:flex; align-items:center; gap:var(--p-space-2);
+  font-size:var(--p-size-1); color:var(--status-stale); margin-block-end:var(--p-space-3);
+}
+
+/* ── Variable inspector ──────────────────────────────────────────────── */
+details.vars{
+  margin-block-start:var(--p-space-5); border:1px solid var(--border-subtle);
+  border-radius:var(--radius-lg); background:var(--surface-raised); overflow:hidden;
+}
+details.vars > summary{
+  padding:var(--p-space-3) var(--p-space-5); cursor:pointer; font-size:var(--p-size-2);
+  color:var(--ink-secondary); list-style:none; display:flex; align-items:center; gap:var(--p-space-2);
+}
+details.vars > summary::-webkit-details-marker{display:none}
+details.vars > summary::before{content:'▸'; transition:transform var(--motion-fast); font-size:var(--p-size-1)}
+details.vars[open] > summary::before{transform:rotate(90deg)}
+.var-table{
+  padding:0 var(--p-space-5) var(--p-space-4);
+  font-family:var(--font-mono); font-size:var(--p-size-1);
+  display:grid; grid-template-columns:auto auto 1fr; gap:var(--p-space-2) var(--p-space-4);
+}
+.var-table .k{color:var(--accent-base)}
+.var-table .t{color:var(--ink-muted)}
+.var-table .v{color:var(--ink-secondary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+
+/* ── Panels / sheet ──────────────────────────────────────────────────── */
+.sheet-backdrop{
+  position:fixed; inset:0; z-index:40; background:rgb(0 0 0 / 0.32);
+  display:flex; align-items:flex-start; justify-content:center; padding:var(--p-space-6) var(--p-space-4);
+  overflow:auto;
+}
+.sheet{
+  inline-size:min(38rem,100%); background:var(--surface-raised);
+  border:1px solid var(--border-subtle); border-radius:var(--radius-lg);
+  box-shadow:var(--elevation-2); overflow:hidden;
+}
+.sheet-head{
+  display:flex; align-items:center; gap:var(--p-space-3);
+  padding:var(--p-space-4) var(--p-space-5); border-block-end:1px solid var(--border-subtle);
+}
+.sheet-head h2{font-size:var(--p-size-6); flex:1}
+.sheet-body{padding:var(--p-space-5); display:flex; flex-direction:column; gap:var(--p-space-5)}
+.sheet-sec{display:flex; flex-direction:column; gap:var(--p-space-3)}
+.sheet-sec > h3{font-size:var(--p-size-2); text-transform:uppercase; letter-spacing:var(--p-tracking-wide); color:var(--ink-muted); font-family:var(--font-body)}
+
+.swatches{display:flex; gap:var(--p-space-2); flex-wrap:wrap}
+.swatch{
+  display:flex; flex-direction:column; gap:var(--p-space-2); align-items:flex-start;
+  padding:var(--p-space-3); border-radius:var(--radius-md);
+  border:1px solid var(--border-subtle); background:var(--surface-base);
+  font-size:var(--p-size-1); min-inline-size:7.5rem;
+  transition:border-color var(--motion-fast);
+}
+.swatch[aria-pressed="true"]{border-color:var(--accent-base); box-shadow:inset 0 0 0 1px var(--accent-base)}
+.swatch .chips{display:flex; gap:var(--p-space-1)}
+.swatch .chip{inline-size:var(--p-space-4); block-size:var(--p-space-4); border-radius:var(--radius-sm); border:1px solid rgb(0 0 0 / .1)}
+
+.status-row{
+  display:flex; align-items:center; gap:var(--p-space-3);
+  padding:var(--p-space-3) var(--p-space-4); border-radius:var(--radius-md);
+  background:var(--surface-sunken); font-size:var(--p-size-2);
+}
+.dot{inline-size:8px; block-size:8px; border-radius:var(--radius-pill); flex:none}
+.dot.ok{background:var(--status-done)} .dot.warn{background:var(--status-stale)} .dot.off{background:var(--ink-muted)}
+
+/* ── Desktop upsell ──────────────────────────────────────────────────── */
+.desktop-strip{
+  margin-block-start:var(--p-space-7); padding:var(--p-space-5);
+  border:1px solid var(--border-subtle); border-radius:var(--radius-lg);
+  background:var(--surface-raised);
+  display:flex; gap:var(--p-space-5); align-items:center; flex-wrap:wrap;
+}
+.desktop-strip .grow{flex:1; min-inline-size:18rem}
+.desktop-strip h3{font-size:var(--p-size-5); margin-block-end:var(--p-space-2)}
+.desktop-strip p{margin:0; color:var(--ink-secondary); font-size:var(--p-size-2)}
+.cap-list{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));
+  gap:var(--p-space-2) var(--p-space-4); margin-block-start:var(--p-space-4);
+  font-size:var(--p-size-2); color:var(--ink-secondary);
+}
+.cap-list div{display:flex; gap:var(--p-space-2); align-items:baseline}
+.cap-list .y{color:var(--status-done)} .cap-list .n{color:var(--ink-muted)}
+
+.foot{
+  margin-block-start:var(--p-space-8); padding-block-start:var(--p-space-5);
+  border-block-start:1px solid var(--border-subtle);
+  font-size:var(--p-size-1); color:var(--ink-muted);
+  display:flex; gap:var(--p-space-4); flex-wrap:wrap; align-items:center;
+}
+.foot a{color:var(--ink-secondary)}
+
+.picker{display:inline-flex; align-items:center; gap:var(--p-space-2)}
+.picker select{
+  inline-size:auto; padding:var(--p-space-1) var(--p-space-2);
+  font-size:var(--p-size-0); font-family:var(--font-mono);
+  background:transparent; border-color:var(--border-subtle); color:var(--ink-secondary);
+}
+pre.raw{
+  margin:0 0 var(--p-space-3); padding:var(--p-space-3); border-radius:var(--radius-md);
+  background:var(--code-bg); font-family:var(--font-mono); font-size:var(--p-size-1);
+  color:var(--ink-secondary); white-space:pre-wrap; word-break:break-word;
+  max-block-size:11rem; overflow:auto;
+}
+.class-note{
+  display:flex; align-items:center; gap:var(--p-space-3); flex-wrap:wrap;
+  padding:var(--p-space-3); margin-block-end:var(--p-space-3);
+  border-radius:var(--radius-md); font-size:var(--p-size-1);
+  background:color-mix(in oklab,var(--status-stale) 9%,transparent);
+  border:1px solid color-mix(in oklab,var(--status-stale) 28%,transparent);
+}
+.class-note > span{flex:1; min-inline-size:16rem; color:var(--ink-secondary)}
+.class-note b{color:var(--ink-primary)}
+.prov{
+  padding:var(--p-space-4); border:1px solid var(--border-subtle);
+  border-radius:var(--radius-md); display:flex; flex-direction:column; gap:var(--p-space-3);
+}
+.prov.on{border-color:color-mix(in oklab,var(--status-done) 40%,var(--border-subtle))}
+.prov-head{display:flex; gap:var(--p-space-3); align-items:flex-start}
+.prov-head .hint{font-size:var(--p-size-1); color:var(--ink-muted); margin-block-start:var(--p-space-1)}
+.prov-row{display:flex; gap:var(--p-space-2); align-items:center; flex-wrap:wrap}
+.prov-row input[type="password"]{flex:2; min-inline-size:9rem}
+.prov-row input[type="text"]{flex:1; min-inline-size:8rem; font-family:var(--font-mono); font-size:var(--p-size-1)}
+a.link{color:var(--accent-base); text-decoration:none; font-size:var(--p-size-1)}
+a.link:hover{text-decoration:underline}
+.prov-result{
+  padding:var(--p-space-2) var(--p-space-3); border-radius:var(--radius-sm);
+  font-size:var(--p-size-1); font-family:var(--font-mono); word-break:break-word;
+}
+.prov-result.ok{background:color-mix(in oklab,var(--status-done) 12%,transparent); color:var(--status-done)}
+.prov-result.bad{background:color-mix(in oklab,var(--status-error) 10%,transparent); color:var(--status-error)}
+
+.sr{position:absolute; inline-size:1px; block-size:1px; overflow:hidden; clip-path:inset(50%)}
+@media (max-width:640px){
+  .cell-body,.cell-foot{padding-inline-start:var(--p-space-5)}
+  .nb-head h1{font-size:var(--p-size-7)}
+}
+</style>
+
+<div class="nb-root" id="root" data-mode="light">
+  <header class="topbar">
+    <div class="topbar-in">
+      <button class="wordmark" id="home" title="Library"><span class="glyph"></span><span>Throughline</span></button>
+      <span class="spacer"></span>
+      <button class="ghost" id="btn-brand">Brand</button>
+      <button class="ghost" id="btn-locale">Language</button>
+      <button class="ghost" id="btn-mode" aria-label="Toggle dark mode">◐</button>
+      <button class="ghost" id="btn-settings">Connect</button>
+    </div>
+  </header>
+  <main class="shell" id="view"></main>
+</div>
+
+<script type="module">
+/* ══════════════════════════════════════════════════════════════════════════
+   THROUGHLINE — MVP
+   Single-file build. No dependencies, no build step, path-agnostic.
+   Deployable to any subpath (e.g. /notebook) as a static asset.
+
+   Module boundaries below mirror packages/* in ENGINEERING-BRIEF §3.
+   `engine` touches no DOM. `storage` is a swappable adapter. Components
+   read only Tier-2/3 tokens. Kept in one file for MVP portability; split
+   along the marked seams when it graduates to the monorepo.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ═════════ packages/tokens — brands override Tier 2 only ═════════ */
+const BRANDS = {
+  throughline: {
+    name: 'Throughline', note: 'Default — editorial, restrained',
+    chips: ['#5b4ce0', '#fcfcfb', '#141312'],
+    light: {}, dark: {}
+  },
+  meridian: {
+    name: 'Meridian Trust', note: 'Financial — conservative, serif, tight',
+    chips: ['#0f3d63', '#f7f6f3', '#1a1a1a'],
+    light: {
+      '--surface-base': '#f7f6f3', '--surface-raised': '#ffffff', '--surface-sunken': '#eeece7',
+      '--ink-primary': '#1a1a1a', '--ink-secondary': '#4d4d4d', '--ink-muted': '#8a8a8a',
+      '--accent-base': '#0f3d63', '--accent-hover': '#0a2c48', '--accent-ink': '#ffffff',
+      '--border-subtle': '#ddd9d1', '--border-strong': '#bdb7ab',
+      '--font-display': "'Iowan Old Style',Palatino,Georgia,serif",
+      '--font-body': "'Iowan Old Style',Palatino,Georgia,serif",
+      '--radius-sm': '0px', '--radius-md': '1px', '--radius-lg': '2px', '--radius-pill': '2px',
+      '--weight-heading': '600', '--tracking-heading': '0em',
+      '--status-done': '#2f6b45', '--status-stale': '#8a6d1f', '--status-error': '#9c2b20'
+    },
+    dark: {
+      '--surface-base': '#12181d', '--surface-raised': '#1a2229', '--surface-sunken': '#0b0f12',
+      '--ink-primary': '#eceae5', '--ink-secondary': '#b3b0aa', '--ink-muted': '#7a7873',
+      '--accent-base': '#6fa8d6', '--accent-hover': '#8fbde3', '--accent-ink': '#0b0f12',
+      '--border-subtle': '#2a343d', '--border-strong': '#3d4a55'
+    }
+  },
+  lumen: {
+    name: 'Lumen', note: 'Consumer — saturated, rounded, warm',
+    chips: ['#ff5a3c', '#fff8f2', '#2b1810'],
+    light: {
+      '--surface-base': '#fff8f2', '--surface-raised': '#ffffff', '--surface-sunken': '#ffeee2',
+      '--ink-primary': '#2b1810', '--ink-secondary': '#6b4a38', '--ink-muted': '#a88a76',
+      '--accent-base': '#ff5a3c', '--accent-hover': '#e8462a', '--accent-ink': '#ffffff',
+      '--border-subtle': '#ffddc9', '--border-strong': '#ffc0a0',
+      '--font-display': "ui-rounded,'SF Pro Rounded','Segoe UI',system-ui,sans-serif",
+      '--font-body': "ui-rounded,'SF Pro Rounded','Segoe UI',system-ui,sans-serif",
+      '--radius-sm': '8px', '--radius-md': '14px', '--radius-lg': '22px',
+      '--weight-heading': '750', '--tracking-heading': '-0.02em',
+      '--elevation-1': '0 2px 0 #ffddc9', '--elevation-2': '0 6px 20px rgb(255 90 60 / 0.18)'
+    },
+    dark: {
+      '--surface-base': '#1c100b', '--surface-raised': '#291812', '--surface-sunken': '#140a06',
+      '--ink-primary': '#ffeee2', '--ink-secondary': '#d8b6a2', '--ink-muted': '#9c7563',
+      '--accent-base': '#ff7a5c', '--accent-hover': '#ff9578', '--accent-ink': '#1c100b',
+      '--border-subtle': '#3d241a', '--border-strong': '#573428',
+      '--elevation-1': '0 2px 0 #3d241a', '--elevation-2': '0 6px 20px rgb(0 0 0 / 0.5)'
+    }
+  },
+  civic: {
+    name: 'Civic Service', note: 'Government — AAA contrast, austere, square',
+    chips: ['#00703c', '#ffffff', '#0b0c0c'],
+    light: {
+      '--surface-base': '#ffffff', '--surface-raised': '#ffffff', '--surface-sunken': '#f3f2f1',
+      '--ink-primary': '#0b0c0c', '--ink-secondary': '#383838', '--ink-muted': '#5e5e5e',
+      '--accent-base': '#00703c', '--accent-hover': '#005a30', '--accent-ink': '#ffffff',
+      '--border-subtle': '#b1b4b6', '--border-strong': '#0b0c0c', '--border-focus': '#ffdd00',
+      '--font-display': "'Helvetica Neue',Arial,system-ui,sans-serif",
+      '--font-body': "'Helvetica Neue',Arial,system-ui,sans-serif",
+      '--radius-sm': '0px', '--radius-md': '0px', '--radius-lg': '0px', '--radius-pill': '0px',
+      '--weight-heading': '700', '--tracking-heading': '0em',
+      '--elevation-1': 'none', '--elevation-2': 'none',
+      '--status-done': '#00703c', '--status-error': '#d4351c', '--status-stale': '#594d00'
+    },
+    dark: {
+      '--surface-base': '#0b0c0c', '--surface-raised': '#161718', '--surface-sunken': '#000000',
+      '--ink-primary': '#ffffff', '--ink-secondary': '#d6d6d6', '--ink-muted': '#a0a0a0',
+      '--accent-base': '#4cbb7f', '--accent-hover': '#6fd39a', '--accent-ink': '#0b0c0c',
+      '--border-subtle': '#4a4d4e', '--border-strong': '#ffffff', '--border-focus': '#ffdd00',
+      '--elevation-1': 'none', '--elevation-2': 'none'
+    }
+  }
+};
+
+/* ═════════ i18n — ICU-lite. Locale is a RUNTIME VARIABLE, not just chrome.
+   It flows into prompts (PRODUCT-BRIEF §10 L2), so output language follows
+   the interface. This is the localization bug this class of product ships. */
+const LOCALES = {
+  en: { name:'English', dir:'ltr', outputLanguage:'English',
+    t:{ library:'Library', libEyebrow:'A library of runnable notebooks',
+        libTitle:'See what it can actually do.',
+        libLede:'Each notebook is a short sequence of small, single-purpose steps. Read one and you understand a capability. Run it and you have the result. Nothing is uploaded, nothing is stored on a server.',
+        cells:'{n} cells', runAll:'Run all', running:'Running…', reRun:'Re-run', run:'Run',
+        exportNb:'Export', back:'← Library', vars:'Variables in this run',
+        connect:'Connect a model', brand:'Brand system', language:'Language',
+        provider:'Provider', apiKey:'API key', noKeyNeeded:'No key needed — responses are pre-scripted.',
+        keyHint:'Stays in this tab. Never sent anywhere but the provider.',
+        storage:'Storage', desktopTitle:'The desktop build works better.',
+        desktopBody:'The browser build is the whole product, with two limits it cannot fix from inside a browser.',
+        getDesktop:'Get the desktop build', staleNote:'An input above changed. This result is out of date.',
+        emptyOut:'Not run yet.', inputLabel:'Your input', clearRun:'Clear run' } },
+  es: { name:'Español', dir:'ltr', outputLanguage:'Spanish',
+    t:{ library:'Biblioteca', libEyebrow:'Una biblioteca de cuadernos ejecutables',
+        libTitle:'Vea lo que realmente puede hacer.',
+        libLede:'Cada cuaderno es una secuencia breve de pasos pequeños y de propósito único. Lea uno y comprenderá una capacidad. Ejecútelo y tendrá el resultado. No se sube nada, no se almacena nada en un servidor.',
+        cells:'{n} celdas', runAll:'Ejecutar todo', running:'Ejecutando…', reRun:'Repetir', run:'Ejecutar',
+        exportNb:'Exportar', back:'← Biblioteca', vars:'Variables de esta ejecución',
+        connect:'Conectar un modelo', brand:'Sistema de marca', language:'Idioma',
+        provider:'Proveedor', apiKey:'Clave API', noKeyNeeded:'No hace falta clave — las respuestas están predefinidas.',
+        keyHint:'Permanece en esta pestaña. Nunca se envía a otro sitio que el proveedor.',
+        storage:'Almacenamiento', desktopTitle:'La versión de escritorio funciona mejor.',
+        desktopBody:'La versión web es el producto completo, con dos límites que un navegador no puede resolver.',
+        getDesktop:'Obtener versión de escritorio', staleNote:'Una entrada anterior cambió. Este resultado está desactualizado.',
+        emptyOut:'Aún no ejecutado.', inputLabel:'Su entrada', clearRun:'Limpiar' } },
+  ar: { name:'العربية', dir:'rtl', outputLanguage:'Arabic',
+    t:{ library:'المكتبة', libEyebrow:'مكتبة من الدفاتر القابلة للتشغيل',
+        libTitle:'اطّلع على ما يمكنه فعله فعلاً.',
+        libLede:'كل دفتر هو تسلسل قصير من خطوات صغيرة أحادية الغرض. اقرأ واحداً لتفهم قدرة معيّنة، وشغّله لتحصل على النتيجة. لا يُرفع شيء ولا يُخزَّن شيء على خادم.',
+        cells:'{n} خلايا', runAll:'تشغيل الكل', running:'جارٍ التشغيل…', reRun:'إعادة', run:'تشغيل',
+        exportNb:'تصدير', back:'← المكتبة', vars:'المتغيّرات في هذا التشغيل',
+        connect:'ربط نموذج', brand:'نظام العلامة', language:'اللغة',
+        provider:'المزوّد', apiKey:'مفتاح API', noKeyNeeded:'لا حاجة لمفتاح — الردود معدّة مسبقاً.',
+        keyHint:'يبقى في هذه النافذة. لا يُرسل إلا إلى المزوّد.',
+        storage:'التخزين', desktopTitle:'نسخة سطح المكتب تعمل بشكل أفضل.',
+        desktopBody:'نسخة المتصفح هي المنتج كاملاً، مع حدّين لا يمكن للمتصفح تجاوزهما.',
+        getDesktop:'احصل على نسخة سطح المكتب', staleNote:'تغيّر أحد المدخلات أعلاه. هذه النتيجة قديمة.',
+        emptyOut:'لم يُشغَّل بعد.', inputLabel:'مدخلاتك', clearRun:'مسح' } }
+};
+const t = (k, vars) => {
+  let s = (LOCALES[S.locale]?.t[k]) ?? LOCALES.en.t[k] ?? k;
+  if (vars) for (const [n, v] of Object.entries(vars)) s = s.replace(`{${n}}`, v);
+  return s;
+};
+
+/* ═════════ notebooks/ — THE LIBRARY. Content as data.
+   Per PRODUCT-BRIEF §3 this is the product; the runtime is the viewer.
+   Each cell follows the §5.1 contract: typed outputs, explicit bindings.
+   `demo` supplies scripted output so a notebook is fully experienceable
+   with zero setup — the fix for the R6 onboarding cliff. ═════════ */
+
+const NOTEBOOKS = [
+{
+  id:'interrogate-decision', schemaVersion:'1.0.0',
+  title:'Interrogate a Decision',
+  blurb:'Takes a decision you have already half-made and finds the assumptions you did not know you were making — then tells you what evidence would change your mind.',
+  teaches:'Assumption archaeology', tags:['reasoning','judgment'], capability:'reasoning',
+  input:{ id:'decision', label:'The decision you are leaning toward, and why',
+    placeholder:'e.g. We should rebuild the onboarding flow in-house rather than buy, because…',
+    seed:'We should build our onboarding flow in-house rather than buying a vendor solution. Our needs are unusual, the vendors we looked at all assume a self-serve signup, and we think we can ship it in about six weeks with the two engineers currently between projects.' },
+  cells:[
+  { id:'stated', title:'Extract the case you actually made',
+    intent:'Separates the argument from the conclusion. Most people cannot see their own reasoning until it is listed back to them.',
+    inputs:['input.decision'], output:{name:'stated', type:'list'}, requires:'reasoning',
+    prompt:'Read the decision below. List only the claims the author actually made, one per line, in their own terms. Do not evaluate them. Respond in {{locale.outputLanguage}}.\n\n{{input.decision}}',
+    demo:()=>['Our requirements are unusual enough that vendor products will not fit.',
+      'Every vendor evaluated assumes a self-serve signup motion.',
+      'Two engineers are currently available with no competing commitment.',
+      'The build is roughly a six-week effort.',
+      'Building is therefore cheaper or better than buying.'] },
+  { id:'assumptions', title:'Surface what was assumed, not argued',
+    intent:'The load-bearing beliefs that were never stated out loud — because they felt too obvious to say.',
+    inputs:['stated'], output:{name:'assumptions', type:'list'}, requires:'reasoning',
+    prompt:'Below are the explicit claims. Identify the unstated assumptions each one rests on — the beliefs that must be true for the claim to hold, but which were never argued. Respond in {{locale.outputLanguage}}.\n\n{{stated}}',
+    demo:()=>['That "unusual requirements" are genuinely structural, rather than habits that hardened into requirements.',
+      'That the six-week estimate covers a first version, and that a first version is what ships — no ongoing maintenance is priced in anywhere.',
+      'That the two engineers stay available for the whole six weeks, which has not been true of any previous window.',
+      'That onboarding is a solved problem once built, rather than a surface that changes every time the product does.',
+      'That the cost of being wrong is symmetric — that an in-house build is as reversible as a vendor contract. It is not.'] },
+  { id:'counter', title:'Build the strongest case against',
+    intent:'Not a list of risks. The actual argument a smart person who disagrees with you would make.',
+    inputs:['stated','assumptions'], output:{name:'counter', type:'prose'}, requires:'reasoning',
+    prompt:'Write the strongest possible argument against this decision, as a colleague who respects the reasoning but reaches the opposite conclusion. Be specific and concrete, not cautionary. Respond in {{locale.outputLanguage}}.\n\nClaims:\n{{stated}}\n\nAssumptions:\n{{assumptions}}',
+    demo:()=>'The six weeks is not the cost. The cost is the next four years, during which onboarding is the surface most exposed to every product change you make, and the two engineers who built it have moved on. A vendor amortises that maintenance across every customer; you would be amortising it across one.\n\nThe "unusual requirements" claim is also doing more work than it can bear. Every team believes this, and it is true perhaps a fifth of the time. The evaluation found that vendors assume self-serve signup — but that is one requirement, not an architecture, and it is the kind of thing a vendor will meet if you are a large enough account or willing to sit slightly off the happy path.\n\nAnd the availability of two engineers is not an argument for building. It is an argument that you have two engineers. Those are different, and conflating them is how organisations end up owning software they never chose to own.' },
+  { id:'falsifiers', title:'What would change your mind',
+    intent:'Turns each assumption into something checkable this week. This is the cell that makes the notebook actionable rather than merely clever.',
+    inputs:['assumptions'], output:{name:'falsifiers', type:'table'}, requires:'reasoning',
+    prompt:'For each assumption, state what observation would disprove it and the cheapest way to check within one week. Return a table with columns: Assumption, Would be disproved by, Check this week. Respond in {{locale.outputLanguage}}.\n\n{{assumptions}}',
+    demo:()=>({cols:['Assumption','Would be disproved by','Cheapest check this week'],rows:[
+      ['Requirements are genuinely unusual','A vendor demo that handles 80% of them out of the box','Send your top 10 requirements to two vendors and ask them to mark each yes/no/partial'],
+      ['Six weeks is the real cost','Any comparable internal build that shipped and stayed shipped at estimate','Pull the last three internal tools you built. Compare estimate to actual, and check who maintains them now'],
+      ['The engineers stay available','Either one being pulled onto something else in the last two quarters','Ask their manager for a written commitment through the window. The answer itself is the data'],
+      ['Onboarding is build-once','Your onboarding changing more than twice a year','Count the onboarding-related tickets from the last 12 months'],
+      ['The decision is reversible','No credible path back to a vendor after 6 months in','Ask what the migration off your own build would cost. If nobody can answer, it is not reversible']]}) },
+  { id:'verdict', title:'Where this leaves you',
+    intent:'A position, not a summary. The notebook should end by being useful.',
+    inputs:['counter','falsifiers'], output:{name:'verdict', type:'prose'}, requires:'reasoning',
+    prompt:'Given the counter-argument and the falsification tests, state plainly what the decision now looks like and what should happen next. Take a position. Respond in {{locale.outputLanguage}}.\n\n{{counter}}\n\n{{falsifiers}}',
+    demo:()=>'The decision is not wrong, but it is currently being made on the wrong evidence. Three of the five load-bearing assumptions can be tested for roughly a day of effort each, and two of them — maintenance cost and engineer availability — have historical data sitting in systems you already own.\n\nRun the vendor requirement-marking exercise and pull the estimate-versus-actual on your last three internal builds. If vendors clear 80% and your internal builds ran at 2x, buy. If vendors clear under half and your builds land near estimate, build with confidence you do not currently have.\n\nThe thing not to do is decide this week on the grounds that two engineers happen to be free.' }
+  ]
+},
+{
+  id:'meeting-commitments', schemaVersion:'1.0.0',
+  title:'Meeting Notes → Commitments',
+  blurb:'Separates what was actually decided from what was merely discussed, then finds every commitment nobody owns. The orphans are the point.',
+  teaches:'Extraction with a judgment layer', tags:['work','extraction'], capability:'fast',
+  input:{ id:'notes', label:'Raw meeting notes — messy is fine',
+    placeholder:'Paste whatever you actually typed during the meeting.',
+    seed:`Q3 planning sync — Tues\n- Priya walked through the churn numbers, worse in SMB than we thought\n- long discussion about whether pricing is the cause. Dan thinks packaging, Priya thinks onboarding\n- agreed we're not changing price this quarter\n- someone should pull the cohort data by plan tier before we decide anything\n- Marco mentioned the enterprise renewal list needs a pass, said he'd look\n- maybe worth talking to 5-10 churned accounts? felt like everyone nodded\n- Dan to draft the packaging alternatives, before the exec review\n- we didn't get to the roadmap item, pushed to next week\n- Priya raised that support ticket volume is up 30%, no one picked it up` },
+  cells:[
+  { id:'split', title:'Decisions vs. discussion',
+    intent:'Meetings blur these constantly. A thing said with confidence is not a thing decided.',
+    inputs:['input.notes'], output:{name:'split', type:'table'}, requires:'fast',
+    prompt:'Classify each substantive item in these notes as Decided, Discussed only, or Deferred. Include the evidence phrase. Respond in {{locale.outputLanguage}}.\n\n{{input.notes}}',
+    demo:()=>({cols:['Item','Status','Evidence in the notes'],rows:[
+      ['No price change this quarter','Decided','"agreed we\'re not changing price this quarter"'],
+      ['Cause of SMB churn — packaging vs onboarding','Discussed only','Two named positions, no resolution'],
+      ['Talking to churned accounts','Discussed only','"felt like everyone nodded" — this is not agreement'],
+      ['Roadmap item','Deferred','"pushed to next week"'],
+      ['Support ticket volume up 30%','Raised, not discussed','"no one picked it up"']]}) },
+  { id:'commitments', title:'Commitments, with owners',
+    intent:'Every action, who holds it, and how confident that ownership actually is.',
+    inputs:['input.notes','split'], output:{name:'commitments', type:'table'}, requires:'fast',
+    prompt:'Extract every action item. For each give the owner if one was named, the due date if stated, and rate ownership confidence as Firm, Soft, or None. Respond in {{locale.outputLanguage}}.\n\n{{input.notes}}\n\n{{split}}',
+    demo:()=>({cols:['Commitment','Owner','Due','Ownership'],rows:[
+      ['Draft packaging alternatives','Dan','Before exec review','Firm'],
+      ['Pass over enterprise renewal list','Marco','—','Soft — "said he\'d look" is not a commitment'],
+      ['Pull cohort data by plan tier','—','Before any decision','None — "someone should"'],
+      ['Interview 5–10 churned accounts','—','—','None — nodding is not ownership'],
+      ['Investigate 30% support volume rise','—','—','None — raised and dropped']]}) },
+  { id:'orphans', title:'The orphans',
+    intent:'The three or four things everyone assumes are handled and nobody is holding. This is where meetings actually fail.',
+    inputs:['commitments'], output:{name:'orphans', type:'list'}, requires:'reasoning',
+    prompt:'List the commitments with no firm owner or no date, and for each say what will happen if nothing changes. Be blunt. Respond in {{locale.outputLanguage}}.\n\n{{commitments}}',
+    demo:()=>['**Cohort data by plan tier** — no owner. This is a prerequisite for the packaging-vs-onboarding decision, which means that decision is currently blocked on nobody.',
+      '**Churned account interviews** — no owner. Group nods are the single most reliable predictor of a task that never happens.',
+      '**Support volume up 30%** — no owner, and it was raised in a churn conversation. Nobody connected it to the churn discussion happening in the same room.',
+      '**Enterprise renewal pass** — Marco, softly. "Said he\'d look" survives about nine days without a date attached.'] },
+  { id:'followup', title:'The message that fixes it',
+    intent:'A follow-up that names the orphans without blaming anyone. Ready to send.',
+    inputs:['split','commitments','orphans'], output:{name:'followup', type:'markdown'}, requires:'fast',
+    prompt:'Write a short follow-up message. State what was decided, then ask directly for owners on the unowned items. Neutral tone, no blame, no preamble. Respond in {{locale.outputLanguage}}.\n\n{{split}}\n\n{{commitments}}\n\n{{orphans}}',
+    demo:()=>'**Q3 planning — what we settled and what we did not**\n\nDecided: no price change this quarter.\n\nStill open: whether SMB churn is a packaging or an onboarding problem. Dan and Priya have opposing reads and we did not resolve it.\n\nCarrying:\n- **Dan** — packaging alternatives, before exec review\n- **Marco** — enterprise renewal pass. Can you put a date on it?\n\nFour things came up that nobody picked up, and one of them is blocking the churn decision:\n\n1. **Cohort data by plan tier.** We cannot settle packaging-vs-onboarding without it. Who owns this?\n2. **Churned account interviews, 5–10.** There was general agreement but no name attached.\n3. **Support ticket volume, up 30%.** Raised at the end and not discussed — worth noting we were talking about churn at the time.\n4. Roadmap item, moved to next week.\n\nIf I have mischaracterised anything, correct me and I will re-send.' }
+  ]
+},
+{
+  id:'find-the-hole', schemaVersion:'1.0.0',
+  title:'Find the Hole in This Plan',
+  blurb:'Reads a plan for its dependency structure rather than its content, then names the failure that is both most likely and least watched.',
+  teaches:'Structural critique', tags:['planning','risk'], capability:'reasoning',
+  input:{ id:'plan', label:'The plan, in whatever shape it exists',
+    placeholder:'Bullet points are fine. Prose is fine.',
+    seed:`Launch the new billing system by end of Q4.\n- Nov: finish the migration script, dual-write to old and new\n- Nov 15: finance signs off on the reconciliation report\n- Dec 1: cut over 10% of accounts, monitor for a week\n- Dec 8: cut over the rest\n- Dec 15: decommission the old system\n- Sarah leads, one backend engineer, finance reviews weekly\n- Comms to customers go out Dec 1` },
+  cells:[
+  { id:'chain', title:'The dependency chain nobody drew',
+    intent:'Plans are written as timelines and executed as dependency graphs. This makes the graph visible.',
+    inputs:['input.plan'], output:{name:'chain', type:'list'}, requires:'reasoning',
+    prompt:'Extract the real dependency chain from this plan — what must be true before each step can begin. Respond in {{locale.outputLanguage}}.\n\n{{input.plan}}',
+    demo:()=>['Migration script complete → dual-write can begin → reconciliation data exists',
+      'Reconciliation data exists → finance can review → finance sign-off (Nov 15)',
+      'Finance sign-off → 10% cutover (Dec 1)',
+      '10% cutover + one clean week → full cutover (Dec 8)',
+      'Full cutover + stability → decommission (Dec 15)',
+      'Customer comms (Dec 1) → runs in parallel, gated on nothing, reversible by nothing'] },
+  { id:'spof', title:'Single points of failure',
+    intent:'Where the chain has no redundancy — in people, in time, and in the ability to undo.',
+    inputs:['chain','input.plan'], output:{name:'spof', type:'table'}, requires:'reasoning',
+    prompt:'Identify single points of failure across people, schedule, and reversibility. For each give the impact if it fails. Respond in {{locale.outputLanguage}}.\n\n{{chain}}\n\n{{input.plan}}',
+    demo:()=>({cols:['Point','Type','If it fails'],rows:[
+      ['One backend engineer','Person','No second person can debug the migration script. Illness or attrition stops the chain entirely.'],
+      ['Finance sign-off, Nov 15','Schedule','Every downstream date is hard-wired to it. A one-week slip lands the full cutover on Dec 15 — decommission day.'],
+      ['Dec 8 → Dec 15 gap','Schedule','Seven days between full cutover and decommissioning the only fallback. Billing problems surface on a monthly cycle, not a weekly one.'],
+      ['Customer comms, Dec 1','Reversibility','Sent at 10% cutover. Once sent, the timeline is public and slipping becomes an external event, not an internal one.'],
+      ['Holiday period','Schedule','Dec 15–31 has the thinnest staffing of the year and the plan puts decommissioning at its edge.']]}) },
+  { id:'blindspot', title:'Most likely, least watched',
+    intent:'Risk registers list everything. This names the one that will actually happen.',
+    inputs:['spof'], output:{name:'blindspot', type:'prose'}, requires:'reasoning',
+    prompt:'Of these failure points, identify the one that is simultaneously most probable and least attended to in the plan. Explain why it is invisible. Respond in {{locale.outputLanguage}}.\n\n{{spof}}',
+    demo:()=>'The seven days between full cutover and decommissioning.\n\nIt is the most likely to hurt because billing is a monthly-cycle system, and a week of monitoring cannot surface a class of bug that only appears at month-end close, on proration, on annual renewals, or on any account whose cycle falls outside that window. You will have decommissioned your only fallback before the first full billing cycle completes on the new system.\n\nAnd it is invisible because it does not look like a risk. It looks like a schedule. Every other item in this plan has a person or a review attached; this one is just two dates sitting next to each other, and the gap between them was almost certainly set by the quarter boundary rather than by anything about billing.\n\nThe finance sign-off date gets attention because it has a name on it. This one has nobody, which is exactly why it will be the one.' },
+  { id:'insurance', title:'Cheapest insurance',
+    intent:'What to change, ordered by cost. Not "add buffer" — specific moves.',
+    inputs:['blindspot','spof'], output:{name:'insurance', type:'list'}, requires:'reasoning',
+    prompt:'Give the cheapest specific changes that most reduce risk, ordered by cost. No generic advice. Respond in {{locale.outputLanguage}}.\n\n{{blindspot}}\n\n{{spof}}',
+    demo:()=>['**Move decommission to after one full billing cycle closes on the new system.** Costs nothing but a date change, and removes the highest-probability failure in the plan outright.',
+      '**Delay customer comms to Dec 8.** Nothing customer-visible happens at 10% cutover. Sending on Dec 1 buys no benefit and converts every subsequent slip into a public one.',
+      '**Have a second engineer read the migration script.** Half a day. Turns the single person-dependency into a two-person one for the part that matters.',
+      '**Put a named date on what "monitor for a week" means passing.** Right now the Dec 8 gate is a vibe. Define the three numbers that must hold.',
+      '**Ask finance for a provisional sign-off on the report format now**, so Nov 15 is a data review and not a format argument. This is where sign-offs actually slip.'] }
+  ]
+},
+{
+  id:'five-audiences', schemaVersion:'1.0.0',
+  title:'One Idea, Five Audiences',
+  blurb:'Renders the same concept for five different readers, then shows you which version you could not write — because that is where your own understanding is thin.',
+  teaches:'Range, and self-diagnosis', tags:['communication'], capability:'fast',
+  input:{ id:'concept', label:'The thing you need to explain',
+    placeholder:'A technical concept, a strategy, a decision.',
+    seed:'We are moving from a monolith to event-driven services, starting with the billing domain.' },
+  cells:[
+  { id:'core', title:'The load-bearing idea',
+    intent:'Strip it to the one sentence everything else is decoration on.',
+    inputs:['input.concept'], output:{name:'core', type:'prose'}, requires:'fast',
+    prompt:'Reduce this to the single load-bearing idea in one sentence, with no jargon. Respond in {{locale.outputLanguage}}.\n\n{{input.concept}}',
+    demo:()=>'Parts of the system that currently have to agree with each other in real time will instead tell each other what happened and carry on — starting with billing, because that is where the cost of waiting is highest.' },
+  { id:'renderings', title:'Five renderings',
+    intent:'Same idea, five readers. Note the third column — what each version deliberately throws away.',
+    inputs:['core','input.concept'], output:{name:'renderings', type:'table'}, requires:'reasoning',
+    prompt:'Render this idea for five audiences: an executive, a new engineer, a skeptical senior engineer, a customer, and a ten-year-old. For each, note what the version deliberately sacrifices. Respond in {{locale.outputLanguage}}.\n\n{{core}}\n\n{{input.concept}}',
+    demo:()=>({cols:['Audience','Version','What it drops'],rows:[
+      ['Executive','Billing is currently the slowest thing we do and the most expensive thing to change. We are separating it so it can move without the rest of the system holding it up. Six months, one team, no customer-visible change.','All mechanism. An exec who asks "how" will get nothing from this.'],
+      ['New engineer','Instead of billing calling six services and waiting, it publishes an event and the others react. You will write handlers, not call chains. The hard part is that ordering is no longer guaranteed.','The reason. Tells them what to do, not why anyone chose it.'],
+      ['Skeptical senior engineer','Yes, we are trading strong consistency for availability in one domain, and yes, that means eventual consistency bugs. We think billing is where that trade pays because reconciliation already exists there as a batch process. If it does not pay there, we stop.','Confidence. Deliberately — this reader distrusts certainty more than they distrust risk.'],
+      ['Customer','Nothing changes for you. Invoices, timing, and totals stay exactly as they are.','Everything. Which is correct — the honest version of this for a customer is that it is none of their business.'],
+      ['Ten-year-old','Right now one kid has to ask five others before doing anything, and everyone waits. We are letting them shout what they did and keep going.','Precision, entirely. But it is the version that reveals whether you understand it.']]}) },
+  { id:'diagnosis', title:'Which one was hard',
+    intent:'The version you struggle to write is a map of your own uncertainty. This is the cell people do not expect.',
+    inputs:['renderings'], output:{name:'diagnosis', type:'prose'}, requires:'reasoning',
+    prompt:'Looking at these five renderings, identify which was hardest to make honest and what that reveals about gaps in the underlying understanding or plan. Respond in {{locale.outputLanguage}}.\n\n{{renderings}}',
+    demo:()=>'The skeptical senior engineer version is the one that could not be written confidently, and the reason is not rhetorical.\n\nEvery other version can be produced from the intent alone. That one requires you to have an actual answer to "what happens when ordering breaks and a customer is billed twice," and the version above does not have one — it has a reason to believe billing is a good place to find out, which is a different thing wearing similar clothes.\n\nThat is a real gap in the plan, not a gap in the explanation. If the honest version of your pitch to your most skeptical reader is "we think this is where the trade pays," you have a hypothesis and a schedule, and the schedule is currently more specific than the hypothesis.\n\nThe customer version being trivially easy is the confirming signal: it is easy precisely because it is the one where nothing is actually being claimed.' }
+  ]
+},
+{
+  id:'steelman', schemaVersion:'1.0.0',
+  title:'Steelman Yourself',
+  blurb:'Builds the strongest possible case against a position you hold, finds where the other side is genuinely right, and scores how much of your view survives.',
+  teaches:'Adversarial self-review', tags:['reasoning','judgment'], capability:'reasoning',
+  input:{ id:'position', label:'A position you hold and would defend',
+    placeholder:'State it as you would to someone who disagrees.',
+    seed:'Design systems should be owned by a central team, not federated across product teams. Federation sounds collaborative but in practice produces four versions of every component and nobody accountable for the drift.' },
+  cells:[
+  { id:'precise', title:'State it precisely',
+    intent:'Most positions are less specific than their holder thinks. Precision is what makes a position falsifiable.',
+    inputs:['input.position'], output:{name:'precise', type:'prose'}, requires:'reasoning',
+    prompt:'Restate this position as precisely as possible: what exactly is being claimed, under what conditions, and what would count as the claim being wrong. Respond in {{locale.outputLanguage}}.\n\n{{input.position}}',
+    demo:()=>'Claim: in organisations above some size threshold, central ownership of a design system produces lower component duplication and clearer accountability for consistency than federated ownership.\n\nConditions left unstated in the original: the size threshold, whether "owned" means authored-by or approved-by, and whether the central team is resourced to keep up with product velocity.\n\nIt would be wrong if federated teams in comparable organisations produced equal or lower drift, or if central ownership reduced drift while producing a worse outcome elsewhere — slower product teams, or a system nobody adopts because it never fits.' },
+  { id:'opposing', title:'The strongest case against',
+    intent:'Written by someone who wants to win, not someone being fair.',
+    inputs:['precise'], output:{name:'opposing', type:'prose'}, requires:'reasoning',
+    prompt:'Write the strongest argument against this position, as an intelligent advocate for the opposite view. Do not hedge or balance. Respond in {{locale.outputLanguage}}.\n\n{{precise}}',
+    demo:()=>'Central ownership does not eliminate drift. It relocates it, into a queue.\n\nWhen a product team needs a component variant the central team has not built, they do not wait — the deadline does not move because the design system has a backlog. They build it locally and mark it as temporary. Now you have the same four versions, except three of them are undocumented, unowned, and invisible to the central team that believes it owns consistency.\n\nFederation is usually measured against an idealised central model rather than a real one. The real one is a team of four supporting sixty, whose adoption rate is the number that actually predicts consistency — and adoption is driven by fit, which central teams are structurally worst positioned to judge.\n\nThe accountability argument is the weakest part. A central team accountable for consistency it cannot enforce is not accountability, it is blame with a roadmap. Federated ownership with a shared contract and an automated drift check gets you the same consistency with none of the queue.' },
+  { id:'concede', title:'Where they are actually right',
+    intent:'The concessions that cost you something. If the list is comfortable, it is not honest.',
+    inputs:['opposing','precise'], output:{name:'concede', type:'list'}, requires:'reasoning',
+    prompt:'List the specific points on which the opposing case is genuinely correct, including any that materially weaken the original position. Respond in {{locale.outputLanguage}}.\n\n{{opposing}}\n\n{{precise}}',
+    demo:()=>['**The queue is real and it was not accounted for.** The original position compares central ownership to federated chaos, not to central ownership under realistic resourcing.',
+      '**Adoption rate is the better metric than duplication count**, and the original position never mentioned it. A system with zero duplication and 30% adoption is worse than the reverse.',
+      '**"Accountable" was doing unearned work.** A central team cannot enforce consistency without either merge rights or a lint gate, and the position assumed accountability without naming the mechanism.',
+      '**Automated drift detection changes the arithmetic.** Much of the case for centralisation was really a case for visibility, and visibility can now be tooling rather than org structure.'] },
+  { id:'survives', title:'What survives',
+    intent:'Not a winner. What is left of the original once the honest concessions are made.',
+    inputs:['concede','opposing','precise'], output:{name:'survives', type:'prose'}, requires:'reasoning',
+    prompt:'State what remains defensible in the original position after these concessions, what must be abandoned, and how the position should be restated. Respond in {{locale.outputLanguage}}.\n\n{{concede}}\n\n{{opposing}}\n\n{{precise}}',
+    demo:()=>'What survives is narrower and better: central ownership of the *contract* — the token layer, the accessibility floor, the API shape — with federated authorship of components against it.\n\nWhat has to be abandoned is the claim as stated. "Design systems should be owned by a central team" does not survive, because it was never really an argument about ownership; it was an argument about drift visibility, and drift visibility turns out to be a tooling problem that centralisation solved by accident and expensively.\n\nRestated: *the contract should be central and enforced automatically; the components should be federated and their conformance should be measured, not reviewed.* That version keeps everything the original was actually worried about and drops the part that was org-chart preference wearing an argument.\n\nNote what happened — the concession about automated drift detection did most of the damage. The position was formed before that tooling was cheap, and had not been re-examined since.' }
+  ]
+}
+];
+
+/* ═════════ packages/storage — swappable adapter (ENG-BRIEF §4.1)
+   Nothing else in the app knows how persistence works. capabilities()
+   is not decoration: the UI must tell the user honestly whether their
+   data is durable (PRODUCT-BRIEF §6.3 / R9). ═════════ */
+
+const MemoryAdapter = () => {
+  const m = new Map();
+  return {
+    id:'memory', label:'Session memory',
+    async list(){ return [...m.values()].map(d=>({id:d.id,title:d.title,updated:d.updated})) },
+    async read(id){ return m.get(id) ?? null },
+    async write(id,doc){ m.set(id,{...doc,id,updated:Date.now()}) },
+    async remove(id){ m.delete(id) },
+    capabilities:()=>({durable:false, external:false, label:'Nothing is kept. Closing the tab ends it.'})
+  };
+};
+
+const IdbAdapter = () => {
+  const DB='throughline', STORE='docs'; let dbp=null;
+  const open = () => dbp ??= new Promise((res,rej)=>{
+    const r = indexedDB.open(DB,1);
+    r.onupgradeneeded = () => r.result.createObjectStore(STORE,{keyPath:'id'});
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  });
+  const tx = async (mode,fn) => { const db=await open(); return new Promise((res,rej)=>{
+    const t=db.transaction(STORE,mode), q=fn(t.objectStore(STORE));
+    q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); }); };
+  let persisted = false;
+  return {
+    id:'idb', label:'This browser',
+    async init(){ try{ persisted = await navigator.storage?.persist?.() ?? false; }catch{ persisted=false } },
+    async list(){ return (await tx('readonly',s=>s.getAll())).map(d=>({id:d.id,title:d.title,updated:d.updated})) },
+    async read(id){ return (await tx('readonly',s=>s.get(id))) ?? null },
+    async write(id,doc){ await tx('readwrite',s=>s.put({...doc,id,updated:Date.now()})) },
+    async remove(id){ await tx('readwrite',s=>s.delete(id)) },
+    capabilities:()=>({ durable:persisted, external:false,
+      label: persisted
+        ? 'Stored in this browser, marked persistent. Still local to this device.'
+        : 'Stored in this browser. The browser may clear it — export anything you want to keep.' })
+  };
+};
+
+/* T2 (File System Access), T3 (Tauri FS + keychain) and T4 (self-hosted)
+   implement this same interface. Feature-detect, never assume:
+   const T2_AVAILABLE = typeof window.showDirectoryPicker === 'function'  // Chromium only */
+const T2_AVAILABLE = typeof window.showDirectoryPicker === 'function';
+
+/* ═════════ packages/engine — model adapters
+   Wrapped behind our own interface so the underlying SDK is replaceable.
+   NOTE ON CORS (ENG-BRIEF §6.1): a key does not fix CORS. Providers that
+   do not send Access-Control-Allow-Origin are unreachable from a browser
+   at any tier below T3, regardless of credentials. Coverage is
+   tier-dependent, and that is why the desktop build exists. ═════════ */
+
+const FREE_NOTE = 'Free tier. Key is free to obtain and stays in this tab.';
+
+/* Capability classes a cell can ask for via `requires`. A provider declares
+   what it can actually serve, so a cell can tell you when it is running below
+   the class it was written for — rather than silently returning a worse answer. */
+const CLASSES = ['fast','reasoning'];
+
+const PROVIDERS = {
+  demo: {
+    label:'Guided demo', vendor:'Nothing — scripted', tier:'demo',
+    key:'none', reach:'none', classes:['fast','reasoning'],
+    note:'Pre-scripted responses. No network request is made at all. Every notebook is fully experienceable here before you connect anything.' },
+
+  chrome: {
+    label:'Built into your browser', vendor:'Chrome · Gemini Nano', tier:'device',
+    key:'none', reach:'device', classes:['fast'], model:'',
+    signup:'https://developer.chrome.com/docs/ai/get-started',
+    note:'Runs on your machine. Free, no key, no network — the model never sees a server. Chrome 138+ on supported hardware; first use downloads the model.' },
+
+  ollama: {
+    label:'Ollama on this machine', vendor:'localhost:11434', tier:'local',
+    key:'none', reach:'localhost', classes:['fast'], model:'llama3.2',
+    signup:'https://ollama.com/download',
+    note:'Free and local. Needs Ollama running, and OLLAMA_ORIGINS set to allow this page’s origin. Not reachable from an https page over http — self-host or use the desktop build. Class below reflects the default 3B model; point it at a larger one and it serves more.' },
+
+  google: {
+    label:'Google AI Studio', vendor:'Gemini', tier:'free',
+    key:'free', reach:'expected', classes:['fast','reasoning'], model:'gemini-2.0-flash',
+    signup:'https://aistudio.google.com/apikey',
+    note:FREE_NOTE + ' Generous free quota; the best free starting point for most notebooks here.' },
+
+  groq: {
+    label:'Groq', vendor:'Llama, Qwen, others', tier:'free',
+    key:'free', reach:'expected', classes:['fast','reasoning'], model:'llama-3.3-70b-versatile',
+    base:'https://api.groq.com/openai/v1', signup:'https://console.groq.com/keys',
+    note:FREE_NOTE + ' Very fast. Open-weight models, so reasoning-class cells will read thinner than a frontier model.' },
+
+  openrouter: {
+    label:'OpenRouter', vendor:'Many models, some free', tier:'free',
+    key:'free', reach:'expected', classes:['fast','reasoning'],
+    model:'meta-llama/llama-3.3-70b-instruct:free',
+    base:'https://openrouter.ai/api/v1', signup:'https://openrouter.ai/keys',
+    note:FREE_NOTE + ' Model ids ending in :free cost nothing. One key reaches dozens of models — change the model field to switch.' },
+
+  anthropic: {
+    label:'Anthropic', vendor:'Claude', tier:'frontier',
+    key:'paid', reach:'expected', classes:['fast','reasoning'], model:'claude-sonnet-5',
+    signup:'https://console.anthropic.com/settings/keys',
+    note:'Reachable from a browser with the direct-browser-access opt-in header.' },
+
+  openai: {
+    label:'OpenAI', vendor:'GPT', tier:'frontier',
+    key:'paid', reach:'expected', classes:['fast','reasoning'], model:'gpt-4o',
+    base:'https://api.openai.com/v1', signup:'https://platform.openai.com/api-keys',
+    note:'Reachable from a browser.' },
+
+  gateway: {
+    label:'Enterprise gateway', vendor:'Bedrock · Vertex · Azure', tier:'blocked',
+    key:'paid', reach:'blocked', classes:['fast','reasoning'],
+    note:'Typically not CORS-enabled. This is a constraint on where the request originates, not on your credentials — no key fixes it. Requires the desktop build or a self-hosted deployment.' }
+};
+
+const modelOf = id => S.models[id] ?? PROVIDERS[id].model ?? '';
+
+const TIER_RANK = { frontier:4, free:3, local:2, device:1, demo:0, blocked:-1 };
+const TIER_LABEL = { demo:'No setup', device:'On your device', local:'On your machine',
+  free:'Free tier · key required', frontier:'Paid', blocked:'Desktop only' };
+
+/* Connected = usable right now. Demo always is; the on-device model is if the
+   browser exposes it; everything else needs a key the user pasted. */
+const builtIn = () => self.LanguageModel ?? self.ai?.languageModel ?? null;
+const hasBuiltIn = () => !!builtIn();
+
+/* Chrome's built-in model has three states, and conflating them is a trap:
+   the API can be present while the weights are not, and calling create() in
+   that state silently starts a multi-gigabyte download. So it counts as
+   connected only once 'available', and the download is an explicit choice. */
+async function probeBuiltIn(){
+  const LM = builtIn();
+  if (!LM){ S.builtin = 'absent'; return; }
+  try {
+    const a = await (LM.availability?.() ?? LM.capabilities?.().then(c=>c.available) ?? 'unavailable');
+    S.builtin = String(a);
+  } catch { S.builtin = 'unavailable'; }
+}
+async function downloadBuiltIn(onProgress){
+  const LM = builtIn();
+  if (!LM) throw new Error('No built-in model in this browser.');
+  S.builtin = 'downloading';
+  const session = await LM.create({ monitor(m){
+    m.addEventListener('downloadprogress', e => onProgress(e.loaded, e.total));
+  }});
+  session.destroy?.();
+  await probeBuiltIn();
+}
+
+const isConnected = id => {
+  if (id === 'demo') return true;
+  if (id === 'chrome') return S.builtin === 'available' || S.builtin === 'readily';
+  /* Keyless network providers (Ollama) cannot be detected — only reached.
+     A passing test is the evidence; there is nothing else to go on. */
+  if (PROVIDERS[id].key === 'none') return S.tests[id]?.ok === true;
+  return !!S.keys[id];
+};
+const connected = () => Object.keys(PROVIDERS).filter(isConnected);
+
+/* Auto-resolution. The cell declares a capability class; the system picks the
+   best connected provider that can serve it. The picker below shows the
+   resolution rather than posing the question — PRODUCT-BRIEF §5.4. */
+function autoPick(cell){
+  const able = connected().filter(id => PROVIDERS[id].classes.includes(cell.requires) && PROVIDERS[id].tier !== 'blocked');
+  const pool = able.length ? able : connected();
+  return pool.sort((a,b) => TIER_RANK[PROVIDERS[b].tier] - TIER_RANK[PROVIDERS[a].tier])[0] ?? 'demo';
+}
+const resolveFor = cell =>
+  S.cellProvider[cell.id] ?? (S.provider === 'auto' ? autoPick(cell) : S.provider);
+
+/* True when the cell is running below the class it was written for. This is
+   the moment the ceiling is actually felt, so it is where the upgrade lives. */
+const belowClass = cell => {
+  const p = PROVIDERS[resolveFor(cell)];
+  return p.tier !== 'demo' && !p.classes.includes(cell.requires);
+};
+
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+/* Scripted provider. Streams by *unit of the output type* — prose by clause,
+   lists by item, tables by row — which is a small demonstration that the
+   contract is typed all the way down rather than text pretending to be data. */
+async function runDemo(cell, bag, onDelta, signal){
+  const value = cell.demo(bag);
+  await sleep(180 + Math.random()*220);
+  if (typeof value === 'string'){
+    /* Reveal by slicing the original, never by re-joining fragments —
+       re-joining silently eats paragraph breaks. */
+    const stops = []; const re = /(?<=[.!?])\s+|\n\n+/g; let m;
+    while ((m = re.exec(value))) stops.push(m.index + m[0].length);
+    stops.push(value.length);
+    for (const i of stops){ if(signal?.aborted) throw new Error('aborted');
+      onDelta(value.slice(0, i)); await sleep(26 + Math.random()*48); }
+    return value;
+  }
+  if (Array.isArray(value)){
+    const acc=[]; for(const it of value){ if(signal?.aborted) throw new Error('aborted');
+      acc.push(it); onDelta([...acc]); await sleep(160 + Math.random()*180); }
+    return acc;
+  }
+  const acc={cols:value.cols, rows:[]};
+  for(const r of value.rows){ if(signal?.aborted) throw new Error('aborted');
+    acc.rows.push(r); onDelta({cols:acc.cols, rows:[...acc.rows]}); await sleep(180 + Math.random()*160); }
+  return acc;
+}
+
+const SHAPE = {
+  prose:'Respond with plain prose. No preamble, no headings, no markdown fences.',
+  markdown:'Respond in markdown. No preamble.',
+  list:'Respond with a JSON array of strings and nothing else. No fences, no commentary.',
+  table:'Respond with JSON of the form {"cols":["..."],"rows":[["..."]]} and nothing else. No fences, no commentary.'
+};
+
+function coerce(text, type){
+  if (type==='prose' || type==='markdown') return text.replace(/^```[a-z]*\n?|\n?```$/g,'').trim();
+  const m = text.match(/[\[{][\s\S]*[\]}]/);
+  if (m){ try{ const v = JSON.parse(m[0]);
+    if (type==='list' && Array.isArray(v)) return v.map(String);
+    if (type==='table' && v?.cols && v?.rows) return v;
+    if (type==='list' && v?.rows) return v.rows.map(r=>r.join(' — '));
+  }catch{} }
+  if (type==='list') return text.split('\n').map(l=>l.replace(/^\s*[-•*\d.]+\s*/,'').trim()).filter(Boolean);
+  return {cols:['Result'], rows:[[text.trim()]]};
+}
+
+/* ── Transport helpers ──────────────────────────────────────────────── */
+async function* sseLines(res){
+  const reader = res.body.getReader(), dec = new TextDecoder(); let buf='';
+  for(;;){ const {done, value} = await reader.read(); if (done) break;
+    buf += dec.decode(value,{stream:true});
+    const lines = buf.split('\n'); buf = lines.pop() ?? '';
+    for (const line of lines){
+      const s = line.trim();
+      if (!s || s.startsWith(':')) continue;
+      if (!s.startsWith('data:')) continue;
+      const d = s.slice(5).trim();
+      if (d === '[DONE]') return;
+      try { yield JSON.parse(d); } catch {}
+    }
+  }
+}
+async function* ndjson(res){
+  const reader = res.body.getReader(), dec = new TextDecoder(); let buf='';
+  for(;;){ const {done, value} = await reader.read(); if (done) break;
+    buf += dec.decode(value,{stream:true});
+    const lines = buf.split('\n'); buf = lines.pop() ?? '';
+    for (const line of lines){ if (!line.trim()) continue;
+      try { yield JSON.parse(line); } catch {} }
+  }
+}
+async function fail(res, label){
+  const body = await res.text().catch(()=>'');
+  let msg = body;
+  try { const j = JSON.parse(body); msg = j.error?.message ?? j.message ?? body; } catch {}
+  throw new Error(`${label} returned ${res.status}. ${String(msg).slice(0,200)}`);
+}
+
+/* ── Adapters. One shape in, text out. ──────────────────────────────── */
+const ADAPTERS = {
+  async chrome({sys, prompt, onText, signal}){
+    const LM = self.LanguageModel ?? self.ai?.languageModel;
+    if (!LM) throw new Error('This browser exposes no built-in model. Chrome 138+ on supported hardware does.');
+    const avail = await (LM.availability?.() ?? LM.capabilities?.().then(c=>c.available) ?? 'unavailable');
+    if (String(avail).includes('unavailable'))
+      throw new Error('The built-in model is unavailable on this device — hardware requirements are not met.');
+    if (String(avail) === 'downloadable' || String(avail) === 'downloading')
+      throw new Error('The built-in model has not downloaded yet. Open Connect and download it first — it is a few gigabytes, so it should be your choice, not a side effect of pressing Run.');
+    const session = await LM.create({ initialPrompts:[{role:'system', content:sys}] });
+    try {
+      if (session.promptStreaming){
+        let acc = '';
+        for await (const chunk of session.promptStreaming(prompt, {signal})){
+          if (signal?.aborted) throw new Error('aborted');
+          /* Chrome has shipped both cumulative and delta chunks. Handle both. */
+          acc = (chunk.length >= acc.length && chunk.startsWith(acc)) ? chunk : acc + chunk;
+          onText(acc);
+        }
+        return acc;
+      }
+      const out = await session.prompt(prompt, {signal}); onText(out); return out;
+    } finally { session.destroy?.(); }
+  },
+
+  async ollama({sys, prompt, onText, signal, cfg}){
+    let res;
+    try {
+      res = await fetch('http://localhost:11434/api/chat', { method:'POST', signal,
+        headers:{'content-type':'application/json'},
+        body: JSON.stringify({ model:cfg._model, stream:true,
+          messages:[{role:'system',content:sys},{role:'user',content:prompt}] }) });
+    } catch {
+      throw new Error('Could not reach Ollama on localhost:11434. Either it is not running, or it is refusing this origin — start it with OLLAMA_ORIGINS set to allow this page. An https page also cannot call http://localhost at all.');
+    }
+    if (!res.ok) await fail(res, 'Ollama');
+    let acc='';
+    for await (const j of ndjson(res)){
+      if (signal?.aborted) throw new Error('aborted');
+      acc += j.message?.content ?? ''; onText(acc);
+    }
+    return acc;
+  },
+
+  async google({sys, prompt, onText, signal, cfg, key}){
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(cfg._model)}:streamGenerateContent?alt=sse`;
+    /* Key travels in a header, never the query string. */
+    const res = await fetch(url, { method:'POST', signal,
+      headers:{'content-type':'application/json','x-goog-api-key':key},
+      body: JSON.stringify({ systemInstruction:{parts:[{text:sys}]},
+        contents:[{role:'user', parts:[{text:prompt}]}] }) });
+    if (!res.ok) await fail(res, 'Google AI Studio');
+    let acc='';
+    for await (const j of sseLines(res)){
+      if (signal?.aborted) throw new Error('aborted');
+      for (const part of j.candidates?.[0]?.content?.parts ?? []) acc += part.text ?? '';
+      onText(acc);
+    }
+    return acc;
+  },
+
+  async anthropic({sys, prompt, onText, signal, cfg, key}){
+    const res = await fetch('https://api.anthropic.com/v1/messages', { method:'POST', signal,
+      headers:{ 'content-type':'application/json', 'x-api-key':key,
+        'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+      body: JSON.stringify({ model:cfg._model, max_tokens:2000, system:sys, stream:true,
+        messages:[{role:'user', content:prompt}] }) });
+    if (!res.ok) await fail(res, 'Anthropic');
+    let acc='';
+    for await (const j of sseLines(res)){
+      if (signal?.aborted) throw new Error('aborted');
+      if (j.type === 'content_block_delta' && j.delta?.text){ acc += j.delta.text; onText(acc); }
+    }
+    return acc;
+  },
+
+  /* Groq, OpenRouter and OpenAI all speak the same wire format. */
+  async openaiCompatible({sys, prompt, onText, signal, cfg, key, label}){
+    const res = await fetch(`${cfg.base}/chat/completions`, { method:'POST', signal,
+      headers:{ 'content-type':'application/json', 'authorization':`Bearer ${key}` },
+      body: JSON.stringify({ model:cfg._model, stream:true, messages:[
+        {role:'system', content:sys},{role:'user', content:prompt}] }) });
+    if (!res.ok) await fail(res, label);
+    let acc='';
+    for await (const j of sseLines(res)){
+      if (signal?.aborted) throw new Error('aborted');
+      acc += j.choices?.[0]?.delta?.content ?? ''; onText(acc);
+    }
+    return acc;
+  }
+};
+
+const ADAPTER_FOR = { chrome:'chrome', ollama:'ollama', google:'google', anthropic:'anthropic',
+  groq:'openaiCompatible', openrouter:'openaiCompatible', openai:'openaiCompatible' };
+
+async function runLive(providerId, prompt, type, onDelta, onText, signal){
+  const cfg = PROVIDERS[providerId];
+  if (cfg.reach === 'blocked')
+    throw new Error(`${cfg.label} does not permit browser requests (CORS). This is not a key problem — no credential changes it. Use the desktop build or a self-hosted deployment.`);
+  const fn = ADAPTERS[ADAPTER_FOR[providerId]];
+  if (!fn) throw new Error(`No adapter for ${cfg.label}.`);
+  const runCfg = {...cfg, _model: modelOf(providerId)};
+  const sys = `${SHAPE[type]}\nAnswer in ${LOCALES[S.locale].outputLanguage}.`;
+  const structured = type === 'list' || type === 'table';
+  const text = await fn({ sys, prompt, signal, cfg:runCfg, key:S.keys[providerId] ?? '', label:cfg.label,
+    /* Prose streams straight into the cell. Structured output cannot be
+       parsed half-formed, so its raw text streams into a progress view and
+       the typed value lands once. */
+    onText: acc => structured ? onText(acc) : onDelta(acc) });
+  const value = coerce(text, type);
+  onDelta(value);
+  return value;
+}
+
+/* Operationalises ENG-BRIEF spike #1: does a browser actually reach this
+   provider with this key? The only way to know is to try. */
+async function testProvider(id){
+  const cfg = PROVIDERS[id];
+  if (id === 'demo') return {ok:true, msg:'Always available. No network involved.'};
+  if (cfg.reach === 'blocked') return {ok:false, msg:'Blocked from any browser by CORS. Not a key problem.'};
+  const t0 = performance.now();
+  try {
+    const out = await runLive(id, 'Reply with the single word: ready', 'prose', ()=>{}, ()=>{},
+      AbortSignal.timeout(30000));
+    return {ok:true, msg:`Reachable — ${Math.round(performance.now()-t0)} ms. Replied "${String(out).slice(0,40)}".`};
+  } catch(e){ return {ok:false, msg:e.message || String(e)}; }
+}
+
+/* ═════════ packages/engine — run loop, variable bag, staleness
+   NO DOM. NO FRAMEWORK. This is the seam that makes T3/T4/CLI cheap.
+   ═════════ */
+
+const producerOf = (nb, ref) => ref.startsWith('input.')
+  ? null : nb.cells.find(c => c.output.name === ref)?.id ?? null;
+
+/* Downstream closure of a cell. Trivially small graph on a linear list,
+   but computed properly so branching cell types stay cheap to add later. */
+function downstream(nb, cellId){
+  const out = new Set(); const q=[cellId];
+  while(q.length){ const cur=q.pop();
+    for(const c of nb.cells){
+      if (out.has(c.id) || c.id === cellId) continue;
+      const deps = c.inputs.map(r=>producerOf(nb,r)).filter(Boolean);
+      if (deps.includes(cur)){ out.add(c.id); q.push(c.id); }
+    }
+  }
+  return [...out];
+}
+
+function renderPrompt(tpl, nb, run){
+  return tpl.replace(/\{\{([\w.]+)\}\}/g, (_,ref)=>{
+    if (ref === 'locale.outputLanguage') return LOCALES[S.locale].outputLanguage;
+    const v = run.bag[ref];
+    if (v == null) return '';
+    if (typeof v === 'string') return v;
+    if (Array.isArray(v)) return v.map(x=>`- ${x}`).join('\n');
+    return [v.cols.join(' | '), ...v.rows.map(r=>r.join(' | '))].join('\n');
+  });
+}
+
+const ready = (nb, cell, run) =>
+  cell.inputs.every(r => run.bag[r] != null && String(run.bag[r]).length > 0);
+
+async function execCell(nb, cell, run, onChange){
+  const cs = run.cells[cell.id];
+  const providerId = resolveFor(cell);
+  cs.state='running'; cs.error=null; cs.value=null; cs.raw=''; cs.via=providerId; onChange();
+  const ctrl = new AbortController(); cs.ctrl = ctrl;
+  const t0 = performance.now();
+  try {
+    const onDelta = v => { cs.value = v; cs.state='streaming'; onChange(); };
+    const onText  = txt => { cs.raw = txt; cs.state='streaming'; onChange(); };
+    const value = providerId === 'demo'
+      ? await runDemo(cell, run.bag, onDelta, ctrl.signal)
+      : await runLive(providerId, renderPrompt(cell.prompt, nb, run), cell.output.type,
+                      onDelta, onText, ctrl.signal);
+    cs.value = value; cs.raw=''; cs.state='done'; cs.ms = Math.round(performance.now()-t0);
+    run.bag[cell.output.name] = value;
+    /* Stale is a DISPLAY state, never an auto re-run. Never silently
+       re-execute something the user paid for. (ENG-BRIEF §5.2) */
+    for (const id of downstream(nb, cell.id)){
+      const d = run.cells[id];
+      if (d.state==='done' || d.state==='streaming') d.state='stale';
+    }
+  } catch(e){
+    cs.state='error'; cs.error = e.message || String(e);
+  } finally { cs.ctrl=null; onChange(); }
+}
+
+async function runAll(nb, run, onChange){
+  for (const cell of nb.cells){
+    if (!ready(nb, cell, run)) break;
+    await execCell(nb, cell, run, onChange);
+    if (run.cells[cell.id].state === 'error') break;
+  }
+}
+
+/* ═════════ packages/ui — the viewer. Consumes engine, never reaches past it. ═════════ */
+
+const S = {
+  view:'library', nbId:null, locale:'en', brand:'throughline', mode:'light',
+  provider:'auto', keys:{}, cellProvider:{}, models:{}, tests:{}, builtin:'absent', dl:null,
+  sheet:null, runs:{}, storage:null
+};
+
+/* Keys live here and nowhere else — never written to storage, never sent to
+   this page's own origin. Closing the tab discards them (PRODUCT-BRIEF §6.4). */
+
+/* Model output is untrusted input (ENG-BRIEF §6.2). Escape first, then
+   allow a deliberately tiny inline subset. No raw HTML passthrough, ever.
+   In the monorepo this becomes rehype-sanitize with a strict allowlist. */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const inline = s => esc(s)
+  .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
+  .replace(/(^|\s)\*([^*]+)\*/g,'$1<em>$2</em>');
+
+const $ = sel => document.querySelector(sel);
+const view = $('#view'), root = $('#root');
+
+function applyTheme(){
+  const b = BRANDS[S.brand], html = document.documentElement;
+  html.dataset.mode = S.mode;
+  html.dir = LOCALES[S.locale].dir;
+  html.lang = S.locale;
+  for (const k of [...html.style].filter(k=>k.startsWith('--'))) html.style.removeProperty(k);
+  for (const [k,v] of Object.entries({...(b.light||{}), ...(S.mode==='dark' ? (b.dark||{}) : {})}))
+    html.style.setProperty(k, v);
+}
+
+/* Theme resolution has three states, not two: an explicit host choice stamps
+   data-theme on the root element; the default "system" setting stamps nothing
+   and only prefers-color-scheme separates light from dark. */
+const resolveMode = () => document.documentElement.dataset.theme
+  ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+const getRun = nb => S.runs[nb.id] ??= {
+  bag:{ ['input.'+nb.input.id]: nb.input.seed },
+  cells:Object.fromEntries(nb.cells.map(c=>[c.id,{state:'idle',value:null,error:null,ms:0}]))
+};
+
+/* ── Library view ───────────────────────────────────────────────────── */
+function renderLibrary(){
+  view.innerHTML = `
+    <p class="eyebrow">${esc(t('libEyebrow'))}</p>
+    <h1 style="font-size:var(--p-size-8);max-width:16ch;margin-block-start:var(--p-space-3)">${esc(t('libTitle'))}</h1>
+    <p class="lede">${esc(t('libLede'))}</p>
+    <div class="shelf">${NOTEBOOKS.map(nb=>`
+      <button class="card" data-nb="${nb.id}">
+        <p class="eyebrow">${esc(nb.teaches)}</p>
+        <h3>${esc(nb.title)}</h3>
+        <p>${esc(nb.blurb)}</p>
+        <div class="card-foot">
+          <span>${esc(t('cells',{n:nb.cells.length}))}</span>
+          ${nb.tags.map(x=>`<span class="tag">${esc(x)}</span>`).join('')}
+        </div>
+      </button>`).join('')}
+    </div>
+    ${desktopStrip()}
+    ${footer()}`;
+  view.querySelectorAll('[data-nb]').forEach(el =>
+    el.onclick = () => { S.nbId = el.dataset.nb; S.view='notebook'; render(); window.scrollTo(0,0); });
+}
+
+/* ── Notebook view ──────────────────────────────────────────────────── */
+function renderNotebook(){
+  const nb = NOTEBOOKS.find(n=>n.id===S.nbId); const run = getRun(nb);
+  const busy = Object.values(run.cells).some(c=>c.state==='running'||c.state==='streaming');
+  view.innerHTML = `
+    <button class="ghost" id="back" style="margin-block-end:var(--p-space-5)">${esc(t('back'))}</button>
+    <div class="nb-head">
+      <div style="flex:1;min-inline-size:20rem">
+        <p class="eyebrow">${esc(nb.teaches)}</p>
+        <h1 style="margin-block-start:var(--p-space-2)">${esc(nb.title)}</h1>
+        <p class="lede">${esc(nb.blurb)}</p>
+      </div>
+      <div class="nb-actions">
+        <button class="btn" id="run-all" ${busy?'disabled':''}>${esc(busy?t('running'):t('runAll'))}</button>
+        <button class="btn secondary tiny" id="export">${esc(t('exportNb'))}</button>
+        <button class="btn secondary tiny" id="clear">${esc(t('clearRun'))}</button>
+      </div>
+    </div>
+
+    <div class="cell" style="margin-block-start:var(--p-space-6)">
+      <div class="cell-head">
+        <span class="cell-index">00</span>
+        <div class="cell-titles">
+          <h3>${esc(nb.input.label)}</h3>
+          <div class="io-line"><span><b>out</b> input.${esc(nb.input.id)} · text</span></div>
+        </div>
+      </div>
+      <div class="cell-body">
+        <textarea id="nb-input" placeholder="${esc(nb.input.placeholder)}">${esc(run.bag['input.'+nb.input.id] ?? nb.input.seed)}</textarea>
+      </div>
+    </div>
+
+    <div class="cells">${nb.cells.map((c,i)=>cellHTML(nb,c,i,run)).join('')}</div>
+
+    <details class="vars"><summary>${esc(t('vars'))}</summary>
+      <div class="var-table">${varRows(nb,run)}</div></details>
+    ${desktopStrip()}
+    ${footer()}`;
+
+  $('#back').onclick = () => { S.view='library'; S.nbId=null; render(); window.scrollTo(0,0); };
+  const ta = $('#nb-input');
+  const commit = () => {
+    const key = 'input.'+nb.input.id;
+    if (run.bag[key] === ta.value) return;
+    run.bag[key] = ta.value;
+    for (const c of nb.cells) if (c.inputs.includes(key)){
+      for (const id of [c.id, ...downstream(nb,c.id)]){
+        const st = run.cells[id]; if (st.state==='done') st.state='stale';
+      }
+    }
+    render();
+  };
+  ta.onblur = commit;
+
+  $('#run-all').onclick = async () => { commit(); await runAll(nb, run, render); };
+  $('#export').onclick = () => exportNotebook(nb, run);
+  $('#clear').onclick = () => { delete S.runs[nb.id]; render(); };
+  view.querySelectorAll('[data-cellprov]').forEach(el => el.onchange = () => {
+    const id = el.dataset.cellprov;
+    if (el.value) S.cellProvider[id] = el.value; else delete S.cellProvider[id];
+    render();
+  });
+  view.querySelectorAll('[data-upgrade]').forEach(el => el.onclick = () => {
+    S.sheet = 'settings'; renderSheet();
+  });
+  view.querySelectorAll('[data-run]').forEach(el => el.onclick = async () => {
+    commit();
+    const cell = nb.cells.find(c=>c.id===el.dataset.run);
+    await execCell(nb, cell, getRun(nb), render);
+  });
+}
+
+function cellHTML(nb, cell, i, run){
+  const st = run.cells[cell.id];
+  const canRun = ready(nb, cell, run) && !st.ctrl;
+  const ins = cell.inputs.map(r=>`<span><b>in</b> ${esc(r)}</span>`).join('');
+  return `
+  <section class="cell" data-state="${st.state}">
+    <div class="cell-head">
+      <span class="cell-index">${String(i+1).padStart(2,'0')}</span>
+      <div class="cell-titles">
+        <h3>${esc(cell.title)}</h3>
+        <p class="cell-intent">${esc(cell.intent)}</p>
+        <div class="io-line">${ins}<span><b>out</b> ${esc(cell.output.name)} · ${esc(cell.output.type)}</span><span><b>needs</b> ${esc(cell.requires)}</span></div>
+      </div>
+      <span class="badge" data-s="${st.state}">${esc(st.state)}</span>
+    </div>
+    <div class="cell-body">
+      ${st.state==='stale' ? `<div class="stale-note">⚠ ${esc(t('staleNote'))}</div>`:''}
+      ${st.error ? `<div class="error-box">${esc(st.error)}</div>` : ''}
+      ${belowClass(cell) && st.state!=='error' ? classNotice(cell) : ''}
+      ${st.raw ? `<pre class="raw">${esc(st.raw)}<span class="caret"></span></pre>` : ''}
+      ${st.value!=null ? outputHTML(st.value, cell.output.type, st.state==='streaming')
+        : (st.raw ? '' : st.state==='running'?'<p class="meta">…</p>':`<p class="meta">${esc(t('emptyOut'))}</p>`)}
+    </div>
+    <div class="cell-foot">
+      <button class="btn secondary tiny" data-run="${cell.id}" ${canRun?'':'disabled'}>
+        ${esc(st.state==='done'||st.state==='stale' ? t('reRun') : t('run'))}</button>
+      ${st.ms ? `<span class="meta">${st.ms} ms</span>`:''}
+      <span class="spacer"></span>
+      ${cellPicker(cell)}
+    </div>
+  </section>`;
+}
+
+/* The picker shows the RESOLUTION, not the question. Auto is the default and
+   names what it chose; the override is one level down for people who care.
+   This is §5.4's demotion, kept intact now that there is something to pick. */
+function cellPicker(cell){
+  const chosen = resolveFor(cell);
+  const auto = !S.cellProvider[cell.id];
+  const opts = connected().map(id =>
+    `<option value="${id}" ${!auto && S.cellProvider[cell.id]===id ? 'selected':''}>${esc(PROVIDERS[id].label)}</option>`).join('');
+  return `<label class="picker" title="Model for this cell">
+    <span class="meta">${auto ? 'auto →' : 'pinned'}</span>
+    <select data-cellprov="${cell.id}">
+      <option value="" ${auto?'selected':''}>Auto — ${esc(PROVIDERS[chosen].label)}</option>
+      ${opts}
+    </select></label>`;
+}
+
+/* Shown only where the ceiling is actually felt: a cell written for a
+   capability class the resolved model does not serve. The upgrade belongs
+   here, at the point of friction, not in a banner. */
+function classNotice(cell){
+  const p = PROVIDERS[resolveFor(cell)];
+  const better = Object.keys(PROVIDERS)
+    .filter(id => PROVIDERS[id].classes.includes(cell.requires) && PROVIDERS[id].tier !== 'blocked' && PROVIDERS[id].tier !== 'demo')
+    .sort((a,b)=>TIER_RANK[PROVIDERS[b].tier]-TIER_RANK[PROVIDERS[a].tier])[0];
+  return `<div class="class-note">
+    <span>This cell asks for <b>${esc(cell.requires)}</b>. ${esc(p.label)} serves ${esc(p.classes.join(', '))} — the answer will be thinner than the cell was written for.</span>
+    ${better ? `<button class="btn tiny" data-upgrade="${cell.id}">Connect ${esc(PROVIDERS[better].label)}</button>` : ''}
+  </div>`;
+}
+
+function outputHTML(v, type, streaming){
+  const c = streaming ? '<span class="caret"></span>' : '';
+  if (type==='table'){
+    return `<div style="overflow-x:auto"><table class="out-table">
+      <thead><tr>${v.cols.map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead>
+      <tbody>${v.rows.map(r=>`<tr>${r.map(x=>`<td>${inline(x)}</td>`).join('')}</tr>`).join('')}</tbody>
+    </table></div>${c}`;
+  }
+  if (type==='list') return `<div class="out"><ul>${v.map(x=>`<li>${inline(x)}</li>`).join('')}</ul></div>${c}`;
+  return `<div class="out">${String(v).split(/\n\n+/).map(p=>`<p>${inline(p).replace(/\n/g,'<br>')}</p>`).join('')}${c}</div>`;
+}
+
+function varRows(nb, run){
+  const rows = Object.entries(run.bag);
+  if (!rows.length) return '<span class="v">—</span><span></span><span></span>';
+  return rows.map(([k,v])=>{
+    const type = Array.isArray(v) ? `list[${v.length}]` : (v?.cols ? `table[${v.rows.length}]` : 'text');
+    const prev = Array.isArray(v) ? v.join(' · ') : (v?.cols ? v.rows.map(r=>r[0]).join(' · ') : String(v));
+    return `<span class="k">${esc(k)}</span><span class="t">${esc(type)}</span><span class="v">${esc(prev.slice(0,140))}</span>`;
+  }).join('');
+}
+
+/* Export is infrastructure, not a feature (ENG-BRIEF §4.3 / R9).
+   The file is the durable artifact; local storage is a cache in front of it. */
+async function exportNotebook(nb, run){
+  const doc = { schemaVersion:nb.schemaVersion, exported:new Date().toISOString(),
+    notebook:{id:nb.id, title:nb.title}, locale:S.locale, defaultProvider:S.provider,
+    input:run.bag['input.'+nb.input.id] ?? '',
+    /* Record which model each cell actually ran on — with per-cell resolution
+       a single top-level provider would be a lie. */
+    cells:nb.cells.map(c=>({ id:c.id, title:c.title, output:c.output, requires:c.requires,
+      via:run.cells[c.id].via ?? null,
+      state:run.cells[c.id].state, value:run.cells[c.id].value })) };
+  const json = JSON.stringify(doc, null, 2);
+  const filename = `${nb.id}.throughline.json`;
+
+  /* Two hosts, two save paths. Self-hosted (the real deployment) a blob link
+     is direct. Inside the claude.ai viewer saves are mediated and a plain
+     link is inert, so ask the host — and if the host is there, do not fall
+     back, because the fallback does nothing in that frame. */
+  let mediated = null;
+  try { mediated = await window.claude?.use?.('downloads') ?? null; } catch { mediated = null; }
+  if (mediated){
+    try { await mediated.save({ filename, data: json }); }
+    catch(e){ if (e?.code && e.code !== 'declined') exportFailed(e.message || e.code); }
+    return;
+  }
+  const url = URL.createObjectURL(new Blob([json],{type:'application/json'}));
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
+function exportFailed(msg){
+  const el = document.createElement('div');
+  el.className = 'error-box';
+  el.style.cssText = 'position:fixed;inset-block-end:var(--p-space-5);inset-inline-start:50%;transform:translateX(-50%);z-index:60';
+  el.textContent = `Export did not complete. ${msg}`;
+  root.appendChild(el);
+  setTimeout(()=>el.remove(), 5000);
+}
+
+/* ── Desktop upsell — honest about what a browser cannot fix ─────────── */
+function desktopStrip(){
+  return `
+  <div class="desktop-strip">
+    <div class="grow">
+      <h3>${esc(t('desktopTitle'))}</h3>
+      <p>${esc(t('desktopBody'))}</p>
+      <div class="cap-list">
+        <div><span class="y">●</span><span>Every provider — no CORS ceiling</span></div>
+        <div><span class="y">●</span><span>Notebooks as real files on disk</span></div>
+        <div><span class="y">●</span><span>Keys in the OS keychain</span></div>
+        <div><span class="n">○</span><span>Browser: CORS-permissive providers only</span></div>
+        <div><span class="n">○</span><span>Browser: storage the browser may clear</span></div>
+        <div><span class="n">○</span><span>Browser: keys held in the tab</span></div>
+      </div>
+    </div>
+    <a class="btn" href="https://github.com/" target="_blank" rel="noopener noreferrer">${esc(t('getDesktop'))} ↗</a>
+  </div>`;
+}
+
+function footer(){
+  const cap = S.storage?.capabilities() ?? {label:'—'};
+  return `<div class="foot">
+    <span>Throughline · MVP</span>
+    <span>${esc(cap.label)}</span>
+    <span class="spacer"></span>
+    <a href="https://github.com/" target="_blank" rel="noopener noreferrer">Source</a>
+  </div>`;
+}
+
+/* ── Sheets ─────────────────────────────────────────────────────────── */
+function renderSheet(){
+  const old = $('.sheet-backdrop'); if (old) old.remove();
+  if (!S.sheet) return;
+  const body = { brand:brandSheet, locale:localeSheet, settings:settingsSheet }[S.sheet]();
+  const title = { brand:t('brand'), locale:t('language'), settings:t('connect') }[S.sheet];
+  const el = document.createElement('div');
+  el.className='sheet-backdrop';
+  el.innerHTML = `<div class="sheet" role="dialog" aria-modal="true">
+    <div class="sheet-head"><h2>${esc(title)}</h2>
+      <button class="ghost" id="sheet-x" aria-label="Close">✕</button></div>
+    <div class="sheet-body">${body}</div></div>`;
+  root.appendChild(el);
+  el.onclick = e => { if (e.target===el) { S.sheet=null; renderSheet(); } };
+  el.querySelector('#sheet-x').onclick = () => { S.sheet=null; renderSheet(); };
+  wireSheet(el);
+}
+
+const brandSheet = () => `
+  <div class="sheet-sec">
+    <h3>Swap the brand · nothing below the token layer changes</h3>
+    <div class="swatches">${Object.entries(BRANDS).map(([k,b])=>`
+      <button class="swatch" data-brand="${k}" aria-pressed="${S.brand===k}">
+        <span class="chips">${b.chips.map(c=>`<span class="chip" style="background:${c}"></span>`).join('')}</span>
+        <strong>${esc(b.name)}</strong><span style="color:var(--ink-muted)">${esc(b.note)}</span>
+      </button>`).join('')}</div>
+    <p class="hint" style="font-size:var(--p-size-1);color:var(--ink-muted)">
+      Four brands, one component tree, zero component edits. Each overrides only the
+      semantic tier — surface, ink, accent, border, radius, type, elevation, motion.
+      This is the three-brand proof from PRODUCT-BRIEF §9.3, live.</p>
+  </div>`;
+
+const localeSheet = () => `
+  <div class="sheet-sec">
+    <h3>Interface and output language</h3>
+    <div class="swatches">${Object.entries(LOCALES).map(([k,l])=>`
+      <button class="swatch" data-locale="${k}" aria-pressed="${S.locale===k}">
+        <strong>${esc(l.name)}</strong>
+        <span style="color:var(--ink-muted)">${l.dir.toUpperCase()} · output in ${esc(l.outputLanguage)}</span>
+      </button>`).join('')}</div>
+    <p class="hint" style="font-size:var(--p-size-1);color:var(--ink-muted)">
+      Locale is a runtime variable, not just chrome — it is interpolated into every
+      cell prompt as <code>{{locale.outputLanguage}}</code>, so live model output
+      follows the interface (PRODUCT-BRIEF §10 L2). Arabic also flips direction; the
+      layout uses logical properties throughout, so nothing was mirrored by hand.</p>
+    <p class="hint" style="font-size:var(--p-size-1);color:var(--ink-muted)">
+      <strong>Note what stays English:</strong> notebook titles, intents and demo
+      responses. That is deliberate — notebook content is authored content on a
+      separate translation pipeline from interface strings (§10 L1), and the guided
+      demo ships scripted English. Switch to a live provider and the output follows
+      your locale.</p>
+  </div>`;
+
+const settingsSheet = () => {
+  const cap = S.storage?.capabilities() ?? {durable:false,label:'—'};
+  const groups = [['demo','device','local'], ['free'], ['frontier','blocked']];
+  const heads = ['Runs with no account', 'Free, with a key you can get in a minute', 'Paid and enterprise'];
+  return `
+  <div class="sheet-sec">
+    <h3>Default for every cell</h3>
+    <div class="field">
+      <select id="defprov">
+        <option value="auto" ${S.provider==='auto'?'selected':''}>Auto — best connected model for each cell</option>
+        ${connected().map(id=>`<option value="${id}" ${S.provider===id?'selected':''}>Always ${esc(PROVIDERS[id].label)}</option>`).join('')}
+      </select>
+      <span class="hint">Auto reads each cell's declared capability class and picks the strongest connected model that serves it. Any cell can still be pinned individually from its footer.</span>
+    </div>
+  </div>
+  ${groups.map((tiers,gi)=>`
+  <div class="sheet-sec">
+    <h3>${esc(heads[gi])}</h3>
+    ${Object.entries(PROVIDERS).filter(([,p])=>tiers.includes(p.tier)).map(([id,p])=>{
+      const on = isConnected(id), test = S.tests[id];
+      return `
+      <div class="prov ${on?'on':''}">
+        <div class="prov-head">
+          <span class="dot ${on?'ok':(p.reach==='blocked'?'off':'warn')}"></span>
+          <div style="flex:1">
+            <strong>${esc(p.label)}</strong>
+            <span class="meta"> · ${esc(p.vendor)}</span>
+            <div class="hint">${esc(p.note)}</div>
+          </div>
+          <span class="tag">${esc(TIER_LABEL[p.tier])}</span>
+        </div>
+        ${id==='chrome' ? `
+          <div class="prov-row">
+            ${S.builtin==='absent' ? `<span class="hint">Not exposed by this browser.</span>`
+              : S.builtin==='downloadable' ? `<button class="btn tiny" id="dl-builtin">Download the model</button><span class="hint">A few GB, once. Then it runs offline, free, forever.</span>`
+              : S.builtin==='downloading' ? `<span class="hint">Downloading${S.dl!=null?` — ${S.dl}%`:'…'}</span>`
+              : `<button class="btn secondary tiny" data-test="${id}">Test</button>`}
+          </div>` : ''}
+        ${p.key==='none' && id!=='demo' && id!=='chrome' ? `
+          <div class="prov-row">
+            <input type="text" data-model="${id}" value="${esc(modelOf(id))}" placeholder="model" aria-label="Model">
+            <button class="btn secondary tiny" data-test="${id}">Test</button>
+          </div>` : ''}
+        ${p.key!=='none' ? `
+          <div class="prov-row">
+            <input type="password" data-key="${id}" value="${esc(S.keys[id] ?? '')}"
+                   placeholder="${p.key==='free'?'free API key':'API key'}" autocomplete="off" aria-label="${esc(p.label)} key">
+            <input type="text" data-model="${id}" value="${esc(modelOf(id))}" placeholder="model" aria-label="Model">
+            <button class="btn secondary tiny" data-test="${id}" ${S.keys[id]?'':'disabled'}>Test</button>
+          </div>
+          ${p.signup?`<a class="hint link" href="${p.signup}" target="_blank" rel="noopener noreferrer">Get a key ↗</a>`:''}` : ''}
+        ${test ? `<div class="prov-result ${test.ok?'ok':'bad'}">${esc(test.msg)}</div>` : ''}
+      </div>`;
+    }).join('')}
+  </div>`).join('')}
+  <div class="sheet-sec">
+    <h3>Where keys live</h3>
+    <div class="status-row"><span class="dot ok"></span>
+      <span>In this tab, in memory. Never written to storage, never sent to this page's own origin — only to the provider you chose. Closing the tab discards them.</span></div>
+  </div>
+  <div class="sheet-sec">
+    <h3>${esc(t('storage'))}</h3>
+    <div class="status-row">
+      <span class="dot ${cap.durable?'ok':'warn'}"></span>
+      <span>${esc(S.storage?.label ?? '—')} — ${esc(cap.label)}</span>
+    </div>
+    <div class="status-row">
+      <span class="dot ${T2_AVAILABLE?'ok':'off'}"></span>
+      <span>${T2_AVAILABLE
+        ? 'This browser supports saving to a real folder on disk (T2). Available as an upgrade.'
+        : 'This browser cannot save to a folder on disk. Export, or use the desktop build.'}</span>
+    </div>
+  </div>`;
+};
+
+function wireSheet(el){
+  el.querySelectorAll('[data-brand]').forEach(b => b.onclick = () => {
+    S.brand = b.dataset.brand; applyTheme(); renderSheet(); render(); });
+  el.querySelectorAll('[data-locale]').forEach(b => b.onclick = () => {
+    S.locale = b.dataset.locale; applyTheme(); renderSheet(); render(); });
+  const def = el.querySelector('#defprov');
+  if (def) def.onchange = () => { S.provider = def.value; renderSheet(); render(); };
+  el.querySelectorAll('[data-key]').forEach(inp => {
+    inp.oninput = () => {
+      const id = inp.dataset.key;
+      if (inp.value) S.keys[id] = inp.value; else delete S.keys[id];
+      const btn = el.querySelector(`[data-test="${id}"]`);
+      if (btn) btn.disabled = !inp.value;
+    };
+  });
+  el.querySelectorAll('[data-model]').forEach(inp => {
+    inp.oninput = () => { S.models[inp.dataset.model] = inp.value; };
+  });
+  const dl = el.querySelector('#dl-builtin');
+  if (dl) dl.onclick = async () => {
+    try {
+      await downloadBuiltIn((loaded, total) => {
+        S.dl = total ? Math.round(loaded/total*100) : Math.round(loaded*100);
+        const row = document.querySelector('#dl-progress'); if (row) row.textContent = `${S.dl}%`;
+      });
+    } catch(e){ S.tests.chrome = {ok:false, msg:e.message || String(e)}; S.builtin = 'unavailable'; }
+    S.dl = null; renderSheet(); render();
+  };
+  el.querySelectorAll('[data-test]').forEach(btn => btn.onclick = async () => {
+    const id = btn.dataset.test;
+    btn.disabled = true; btn.textContent = 'Testing…';
+    S.tests[id] = await testProvider(id);
+    renderSheet(); render();
+  });
+}
+
+/* ── Boot ───────────────────────────────────────────────────────────── */
+function render(){
+  const focus = document.activeElement?.id;
+  const scroll = window.scrollY;
+  S.view === 'library' ? renderLibrary() : renderNotebook();
+  if (focus === 'nb-input'){
+    const ta = $('#nb-input');
+    if (ta){ const end = ta.value.length; ta.focus(); ta.setSelectionRange(end,end); }
+  }
+  window.scrollTo(0, scroll);
+}
+
+$('#home').onclick = () => { S.view='library'; S.nbId=null; render(); window.scrollTo(0,0); };
+$('#btn-brand').onclick = () => { S.sheet = S.sheet==='brand'?null:'brand'; renderSheet(); };
+$('#btn-locale').onclick = () => { S.sheet = S.sheet==='locale'?null:'locale'; renderSheet(); };
+$('#btn-settings').onclick = () => { S.sheet = S.sheet==='settings'?null:'settings'; renderSheet(); };
+$('#btn-mode').onclick = () => { S.mode = S.mode==='dark'?'light':'dark'; applyTheme(); };
+addEventListener('keydown', e => { if (e.key==='Escape' && S.sheet){ S.sheet=null; renderSheet(); } });
+
+(async function boot(){
+  S.mode = resolveMode();
+  let manual = false;
+  $('#btn-mode').addEventListener('click', () => { manual = true; }, {capture:true});
+  new MutationObserver(() => { if (!manual){ S.mode = resolveMode(); applyTheme(); } })
+    .observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (!manual && !document.documentElement.dataset.theme){ S.mode = resolveMode(); applyTheme(); } });
+  await probeBuiltIn();
+  try { const a = IdbAdapter(); await a.init(); S.storage = a; }
+  catch { S.storage = MemoryAdapter(); }
+  applyTheme(); render();
+})();
+</script>
