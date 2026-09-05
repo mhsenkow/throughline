@@ -58,10 +58,43 @@ exports them to a file and imports them back. Import merges rather than
 replaces, newest wins, so pulling marks from a second device does not delete
 what is already here.
 
-A shared rating system would need shared state, and that means a server. It is
-buildable — a KV or D1 binding on the existing Worker, holding anonymous counts
-and never notebook content — but it narrows P3 and should be a deliberate
-decision rather than a drift.
+### Why a static page cannot count anything
+
+A browser can only *read* a static file over HTTP. `GET` returns bytes; it does
+not change them, and no request leaves a trace in the file. Writing needs
+something on the other end that accepts a write, and that is a server whatever
+it is called.
+
+But ibm.io is **not** a static site — it is a Next.js app on a Cloudflare
+Worker, so compute already runs on every request. A shared counter is a KV
+binding on infrastructure that exists, not new infrastructure. It still narrows
+P3 and should be a deliberate decision rather than a drift.
+
+Free option that already exists: Cloudflare Web Analytics logs URLs, and share
+links encode the permutation in the query string. Which combinations get opened
+is therefore already recorded — it just cannot be displayed in the app.
+
+### Query vs fragment — the split matters
+
+A share link puts the **permutation** in the query string and the **input** in
+the fragment:
+
+```
+https://ibm.io/notebook/?n=pre-mortem&b=wcPaper&l=es#i=<base64>
+```
+
+A query string is transmitted with every request: it reaches the server, the
+access log, the analytics pipeline, and any `Referer` header the page emits.
+A fragment is never sent at all — it exists only in the recipient's browser.
+
+So which notebook, brand, language and model someone shared is legible, and is
+exactly the aggregate signal worth having. What they typed into it is not.
+Anyone holding the link can still read the input, which is the point of
+sharing; the page says so when it copies one.
+
+Links using the old `?i=` form still work and are rewritten to the fragment on
+arrival, because leaving the input in the query keeps feeding it to history and
+to any onward `Referer`.
 
 ## Security posture
 

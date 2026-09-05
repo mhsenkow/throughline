@@ -724,6 +724,10 @@ pre.raw{
 .prov-row{display:flex; gap:var(--p-space-2); align-items:center; flex-wrap:wrap}
 .prov-row input[type="password"]{flex:2; min-inline-size:9rem}
 .prov-row input[type="text"]{flex:1; min-inline-size:8rem; font-family:var(--font-mono); font-size:var(--p-size-1)}
+.share-note{
+  flex-basis:100%; font-size:var(--p-size-1); color:var(--ink-muted);
+  margin-block-start:var(--p-space-2);
+}
 .share-fallback{
   inline-size:min(22rem,100%); margin-block-start:var(--p-space-2);
   font-family:var(--font-mono); font-size:var(--p-size-0);
@@ -2934,6 +2938,14 @@ const b64 = {
   }catch{ return ''; } }
 };
 
+/* The permutation goes in the query; the CONTENT goes in the fragment.
+   That split is not cosmetic. A query string is transmitted with every
+   request — it reaches the server, the access log, the analytics pipeline,
+   and any Referer header the page emits. A fragment is never sent at all;
+   it exists only in the recipient's browser.
+   So which notebook, brand, language and model someone shared is legible
+   (and is exactly the aggregate signal worth having), while what they typed
+   into it is not. */
 function shareURL(nb){
   const run = getRun(nb);
   const p = new URLSearchParams();
@@ -2942,8 +2954,8 @@ function shareURL(nb){
   if (S.locale !== 'en')   p.set('l', S.locale);
   if (S.provider !== 'auto') p.set('m', S.provider);
   const input = run.bag['input.'+nb.input.id] ?? '';
-  if (input && input !== nb.input.seed) p.set('i', b64.enc(input));
-  return `${location.origin}${location.pathname}?${p}`;
+  const frag = (input && input !== nb.input.seed) ? `#i=${b64.enc(input)}` : '';
+  return `${location.origin}${location.pathname}?${p}${frag}`;
 }
 
 function applyShareState(){
@@ -2954,9 +2966,32 @@ function applyShareState(){
   const nb = NOTEBOOKS.find(n => n.id === p.get('n'));
   if (nb){
     S.view = 'notebook'; S.nbId = nb.id;
-    const i = p.get('i');
-    if (i){ const text = b64.dec(i); if (text) getRun(nb).bag['input.'+nb.input.id] = text; }
+    /* Read the input from the fragment. `?i=` is still honoured so links
+       shared before this change keep working — but it is immediately
+       rewritten out of the address bar, because leaving it there keeps
+       feeding it to history and to any onward Referer. */
+    const legacy = p.get('i');
+    const frag = new URLSearchParams(location.hash.slice(1)).get('i');
+    const text = b64.dec(frag ?? legacy ?? '');
+    if (text) getRun(nb).bag['input.'+nb.input.id] = text;
+    if (legacy){
+      p.delete('i');
+      history.replaceState(null, '', `${location.pathname}?${p}${text?`#i=${b64.enc(text)}`:''}`);
+    }
   }
+}
+
+/* Whoever holds the link can read the input. That is the point of sharing,
+   but it should be said once rather than assumed. */
+function shareNote(btn, url){
+  const has = url.includes('#i=');
+  const el = document.createElement('span');
+  el.className = 'share-note';
+  el.textContent = has
+    ? 'Includes your input — it stays out of server logs, but anyone with the link can read it.'
+    : 'Setup only. No input included.';
+  btn.parentElement.after(el);
+  setTimeout(()=>el.remove(), 6000);
 }
 
 async function copyShare(nb, btn){
@@ -2964,6 +2999,7 @@ async function copyShare(nb, btn){
   try {
     await navigator.clipboard.writeText(url);
     btn.textContent = 'Link copied';
+    shareNote(btn, url);
   } catch {
     /* Clipboard access is refused in plenty of contexts. Show the link
        rather than failing silently — the user can still copy it by hand. */
