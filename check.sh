@@ -376,8 +376,8 @@ for nb in lib:
 
     # A notebook that reads a picture must ship one, or its first run — the
     # one R6 cares about — cannot happen without the user finding a file.
-    if inp.get('accepts') not in (None, 'text', 'image'):
-        issues.append(f"{nb['id']}: input.accepts {inp['accepts']} is not text or image")
+    if inp.get('accepts') not in (None, 'text', 'image', 'file'):
+        issues.append(f"{nb['id']}: input.accepts {inp['accepts']} is not text, image or file")
     if inp.get('accepts') == 'image':
         if not str(inp.get('seedImage','')).startswith('data:image/'):
             issues.append(f"{nb['id']}: image input needs a seedImage as an embedded data: URL")
@@ -401,7 +401,10 @@ for nb in lib:
             issues.append(f"{nb['id']}/{cell.get('id')}: missing demo")
         if cell.get('requires') not in CLASSES:
             issues.append(f"{nb['id']}/{cell.get('id')}: requires {cell.get('requires')} is not a capability class")
-        if out.get('type') == 'image' and cell.get('requires') != 'image':
+        # An image-output cell must declare requires: image — unless a person
+        # supplies the picture, in which case no model draws anything.
+        if (out.get('type') == 'image' and cell.get('requires') != 'image'
+                and cell.get('ask', {}).get('accepts') != 'image'):
             issues.append(f"{nb['id']}/{cell.get('id')}: draws, so it must declare requires: image")
         # A vision cell that never reads an image variable would silently run
         # as an ordinary text cell — see visionInputs().
@@ -462,6 +465,16 @@ for nb in lib:
             over = cell['map'].get('over')
             if over not in produced:
                 issues.append(f"{nb['id']}/{cell.get('id')}: map.over {over} not produced yet")
+
+        # A choice illustrated by pictures points at a media variable that
+        # already exists; the options are matched to it by position.
+        imgs = (cell.get('choice') or {}).get('images')
+        if imgs and imgs not in produced:
+            issues.append(f"{nb['id']}/{cell.get('id')}: choice.images {imgs} not produced yet")
+        if cell.get('ask', {}).get('accepts') not in (None, 'text', 'image'):
+            issues.append(f"{nb['id']}/{cell.get('id')}: ask.accepts {cell['ask']['accepts']} is not text or image")
+        if cell.get('ask', {}).get('accepts') == 'image' and out.get('type') != 'image':
+            issues.append(f"{nb['id']}/{cell.get('id')}: an ask that takes a picture must output type image")
 
         produced.add(out.get('name'))
         if cell.get('choice', {}) and cell['choice'].get('writes'):

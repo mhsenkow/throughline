@@ -869,9 +869,10 @@
     ],
     "input": {
       "id": "spec",
-      "label": "A spec, ticket, or requirement",
+      "label": "Paste the spec, or drop the file",
       "placeholder": "Paste it as written.",
-      "seed": "Users should be able to export their data. The export should include all their content and be delivered quickly. Large exports may be processed in the background. Users should be notified when it is ready."
+      "seed": "Users should be able to export their data. The export should include all their content and be delivered quickly. Large exports may be processed in the background. Users should be notified when it is ready.",
+      "accepts": "file"
     },
     "cells": [
       {
@@ -8111,9 +8112,10 @@
     ],
     "input": {
       "id": "context",
-      "label": "Policy text and edge cases",
+      "label": "Paste the policy, or drop the document",
       "placeholder": "Paste the policy, plus the edges where it already breaks.",
-      "seed": "A financial control policy covers normal cases but fails on edge scenarios that matter most.\nconstraint: Be specific enough that two colleagues would disagree about the next step — that disagreement is the point of this notebook (Policy text and edge cases)."
+      "seed": "A financial control policy covers normal cases but fails on edge scenarios that matter most.\nconstraint: Be specific enough that two colleagues would disagree about the next step — that disagreement is the point of this notebook (Policy text and edge cases).",
+      "accepts": "file"
     },
     "cells": [
       {
@@ -8191,9 +8193,10 @@
     ],
     "input": {
       "id": "context",
-      "label": "Contract state and alternatives",
+      "label": "Paste the contract terms, or drop the document",
       "placeholder": "Current terms, price, and the realistic alternatives.",
-      "seed": "Contract term is ending; the team must choose between straightforward renewal, renegotiation, or switching.\nconstraint: Be specific enough that two colleagues would disagree about the next step — that disagreement is the point of this notebook (Contract state and alternatives)."
+      "seed": "Contract term is ending; the team must choose between straightforward renewal, renegotiation, or switching.\nconstraint: Be specific enough that two colleagues would disagree about the next step — that disagreement is the point of this notebook (Contract state and alternatives).",
+      "accepts": "file"
     },
     "cells": [
       {
@@ -13159,9 +13162,10 @@
     ],
     "input": {
       "id": "numbers",
-      "label": "The numbers, pasted however they came out",
+      "label": "Paste the numbers, or drop the file they came out of",
       "placeholder": "Rows, columns, tabs, commas — paste it as it is, and say what you are trying to work out.",
-      "seed": "Trying to work out whether support cost is actually falling.\nMonth\tTickets\tCost per ticket\nApr\t1820\t6.40\nMay\t1910\t6.10\nJun\t2040\t5.80\nJul\t2260\t5.55\nAug\t2510\t5.30"
+      "seed": "Trying to work out whether support cost is actually falling.\nMonth\tTickets\tCost per ticket\nApr\t1820\t6.40\nMay\t1910\t6.10\nJun\t2040\t5.80\nJul\t2260\t5.55\nAug\t2510\t5.30",
+      "accepts": "file"
     },
     "cells": [
       {
@@ -13539,6 +13543,174 @@
               "Says instrument and measurement, which is the closest to what the practice sells",
               "Five rings and four axes is far too much detail for a stamp; needs half the elements",
               "Not as drawn — it survives if reduced to two rings and one axis"
+            ]
+          ]
+        }
+      },
+      {
+        "id": "chosen",
+        "title": "Choose one",
+        "requires": "reasoning",
+        "intent": "The run stops here and waits for a person. A machine can rank four routes against a brief; it cannot be the one who has to live with the answer.",
+        "inputs": [
+          "routes",
+          "pick"
+        ],
+        "output": {
+          "name": "chosen",
+          "type": "choice"
+        },
+        "choice": {
+          "images": "boards",
+          "writes": "chosen_route"
+        },
+        "prompt": "Turn each visual route into an option to choose between. For each: a short label, the cost of going this way stated honestly, and one line on who it suits. Keep the same order as the routes. Respond in {{locale.outputLanguage}}.\n\nRoutes: {{routes}}\n\nHow they held up: {{pick}}",
+        "demo": {
+          "options": [
+            {
+              "id": "geometric",
+              "label": "Geometric",
+              "cost": "Familiar in the sector",
+              "note": "Safest at 8 mm. Choose it if being read correctly matters more than being remembered."
+            },
+            {
+              "id": "handdrawn",
+              "label": "Hand-drawn",
+              "cost": "Fails the stamping test",
+              "note": "The warmest of the four. Only viable if the 8 mm constraint is negotiable."
+            },
+            {
+              "id": "block",
+              "label": "Block",
+              "cost": "Reads start-up, which the brief bans",
+              "note": "Loudest at distance. Choose it if site boards matter more than drawings."
+            },
+            {
+              "id": "engraved",
+              "label": "Engraved",
+              "cost": "Needs redrawing at half the detail",
+              "note": "Closest to what the practice actually sells. The most work from here."
+            }
+          ],
+          "selected": null
+        }
+      }
+    ]
+  },
+  {
+    "id": "two-screens",
+    "schemaVersion": "1.3.0",
+    "realm": "design",
+    "concept": "compare",
+    "persona": "product",
+    "featured": true,
+    "title": "Show Me One That Works",
+    "blurb": "Reads the screen you are worried about, then stops and asks you for one you think does it well — and puts the two side by side on the thing that actually differs.",
+    "teaches": "A person hands over a picture mid-run, and one cell reads both",
+    "tags": [
+      "vision",
+      "ask"
+    ],
+    "input": {
+      "id": "shot",
+      "label": "The screen you are worried about",
+      "placeholder": "Say what it is for and who arrives at it.",
+      "seed": "Our signup screen. Most people arrive from a colleague's invite link and have never heard of us.",
+      "accepts": "image",
+      "seedImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MjAgNTYwIiB3aWR0aD0iNDIwIiBoZWlnaHQ9IjU2MCI+IDxyZWN0IHdpZHRoPSI0MjAiIGhlaWdodD0iNTYwIiBmaWxsPSIjZjRmM2YwIi8+IDxyZWN0IHg9IjE2IiB5PSIxNiIgd2lkdGg9IjM4OCIgaGVpZ2h0PSI1MjgiIHJ4PSIxMCIgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjZTJkZWQ3Ii8+IDxyZWN0IHg9IjE2IiB5PSIxNiIgd2lkdGg9IjM4OCIgaGVpZ2h0PSI0NCIgcng9IjEwIiBmaWxsPSIjZmJmYWY4Ii8+IDxyZWN0IHg9IjMyIiB5PSIzMCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiByeD0iNCIgZmlsbD0iIzViNGNlMCIvPiA8cmVjdCB4PSI1NiIgeT0iMzQiIHdpZHRoPSI1MiIgaGVpZ2h0PSI4IiByeD0iNCIgZmlsbD0iIzliOTY4ZSIvPiA8Y2lyY2xlIGN4PSIzODQiIGN5PSIzOCIgcj0iNyIgZmlsbD0iI2VjZWFlNiIvPiA8dGV4dCB4PSI0MCIgeT0iMTAyIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjIwIiBmb250LXdlaWdodD0iNjAwIiBmaWxsPSIjMjIyMDFlIj5DcmVhdGUgeW91ciB3b3Jrc3BhY2U8L3RleHQ+IDx0ZXh0IHg9IjQwIiB5PSIxMjQiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM4YTg1N2QiPkZyZWUgZm9yIDE0IGRheXMuIE5vIGNhcmQgbmVlZGVkLjwvdGV4dD4gPHRleHQgeD0iNDAiIHk9IjE2NCIgZm9udC1mYW1pbHk9IkhlbHZldGljYSxBcmlhbCIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzZiNjg2MiI+V29yayBlbWFpbDwvdGV4dD4gPHJlY3QgeD0iNDAiIHk9IjE3MiIgd2lkdGg9IjM0MCIgaGVpZ2h0PSIzNiIgcng9IjYiIGZpbGw9IiNmYmZhZjgiIHN0cm9rZT0iI2RlZGJkNSIvPiA8dGV4dCB4PSI0MCIgeT0iMjMwIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjExIiBmaWxsPSIjNmI2ODYyIj5Xb3Jrc3BhY2UgVVJMPC90ZXh0PiA8cmVjdCB4PSI0MCIgeT0iMjM4IiB3aWR0aD0iMjQwIiBoZWlnaHQ9IjM2IiByeD0iNiIgZmlsbD0iI2ZiZmFmOCIgc3Ryb2tlPSIjZGVkYmQ1Ii8+IDxyZWN0IHg9IjI4MCIgeT0iMjM4IiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjM2IiByeD0iNiIgZmlsbD0iI2VjZWFlNiIgc3Ryb2tlPSIjZGVkYmQ1Ii8+IDx0ZXh0IHg9IjI5MiIgeT0iMjYxIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSIjOGE4NTdkIj4uYWNtZS5hcHA8L3RleHQ+IDx0ZXh0IHg9IjQwIiB5PSIyOTYiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiM2YjY4NjIiPkNvbXBhbnkgc2l6ZTwvdGV4dD4gPHJlY3QgeD0iNDAiIHk9IjMwNCIgd2lkdGg9IjM0MCIgaGVpZ2h0PSIzNiIgcng9IjYiIGZpbGw9IiNmYmZhZjgiIHN0cm9rZT0iI2RlZGJkNSIvPiA8dGV4dCB4PSI1MiIgeT0iMzI3IiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSIjYjNhZWE2Ij5TZWxlY3TigKY8L3RleHQ+IDxwYXRoIGQ9Ik0zNjAgMzE4IGw2IDcgNi03IiBzdHJva2U9IiM4YTg1N2QiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIi8+IDxyZWN0IHg9IjQwIiB5PSIzNjIiIHdpZHRoPSIxNCIgaGVpZ2h0PSIxNCIgcng9IjMiIGZpbGw9IiNmZmZmZmYiIHN0cm9rZT0iI2MyYmViNiIvPiA8dGV4dCB4PSI2MiIgeT0iMzcwIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjOGE4NTdkIj5JIGFncmVlIHRvIHRoZSBUZXJtcyBvZiBTZXJ2aWNlLCB0aGUgRGF0YSBQcm9jZXNzaW5nPC90ZXh0PiA8dGV4dCB4PSI2MiIgeT0iMzgzIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjOGE4NTdkIj5BZGRlbmR1bSBhbmQgdGhlIEFjY2VwdGFibGUgVXNlIFBvbGljeSwgYW5kIGNvbnNlbnQgdG88L3RleHQ+IDx0ZXh0IHg9IjYyIiB5PSIzOTYiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiM4YTg1N2QiPnByb2R1Y3QgYW5kIG1hcmtldGluZyBlbWFpbC48L3RleHQ+IDxyZWN0IHg9IjQwIiB5PSI0MjAiIHdpZHRoPSIzNDAiIGhlaWdodD0iNDIiIHJ4PSI2IiBmaWxsPSIjNWI0Y2UwIi8+IDx0ZXh0IHg9IjIxMCIgeT0iNDQ2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iNjAwIiBmaWxsPSIjZmZmZmZmIj5Db250aW51ZTwvdGV4dD4gPHRleHQgeD0iMjEwIiB5PSI0ODYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiM4YTg1N2QiPkFscmVhZHkgaGF2ZSBhbiBhY2NvdW50PzwvdGV4dD4gPHRleHQgeD0iMjEwIiB5PSI1MTYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiNiM2FlYTYiPlNpbmdsZSBzaWduLW9uPC90ZXh0PiA8L3N2Zz4=",
+      "seedAlt": "Sample signup screen: email, workspace URL, company size, bundled consent, Continue"
+    },
+    "cells": [
+      {
+        "id": "asks",
+        "title": "What this screen asks of a stranger",
+        "requires": "vision",
+        "intent": "Not what it looks like — what it makes someone produce, decide or agree to before it will let them through.",
+        "inputs": [
+          "input.shot"
+        ],
+        "output": {
+          "name": "asks",
+          "type": "list"
+        },
+        "prompt": "Look at the attached screen. List everything it requires from a first-time visitor before they can continue — every field, decision and agreement — and for each say whether the visitor could answer it without leaving the page. Respond in {{locale.outputLanguage}}.\n\nWhat it is for: {{input.shot}}",
+        "demo": [
+          "A work email — answerable immediately.",
+          "A workspace URL — not answerable without knowing whether a colleague already made one, and whether it can be changed later.",
+          "A company size — answerable, but the visitor cannot tell why it is asked or what it changes.",
+          "Agreement to terms, a data processing addendum, an acceptable use policy and marketing email, as one checkbox — the marketing part cannot be declined separately.",
+          "Nothing about the invite that brought them here is acknowledged anywhere on the screen."
+        ]
+      },
+      {
+        "id": "rival",
+        "title": "Show me one that works",
+        "requires": "fast",
+        "intent": "The run stops and waits for you. Comparison is the fastest way to see your own screen, and only you know which screen you actually admire.",
+        "inputs": [],
+        "output": {
+          "name": "rival",
+          "type": "image"
+        },
+        "ask": {
+          "accepts": "image",
+          "label": "A screenshot of a signup you think does this well",
+          "placeholder": "Optional: say what you think it gets right."
+        },
+        "prompt": "",
+        "demo": {
+          "kind": "image",
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MjAgNTYwIiB3aWR0aD0iNDIwIiBoZWlnaHQ9IjU2MCI+IDxyZWN0IHdpZHRoPSI0MjAiIGhlaWdodD0iNTYwIiBmaWxsPSIjZjJmNGY3Ii8+IDxyZWN0IHg9IjE2IiB5PSIxNiIgd2lkdGg9IjM4OCIgaGVpZ2h0PSI1MjgiIHJ4PSIxMCIgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjZGZlNGVhIi8+IDxyZWN0IHg9IjMyIiB5PSIzNCIgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiByeD0iNSIgZmlsbD0iIzExMTgyNyIvPiA8dGV4dCB4PSI1OCIgeT0iNDkiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMTMiIGZvbnQtd2VpZ2h0PSI2MDAiIGZpbGw9IiMxMTE4MjciPk5vcnRod2luZDwvdGV4dD4gPHRleHQgeD0iNDAiIHk9IjExMiIgZm9udC1mYW1pbHk9IkhlbHZldGljYSxBcmlhbCIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9IjYwMCIgZmlsbD0iIzExMTgyNyI+Sm9pbiB5b3VyIHRlYW08L3RleHQ+IDx0ZXh0IHg9IjQwIiB5PSIxMzYiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM2YjcyODAiPlByaXlhIGludml0ZWQgeW91IHRvIE5vcnRod2luZC4gVGFrZXMgYWJvdXQgdGVuIHNlY29uZHMuPC90ZXh0PiA8cmVjdCB4PSI0MCIgeT0iMTY0IiB3aWR0aD0iMzQwIiBoZWlnaHQ9IjQ0IiByeD0iOCIgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjY2JkNWUxIi8+IDxjaXJjbGUgY3g9IjY2IiBjeT0iMTg2IiByPSI5IiBmaWxsPSIjNDI4NWY0Ii8+IDx0ZXh0IHg9Ijg4IiB5PSIxOTEiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMTMiIGZpbGw9IiMxMTE4MjciPkNvbnRpbnVlIHdpdGggR29vZ2xlPC90ZXh0PiA8cmVjdCB4PSI0MCIgeT0iMjE2IiB3aWR0aD0iMzQwIiBoZWlnaHQ9IjQ0IiByeD0iOCIgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjY2JkNWUxIi8+IDxyZWN0IHg9IjU4IiB5PSIxNzgiIHdpZHRoPSIwIiBoZWlnaHQ9IjAiLz4gPHJlY3QgeD0iNTgiIHk9IjIzMCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiByeD0iMyIgZmlsbD0iIzExMTgyNyIvPiA8dGV4dCB4PSI4OCIgeT0iMjQzIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjEzIiBmaWxsPSIjMTExODI3Ij5Db250aW51ZSB3aXRoIHlvdXIgd29yayBhY2NvdW50PC90ZXh0PiA8bGluZSB4MT0iNDAiIHkxPSIyODYiIHgyPSIxODAiIHkyPSIyODYiIHN0cm9rZT0iI2U1ZTdlYiIvPiA8bGluZSB4MT0iMjQwIiB5MT0iMjg2IiB4Mj0iMzgwIiB5Mj0iMjg2IiBzdHJva2U9IiNlNWU3ZWIiLz4gPHRleHQgeD0iMjEwIiB5PSIyOTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiM5Y2EzYWYiPm9yPC90ZXh0PiA8dGV4dCB4PSI0MCIgeT0iMzIyIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjExIiBmaWxsPSIjNmI3MjgwIj5Xb3JrIGVtYWlsPC90ZXh0PiA8cmVjdCB4PSI0MCIgeT0iMzMwIiB3aWR0aD0iMzQwIiBoZWlnaHQ9IjQ0IiByeD0iOCIgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjY2JkNWUxIi8+IDx0ZXh0IHg9IjU0IiB5PSIzNTgiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMTMiIGZpbGw9IiM5Y2EzYWYiPnlvdUBub3J0aHdpbmQuY29tPC90ZXh0PiA8cmVjdCB4PSI0MCIgeT0iMzkyIiB3aWR0aD0iMzQwIiBoZWlnaHQ9IjQ2IiByeD0iOCIgZmlsbD0iIzExMTgyNyIvPiA8dGV4dCB4PSIyMTAiIHk9IjQyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkhlbHZldGljYSxBcmlhbCIgZm9udC1zaXplPSIxNCIgZm9udC13ZWlnaHQ9IjYwMCIgZmlsbD0iI2ZmZmZmZiI+Q29udGludWU8L3RleHQ+IDx0ZXh0IHg9IjIxMCIgeT0iNDYyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjOWNhM2FmIj5ObyBjYXJkLiBXZSB3aWxsIG5vdCBlbWFpbCB5b3UgYWJvdXQgYW55dGhpbmcgZWxzZS48L3RleHQ+IDx0ZXh0IHg9IjIxMCIgeT0iNDgyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjOWNhM2FmIj5CeSBjb250aW51aW5nIHlvdSBhY2NlcHQgdGhlIFRlcm1zLjwvdGV4dD4gPHRleHQgeD0iMjEwIiB5PSI1MTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMzNzQxNTEiPkFscmVhZHkgaGVyZT8gU2lnbiBpbjwvdGV4dD4gPC9zdmc+",
+          "alt": "A signup screen offering Google and work-account sign-in first, one email field, and unbundled consent",
+          "note": "Sample supplied with this notebook — swap in one you actually admire."
+        }
+      },
+      {
+        "id": "versus",
+        "title": "What theirs does that yours does not",
+        "requires": "vision",
+        "intent": "Both pictures go to the same cell. The output is not a verdict on taste — it is the list of asks one screen makes and the other removed.",
+        "inputs": [
+          "input.shot",
+          "rival",
+          "asks"
+        ],
+        "output": {
+          "name": "versus",
+          "type": "table"
+        },
+        "prompt": "Two signup screens are attached: first the one under review, then one the reviewer admires. For each thing the first screen asks of a stranger, say what the second screen does instead, and what that costs the business. Judge the asks, not the styling. Respond in {{locale.outputLanguage}}.\n\nThe screen under review: {{input.shot}}\n\nWhat it asks: {{asks}}\n\nWhat the reviewer says about theirs: {{rival}}",
+        "demo": {
+          "cols": [
+            "What yours asks",
+            "What theirs does instead",
+            "What that costs"
+          ],
+          "rows": [
+            [
+              "Workspace URL, before anything",
+              "Never asks — it is derived from the email domain and changeable later",
+              "Loses the ability to let people name it up front, which almost nobody wanted to do at that moment"
+            ],
+            [
+              "Company size, unexplained",
+              "Not asked at signup at all",
+              "Sales loses a field, and gets it later from people who actually stayed"
+            ],
+            [
+              "One checkbox covering terms and marketing",
+              "Terms accepted implicitly by continuing; marketing not mentioned",
+              "Fewer marketing opt-ins, and no visitor who feels tricked into one"
+            ],
+            [
+              "Email and password as the only route",
+              "Google and work-account sign-in offered above email",
+              "Some engineering work; most arrivals from an invite never type anything"
+            ],
+            [
+              "Nothing about the invite",
+              "Names the person who invited you in the second line",
+              "Nothing — this is free, and it is the single biggest difference on the page"
             ]
           ]
         }

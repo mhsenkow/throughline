@@ -174,6 +174,9 @@ together.
 | `map` × media — one cell, N pictures / scenes / charts, numbered to inputs | **Real** |
 | 3D scenes render and export to `.obj` / `.stl` from the same triangles | **Real**, no library |
 | Image inputs: drop, paste or choose a picture; vision cells read it | **Real** |
+| Document inputs: text, Markdown, CSV, TSV, JSON — and PDF, parsed in the page | **Real** |
+| `ask` can stop the run and take a **picture** from a person | **Real** |
+| `choice` between **pictures**, matched to a gallery the run just drew | **Real** |
 | Chains — send a finished value into another notebook, with provenance | **Real** |
 | Three-tier tokens, **13 brands**, light/dark, zero component edits | **Real** |
 | Faceted browse: persona × realm × concept, search, sort, windowed grid | **Real** |
@@ -196,7 +199,7 @@ together.
 
 ## The library
 
-**112 notebooks across 13 personas, 9 realms, and 8 concepts.** The home page
+**113 notebooks across 13 personas, 9 realms, and 8 concepts.** The home page
 filters on three axes, because they answer different questions:
 
 - **Persona** — whose job: manager, product, engineer, designer, marketer,
@@ -335,6 +338,47 @@ reasoning cell downstream of a photograph still runs on a text-only model
 instead of dead-ending. `check.sh` enforces both halves: a vision cell must read
 the picture input, and a notebook that takes a picture must have a vision cell.
 
+### Documents in
+
+Four notebooks now take a file: *Show Me the Shape*, *Spec → Ambiguity Report*,
+*The Case This Policy Breaks* and *Renew, Renegotiate, or Leave*. Drop a `.csv`,
+`.txt`, `.md`, `.tsv`, `.json` — or a **PDF** — and its text goes **straight
+into the box**, not into a hidden attachment.
+
+That is the whole design. The bag value stays a plain string, so every existing
+text notebook could take a file without knowing files exist, and **what you can
+see is exactly what gets sent**. A file longer than 120,000 characters is
+truncated visibly, in the box, rather than quietly at the wire.
+
+PDFs are parsed in the page with pdf.js. For a contract or a diagnosis letter,
+not uploading it to a conversion service is the entire point. Two details worth
+knowing: pdf.js returns positioned runs rather than lines, so line ends come
+from its `hasEOL` flag — joining them plainly welds `AGREEMENT` to `1. Term.` —
+and a PDF with no text layer is a scan, which this refuses honestly rather than
+returning an empty string. There is no OCR; a photograph of the page and a
+vision notebook will get further.
+
+### A person hands over a picture
+
+`ask` cells stop the run for a human answer. One can now take a **picture**:
+*Show Me One That Works* reads the screen you are worried about, stops, asks you
+for a screen you think does it better, and then puts **both images into one
+vision cell**.
+
+A picture-ask waits even under the guided demo — handing the picture over is the
+whole cell, and a demo that quietly did it for you would be demonstrating the
+wrong thing. The sample is pre-loaded in the drop zone so Continue is still one
+click with nothing connected.
+
+### Choosing between pictures
+
+A model cannot return image bytes inside its JSON, so it does not try. A
+`choice` cell names a media variable already in the bag (`choice.images`) and
+its options are matched to it **by position** — so *Four Ways It Could Look*
+draws four routes in one mapped cell and then asks you to pick one, as pictures.
+The image is attached to the value itself, so an exported or restored run still
+shows what was being chosen between.
+
 ### Mapping over media
 
 A `map` cell runs its prompt once per item in a list. Until the media types
@@ -415,6 +459,22 @@ Classes describe the **default model** listed, not the vendor. Point Ollama at a
 
 Keys live in the tab, in memory. Never written to storage, never sent to this page's
 own origin.
+
+## A bug worth recording
+
+Probing a `gate` over an image found one that had been live for months and had
+nothing to do with pictures. When a gate loops back, `runAll` set the pass
+number on the **gate**, and the cells being re-run read their own key — which
+was never set. So every `demoPass` second entry upstream of a gate was dead
+script: the loop went round, the badge said *pass 2*, and the demo replayed
+pass 1.
+
+That included *Revise Until It Holds*, the notebook the home page opens with,
+whose entire teaching point is that the second pass is better than the first.
+The fix is one line — carry the pass number to every cell in the re-run range —
+and the second-pass text has been sitting in `library.json` unseen the whole
+time. Worth writing down because the bug was invisible from the outside: the
+run looked exactly like a working loop.
 
 ## Try these
 
@@ -596,11 +656,10 @@ Mitigations shipping in the viewer:
   local engine. That test also caught a second bug: `humanError()`
   mapped the 403 to "That key was not accepted", which for a provider that takes
   no key is an answer pointing at nothing. It now names the bot check.
-- **Some crossings are not supported, deliberately or not.** `ask` pauses for
-  typed text and cannot take a picture from a person mid-run; `choice` options
-  are text only; there is no audio, video, PDF or spreadsheet input. A `gate`
-  judging a media value reads its description through `bagText()` — that path
-  is written but untested.
+- **No audio, video or OCR.** Transcription would mean shipping a model
+  download this build cannot verify end to end, and a scanned PDF needs OCR
+  that is not here. Both are refused by name rather than failing oddly.
+- Chains are one hop by design, not a saved pipeline.
 - **The local image engine adapter is unverified.** It is written to the
   documented Automatic1111 `/sdapi/v1/txt2img` shape, and no engine was running
   on this machine to test against (ports 7860 and 8188 were both silent).

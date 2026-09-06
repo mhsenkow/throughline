@@ -1437,6 +1437,15 @@ table.out-table{min-inline-size:32rem}
 .tl-why{margin:0; font-size:var(--p-size-2); color:var(--ink-secondary); line-height:1.5}
 
 .choice{display:flex; flex-direction:column; gap:var(--p-space-2)}
+/* A choice between pictures lays out as pictures. */
+.choice.visual{
+  display:grid; gap:var(--p-space-3);
+  grid-template-columns:repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+}
+.choice-shot{
+  display:block; inline-size:100%; block-size:auto; border-radius:var(--radius-sm);
+  border:1px solid var(--border-subtle); margin-block-end:var(--p-space-2);
+}
 .choice-opt{
   display:flex; flex-direction:column; gap:var(--p-space-1); text-align:start;
   padding:var(--p-space-4); border-radius:var(--radius-md);
@@ -1560,6 +1569,7 @@ table.out-table{min-inline-size:32rem}
   border:1px solid var(--border-subtle);
 }
 .dz-hint{font-size:var(--p-size-2); color:var(--ink-secondary)}
+.dropzone.file{min-block-size:4.5rem}
 
 .scene{display:flex; flex-direction:column; gap:var(--p-space-2)}
 .scene-canvas{
@@ -3724,7 +3734,19 @@ async function execCell(nb, rawCell, run, onChange){
     const onText  = txt => { cs.raw = txt; cs.state='streaming'; onChange(); };
     const original = rawCell.output.type;
 
-    /* ask: pause for a human answer. Demo fills a sample; live waits. */
+    /* ask: pause for a human answer. Demo fills a sample; live waits.
+       An ask that wants a PICTURE always waits, demo included — handing one
+       over is the whole cell, and a demo that quietly did it for you would be
+       demonstrating the wrong thing. The sample is loaded into the drop zone
+       so Continue is still one click with nothing connected (R6). */
+    if (cell.ask?.accepts === 'image'){
+      cs.state = 'waiting';
+      const held = run.bag[cell.output.name];
+      cs.value = isImageVal(held) ? held
+        : (providerId === 'demo' ? cell.demo({...run.bag}) : '');
+      onChange();
+      return;
+    }
     if (cell.ask){
       if (providerId === 'demo'){
         const demoCell = cell.output.type !== original ? {...cell, _reshapeTo: cell.output.type} : cell;
@@ -3804,6 +3826,18 @@ async function execCell(nb, rawCell, run, onChange){
                         onDelta, onText, ctrl.signal, visionInputs(cell, run));
       cs.value = value; cs.raw=''; cs.state='done'; cs.ms = Math.round(performance.now()-t0);
       run.bag[cell.output.name] = value;
+      /* A choice can be a choice between pictures. The model cannot return
+         image bytes inside its JSON, so it does not try: the cell names a
+         media variable already in the bag and the options are matched to it
+         by position. Attached to the value itself, so the export and the
+         restored run still show what was being chosen between. */
+      if (cell.output.type === 'choice' && cell.choice?.images){
+        const gallery = run.bag[cell.choice.images];
+        if (isMediaList(gallery) && Array.isArray(value?.options))
+          value.options.forEach((o, i) => {
+            if (isImageVal(gallery[i])) o.image = gallery[i].src;
+          });
+      }
       /* choice: pause until the user picks, unless demo auto-selects later via UI. */
       if (cell.output.type === 'choice' && value && value.selected == null){
         cs.state = 'waiting';
@@ -3874,6 +3908,13 @@ async function runAll(nb, run, onChange, from = 0){
           const c = nb.cells[k];
           if (c.id !== cell.id) run.cells[c.id].state = 'idle';
           run.cells[c.id].pass = run.passes[cell.id];
+          /* The pass number has to reach the CELLS being re-run, not just the
+             gate. It did not, so every `demoPass` second entry upstream of a
+             gate was dead script: the loop went round, the badge said pass 2,
+             and the demo replayed pass 1 — including in the notebook the home
+             page opens with. Found by probing a gate over an image, which is
+             the only reason it is fixed. */
+          run.passes[c.id] = run.passes[cell.id];
         }
         onChange();
         i = back;
@@ -3914,6 +3955,12 @@ const S = {
   editing:false, edits:{}, connectSel:null, testing:null, bases:{},
   typeset:'brand', density:'comfortable', modePref:'system', lookTab:0,
   sheet:null, runs:{}, storage:null, marks:{}, libShown: 30,
+  /* A picture a person handed over mid-run, before they press Continue. Held
+     apart from the run so an un-submitted attachment is not a result. */
+  askImg:{},
+  /* What the last dropped document was, said in a sentence. Not persisted —
+     it describes this tab's last action, not the run. */
+  docNote:null,
   /* Camera per scene cell. Kept out of the run so orbiting a model is not a
      change to the run's result — it is how you are looking at it. */
   scenes:{},
@@ -4335,6 +4382,7 @@ function renderNotebook(){
   const run = getRun(nb);
   const inKey = 'input.' + nb.input.id;
   const wantsImage = nb.input.accepts === 'image';
+  const wantsFile = nb.input.accepts === 'file';
   const curImage = isImageVal(run.bag[inKey]) ? run.bag[inKey] : null;
   const busy = Object.values(run.cells).some(c=>c.state==='running'||c.state==='streaming'||c.state==='waiting');
   view.innerHTML = `
@@ -4393,6 +4441,18 @@ function renderNotebook(){
         </div>
       </div>
       <div class="cell-body">
+        ${wantsFile ? `
+        <div class="attach" id="filezone-wrap">
+          <label class="dropzone file" for="nb-file" id="filezone">
+            <span class="dz-hint">${S.docNote
+              ? esc(S.docNote)
+              : 'Drop a document here, or choose one — text, Markdown, CSV, TSV, JSON or PDF'}</span>
+          </label>
+          <input type="file" id="nb-file" accept=".txt,.md,.markdown,.csv,.tsv,.json,.log,.yml,.yaml,.pdf,text/*,application/json,application/pdf" hidden>
+          <p class="fine">The file is read here, in this tab, and its text goes straight into the box
+            below — so what you can see is exactly what gets sent. PDFs are parsed in the page;
+            nothing is uploaded to a conversion service.</p>
+        </div>` : ''}
         ${wantsImage ? `
         <div class="attach" id="attach">
           <label class="dropzone ${curImage ? 'has' : ''}" for="nb-image" id="dropzone">
@@ -4445,6 +4505,30 @@ function renderNotebook(){
     render();
   };
   ta.onblur = commit;
+
+  if (wantsFile){
+    const dz = $('#filezone'), picker = $('#nb-file');
+    const take = async (f) => {
+      if (!f) return;
+      S.docNote = 'Reading…'; render();
+      try {
+        const {text, note} = await fileToText(f, msg => { S.docNote = msg; const el = $('#filezone .dz-hint'); if (el) el.textContent = msg; });
+        S.docNote = note;
+        const ta2 = $('#nb-input');
+        if (ta2) ta2.value = text;
+        run.bag[inKey] = text;
+        staleFromInput();
+        render();
+      } catch(e){ S.docNote = null; render(); toast(e.message || String(e)); }
+    };
+    picker.onchange = () => take(picker.files?.[0]);
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+    dz.addEventListener('drop', e => {
+      e.preventDefault(); dz.classList.remove('over');
+      take(e.dataTransfer?.files?.[0]);
+    });
+  }
 
   if (wantsImage){
     const dz = $('#dropzone'), file = $('#nb-image');
@@ -4586,16 +4670,42 @@ function renderNotebook(){
     const next = nb.cells.findIndex(c => c.id === cell.id) + 1;
     await runAll(nb, run, render, next);
   });
+  view.querySelectorAll('[data-ask-file]').forEach(inp => inp.onchange = async () => {
+    const id = inp.dataset.askFile;
+    const f = inp.files?.[0];
+    if (!f) return;
+    try { S.askImg[id] = await fileToImageValue(f, ''); render(); }
+    catch(e){ toast(e.message || String(e)); }
+  });
+  view.querySelectorAll('[data-ask-zone]').forEach(dz => {
+    const id = dz.dataset.askZone;
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+    dz.addEventListener('drop', async e => {
+      e.preventDefault(); dz.classList.remove('over');
+      const f = e.dataTransfer?.files?.[0];
+      if (!f) return;
+      try { S.askImg[id] = await fileToImageValue(f, ''); render(); }
+      catch(err){ toast(err.message || String(err)); }
+    });
+  });
   view.querySelectorAll('[data-ask-go]').forEach(btn => btn.onclick = async () => {
     const id = btn.dataset.askGo;
     const cell = nb.cells.find(c=>c.id===id);
     const ta = view.querySelector(`[data-ask="${id}"]`);
     const text = (ta?.value || '').trim();
-    if (!text) return;
+    const held = getRun(nb).cells[id]?.value;
+    /* Either the picture just dropped, or the sample already sitting there. */
+    const pic = S.askImg[id] ?? (isImageVal(held) ? held : null);
+    /* A picture-ask needs the picture; the note beside it is optional. A
+       text-ask needs the text. Either way, do not advance on nothing. */
+    if (cell.ask?.accepts === 'image' ? !pic : !text) return;
     const run = getRun(nb);
     const st = run.cells[id];
-    st.value = text; st.state = 'done';
-    run.bag[cell.output.name] = text;
+    const value = cell.ask?.accepts === 'image' ? {...pic, note: text} : text;
+    delete S.askImg[id];
+    st.value = value; st.state = 'done';
+    run.bag[cell.output.name] = value;
     for (const did of downstream(nb, id)){
       const d = run.cells[did];
       if (d.state==='done' || d.state==='streaming') d.state='stale';
@@ -5262,18 +5372,30 @@ function outputHTML(v, type, streaming, cell, st){
   if (type==='choice'){
     const opts = v.options || [];
     const locked = !!v.selected && st?.state === 'done';
-    return `<div class="choice">${opts.map(o=>`
+    const shots = opts.some(o => /^data:image\//.test(String(o.image ?? '')));
+    return `<div class="choice${shots ? ' visual' : ''}">${opts.map(o=>`
       <button type="button" class="choice-opt${v.selected===o.id?' sel':''}" data-choose="${esc(cell.id)}" data-opt="${esc(o.id)}" ${locked?'disabled':''}>
+        ${/^data:image\//.test(String(o.image ?? '')) ? `<img class="choice-shot" src="${esc(o.image)}" alt="">` : ''}
         <strong>${esc(o.label)}</strong>
         ${o.cost?`<span class="cost">${esc(o.cost)}</span>`:''}
         ${o.note?`<span class="note">${inline(o.note)}</span>`:''}
       </button>`).join('')}</div>${c}`;
   }
   if (cell?.ask && (st?.state === 'waiting' || (type==='prose' && st?.state==='waiting'))){
+    const wantsPic = cell.ask.accepts === 'image';
+    const pending = S.askImg[cell.id] ?? (isImageVal(v) ? v : null);
     return `<div class="ask-box">
       <label for="ask-${esc(cell.id)}">${esc(cell.ask.label || 'Your answer')}</label>
-      <textarea id="ask-${esc(cell.id)}" data-ask="${esc(cell.id)}" placeholder="${esc(cell.ask.placeholder || '')}">${esc(typeof v==='string'?v:'')}</textarea>
-      <div class="row"><button class="btn" data-ask-go="${esc(cell.id)}">Continue</button></div>
+      ${wantsPic ? `
+        <label class="dropzone ${pending ? 'has' : ''}" for="askimg-${esc(cell.id)}" data-ask-zone="${esc(cell.id)}">
+          ${pending ? `<img src="${esc(pending.src)}" alt="${esc(pending.alt || '')}">` : ''}
+          <span class="dz-hint">${pending ? esc(pending.alt || 'Your picture') : 'Drop a picture, paste one, or choose a file'}</span>
+        </label>
+        <input type="file" id="askimg-${esc(cell.id)}" data-ask-file="${esc(cell.id)}" accept="image/*" hidden>` : ''}
+      <textarea id="ask-${esc(cell.id)}" data-ask="${esc(cell.id)}" placeholder="${esc(cell.ask.placeholder || '')}">${esc(
+        typeof v === 'string' ? v : (isImageVal(v) ? (v.note ?? '') : ''))}</textarea>
+      <div class="row"><button class="btn" data-ask-go="${esc(cell.id)}"
+        ${wantsPic && !pending ? 'disabled' : ''}>Continue</button></div>
     </div>`;
   }
   if (type==='table'){
@@ -5366,6 +5488,77 @@ async function saveFile(filename, text, mime = 'application/json'){
    way in keeps the prompt, the export and the browser's memory sane; it is
    said out loud in the UI rather than done quietly. Vectors are left alone —
    rasterising an SVG to "shrink" it would make it bigger and worse. */
+/* ── Documents in ─────────────────────────────────────────────────────
+   A dropped file becomes TEXT IN THE BOX. Not a hidden attachment, not a
+   second variable — the same textarea, filled in, so what you can see is
+   exactly what the model will be sent. Everything downstream is unchanged,
+   because the bag value is still a string: every existing text notebook can
+   take a file without knowing files exist.
+
+   PDFs are read in the page with pdf.js. Nothing is uploaded to a conversion
+   service, which for a contract or a diagnosis letter is the whole point. */
+const TEXT_EXT = /\.(txt|md|markdown|csv|tsv|json|log|yml|yaml|rst|srt|vtt)$/i;
+const DOC_CHARS = 120000;
+const PDFJS = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.3.289';
+
+let _pdfjs = null;
+async function loadPdfjs(){
+  if (_pdfjs) return _pdfjs;
+  const mod = await import(`${PDFJS}/+esm`);
+  /* The worker keeps parsing off the main thread; without it a long PDF
+     freezes the page exactly like on-device generation does on a phone. */
+  mod.GlobalWorkerOptions.workerSrc = `${PDFJS}/build/pdf.worker.min.mjs`;
+  _pdfjs = mod;
+  return mod;
+}
+
+async function pdfToText(file, onPage){
+  let pdfjs;
+  try { pdfjs = await loadPdfjs(); }
+  catch {
+    throw new Error('Could not load the PDF reader. It comes from a CDN, which some sandboxed previews block — paste the text instead.');
+  }
+  const doc = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+  const limit = Math.min(doc.numPages, 80);
+  const pages = [];
+  for (let i = 1; i <= limit; i++){
+    onPage?.(i, doc.numPages);
+    const content = await (await doc.getPage(i)).getTextContent();
+    /* pdf.js returns positioned runs, not lines. Joining them plainly welds
+       the end of one line to the start of the next ("AGREEMENT1. Term.") —
+       hasEOL is the flag that says where the line actually ended. */
+    pages.push(content.items.map(it => it.str + (it.hasEOL ? '\n' : '')).join('').trim());
+  }
+  return { text: pages.filter(Boolean).join('\n\n'), pages: limit, total: doc.numPages };
+}
+
+/* One reader for every kind of document this app accepts. Returns the text
+   and a plain sentence about where it came from, which the UI shows rather
+   than leaving people to guess whether the whole file arrived. */
+async function fileToText(file, onProgress){
+  const name = file.name || 'the file';
+  let text, note;
+  if (/pdf$/i.test(file.type) || /\.pdf$/i.test(name)){
+    const r = await pdfToText(file, (i, n) => onProgress?.(`Reading page ${i} of ${n}…`));
+    text = r.text;
+    note = r.pages < r.total
+      ? `Read the first ${r.pages} of ${r.total} pages of ${name}.`
+      : `Read ${r.pages} page${r.pages === 1 ? '' : 's'} of ${name}.`;
+    if (!text.trim())
+      throw new Error(`${name} has no text layer — it is probably a scan. This build does not do OCR, so a photograph of the page and a vision notebook will get further.`);
+  } else if (file.type.startsWith('text/') || TEXT_EXT.test(name) || file.type === 'application/json'){
+    text = await file.text();
+    note = `Read ${name}.`;
+  } else {
+    throw new Error(`${name} is not a kind of file this can read. Text, Markdown, CSV, TSV, JSON and PDF work; audio, video and scanned images do not.`);
+  }
+  if (text.length > DOC_CHARS){
+    text = text.slice(0, DOC_CHARS);
+    note += ` Kept the first ${DOC_CHARS.toLocaleString()} characters — what you see below is exactly what gets sent.`;
+  }
+  return { text, note };
+}
+
 const ATTACH_MAX = 1280;
 function shrinkDataURL(src, max = ATTACH_MAX){
   if (/^data:image\/svg/.test(src)) return Promise.resolve({src, w:0, h:0});
