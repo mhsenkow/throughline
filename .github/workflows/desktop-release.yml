@@ -81,18 +81,37 @@ jobs:
       - name: Sync web app into desktop shell
         run: bash ./scripts/sync-desktop.sh
 
-      - name: Build
+      # macOS gets its own step because a secret that does not exist still
+      # arrives as an EMPTY STRING, and Tauri reads "set but empty" as "import
+      # this certificate" — which dies in `security import` with
+      # SecKeychainItemImport: One or more parameters ... were not valid.
+      # That is what failed the v0.1.2 macOS build while Linux and Windows
+      # sailed through. Unset the blanks and an ad-hoc signed build is fine.
+      - name: Build (macOS)
+        if: startsWith(matrix.platform, 'macos')
         working-directory: desktop
+        shell: bash
         env:
-          # Hosted runners lack the local Developer ID. Override conf to ad-hoc
-          # unless secrets supply a real identity + (usually) a .p12.
-          # Notarization runs only when APPLE_ID / PASSWORD / TEAM_ID are set.
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY || (startsWith(matrix.platform, 'macos') && '-' || '') }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY || '-' }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          for v in APPLE_CERTIFICATE APPLE_CERTIFICATE_PASSWORD \
+                   APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID APPLE_SIGNING_IDENTITY; do
+            if [ -z "${!v}" ]; then unset "$v"; fi
+          done
+          echo "signing identity: ${APPLE_SIGNING_IDENTITY:-<none — unsigned>}"
+          echo "certificate supplied: ${APPLE_CERTIFICATE:+yes}${APPLE_CERTIFICATE:-no}"
+          cargo tauri build ${{ matrix.args }}
+
+      # Left exactly as it was: both of these passed on v0.1.2 and there is no
+      # reason to put a new shell under a build that already works.
+      - name: Build
+        if: ${{ !startsWith(matrix.platform, 'macos') }}
+        working-directory: desktop
         run: cargo tauri build ${{ matrix.args }}
 
       - name: Upload artifacts
