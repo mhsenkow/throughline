@@ -1086,7 +1086,11 @@ table.out-table{min-inline-size:32rem}
   max-inline-size:42rem;
 }
 .phone-banner strong, .phone-banner b{color:var(--ink-primary); font-weight:var(--p-weight-medium)}
-.phone-banner.compact{margin-block:var(--p-space-3) 0; max-inline-size:none}
+.desktop-strip.on{
+  border-color:color-mix(in oklab, var(--accent-base) 40%, var(--border-subtle));
+  background:color-mix(in oklab, var(--accent-base) 6%, var(--surface-raised));
+}
+.phone-banner.desktop-cta .btn{margin-inline-end:var(--p-space-2)}
 
 /* iPad and below: the notebook actions keep their icons and lose their words,
    in the order least-to-most ambiguous. Run all keeps its label at every size
@@ -1891,6 +1895,141 @@ const IdbAdapter = () => {
    const T2_AVAILABLE = typeof window.showDirectoryPicker === 'function'  // Chromium only */
 const T2_AVAILABLE = typeof window.showDirectoryPicker === 'function';
 
+/* ── Desktop shell bridge (Tauri) ─────────────────────────────────────
+   Web stays unchanged. Desktop gains CORS-free fetch, a real folder on
+   disk, and OS keychain — the three ceilings the browser cannot lift. */
+const isDesktopShell = () =>
+  window.__THROUGHLINE_SHELL__ === 'desktop'
+  || !!(window.__TAURI_INTERNALS__ || window.__TAURI__);
+
+const tauriCore = () => window.__TAURI__?.core ?? null;
+
+async function desktopCaps(){
+  const core = tauriCore();
+  if (!core) return isDesktopShell()
+    ? { shell:'desktop', cors:true, disk:true, keychain:true, version:'?' }
+    : null;
+  try { return await core.invoke('desktop_caps'); }
+  catch { return { shell:'desktop', cors:true, disk:true, keychain:true, version:'?' }; }
+}
+
+/** Native fetch that bypasses CORS — Response with a live body stream. */
+async function netFetch(url, init = {}){
+  const core = tauriCore();
+  if (!isDesktopShell() || !core?.invoke || !core.Channel) return fetch(url, init);
+
+  const headers = {};
+  if (init.headers){
+    const h = init.headers instanceof Headers ? init.headers : new Headers(init.headers);
+    h.forEach((v, k) => { headers[k] = v; });
+  }
+  const body = init.body == null ? null : String(init.body);
+
+  return new Promise((resolve, reject) => {
+    const onChunk = new core.Channel();
+    let controller = null;
+    let lastLen = 0;
+    let settled = false;
+    onChunk.onmessage = (msg) => {
+      if (msg.kind === 'meta' && !settled){
+        settled = true;
+        const stream = new ReadableStream({ start(c){ controller = c; } });
+        resolve(new Response(stream, {
+          status: msg.status || 200,
+          headers: { 'content-type': 'text/event-stream; charset=utf-8' }
+        }));
+      }
+      if (msg.kind === 'text' && msg.text != null && controller){
+        const add = msg.text.slice(lastLen);
+        lastLen = msg.text.length;
+        if (add) controller.enqueue(new TextEncoder().encode(add));
+      }
+      if (msg.kind === 'done'){
+        if (msg.text != null && controller && msg.text.length > lastLen)
+          controller.enqueue(new TextEncoder().encode(msg.text.slice(lastLen)));
+        try { controller?.close(); } catch {}
+      }
+      if (msg.kind === 'error'){
+        const err = new Error(msg.error || msg.text || 'native fetch failed');
+        if (!settled) reject(err);
+        else try { controller?.error(err); } catch {}
+      }
+    };
+    core.invoke('native_fetch', {
+      req: { url, method: init.method || 'GET', headers, body },
+      onChunk
+    }).catch(err => {
+      if (!settled) reject(err);
+      else try { controller?.error(err); } catch {}
+    });
+  });
+}
+
+const DiskAdapter = (rootPath) => {
+  const core = () => tauriCore();
+  const notebooksDir = () => `${rootPath.replace(/\/$/, '')}/notebooks`;
+  return {
+    id:'disk', label:'Folder on disk',
+    async list(){
+      const files = await core().invoke('list_json_files', { dir: notebooksDir() });
+      const out = [];
+      for (const path of files){
+        try {
+          const raw = await core().invoke('read_text_file', { path });
+          if (!raw) continue;
+          const doc = JSON.parse(raw);
+          out.push({ id: doc.id || path.split('/').pop(), title: doc.title || path, updated: doc.updated || 0, path });
+        } catch {}
+      }
+      return out;
+    },
+    async read(id){
+      const path = `${notebooksDir()}/${id}.json`;
+      try {
+        const raw = await core().invoke('read_text_file', { path });
+        return raw ? JSON.parse(raw) : null;
+      } catch { return null; }
+    },
+    async write(id, doc){
+      const path = `${notebooksDir()}/${id}.json`;
+      const payload = { ...doc, id, updated: Date.now() };
+      await core().invoke('write_text_file', { path, contents: JSON.stringify(payload, null, 2) });
+    },
+    async remove(id){
+      const path = `${notebooksDir()}/${id}.json`;
+      try { await core().invoke('write_text_file', { path, contents: '{}' }); } catch {}
+    },
+    capabilities:()=>({ durable:true, external:true, label:`On disk · ${rootPath}` }),
+    rootPath
+  };
+};
+
+async function desktopSaveKey(id, value){
+  const core = tauriCore();
+  if (!core) return;
+  await core.invoke('save_secret_tracked', { provider: id, secret: value || '' });
+}
+async function desktopLoadKeys(){
+  const core = tauriCore();
+  if (!core) return;
+  try {
+    const ids = await core.invoke('list_secrets');
+    for (const id of ids){
+      const v = await core.invoke('load_secret', { provider: id });
+      if (v) S.keys[id] = v;
+    }
+  } catch (e) { console.warn('keychain load', e); }
+}
+async function desktopExportRun(nb, run){
+  const core = tauriCore();
+  if (!core) return null;
+  const root = await core.invoke('default_library_dir');
+  const path = `${root}/runs/${nb.id}-${Date.now()}.json`;
+  const payload = JSON.stringify({ notebook: nb.id, title: nb.title, at: Date.now(), bag: run.bag, cells: run.cells }, null, 2);
+  await core.invoke('write_text_file', { path, contents: payload });
+  return path;
+}
+
 /* ═════════ packages/engine — model adapters
    Wrapped behind our own interface so the underlying SDK is replaceable.
    NOTE ON CORS (ENG-BRIEF §6.1): a key does not fix CORS. Providers that
@@ -2039,10 +2178,22 @@ const PROVIDERS = {
     plain:'Paid.', note:'' },
 
   gateway: {
-    label:'Work account', vendor:'Bedrock · Vertex · Azure', tier:'blocked', group:'paid',
-    key:'paid', reach:'blocked', classes:['fast','reasoning'],
-    plain:'Company AI accounts cannot be reached from a web page. Not your fault, and no key fixes it.',
-    note:'Requires the desktop build or a self-hosted deployment.' }
+    label:'Work account', vendor:'OpenAI-compatible gateway',
+    tier: isDesktopShell() ? 'paid' : 'blocked',
+    group:'paid',
+    key:'paid',
+    reach: isDesktopShell() ? 'expected' : 'blocked',
+    classes:['fast','reasoning'],
+    model:'gpt-4o',
+    models:['gpt-4o','gpt-4o-mini','claude-sonnet-4','gemini-2.0-flash'],
+    base:'https://api.openai.com/v1',
+    plain: isDesktopShell()
+      ? 'Paste any OpenAI-compatible base URL — Azure, Bedrock proxy, LiteLLM, company gateway. Desktop has no CORS ceiling.'
+      : 'Company AI accounts cannot be reached from a web page. Not your fault, and no key fixes it.',
+    note: isDesktopShell()
+      ? 'Set the base URL below to your gateway. Traffic leaves from the desktop app, not the browser origin.'
+      : 'Requires the desktop build — free download — or a self-hosted deployment.'
+  }
 };
 
 const modelOf = id => S.models[id] ?? PROVIDERS[id].model ?? '';
@@ -2597,7 +2748,7 @@ const ADAPTERS = {
   async ollama({sys, prompt, onText, signal, cfg}){
     let res;
     try {
-      res = await fetch('http://localhost:11434/api/chat', { method:'POST', signal,
+      res = await netFetch('http://localhost:11434/api/chat', { method:'POST', signal,
         headers:{'content-type':'application/json'},
         body: JSON.stringify({ model:cfg._model, stream:true,
           messages:[{role:'system',content:sys},{role:'user',content:prompt}] }) });
@@ -2616,7 +2767,7 @@ const ADAPTERS = {
   async google({sys, prompt, onText, signal, cfg, key}){
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(cfg._model)}:streamGenerateContent?alt=sse`;
     /* Key travels in a header, never the query string. */
-    const res = await fetch(url, { method:'POST', signal,
+    const res = await netFetch(url, { method:'POST', signal,
       headers:{'content-type':'application/json','x-goog-api-key':key},
       body: JSON.stringify({ systemInstruction:{parts:[{text:sys}]},
         contents:[{role:'user', parts:[{text:prompt}]}] }) });
@@ -2631,7 +2782,7 @@ const ADAPTERS = {
   },
 
   async anthropic({sys, prompt, onText, signal, cfg, key}){
-    const res = await fetch('https://api.anthropic.com/v1/messages', { method:'POST', signal,
+    const res = await netFetch('https://api.anthropic.com/v1/messages', { method:'POST', signal,
       headers:{ 'content-type':'application/json', 'x-api-key':key,
         'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
       body: JSON.stringify({ model:cfg._model, max_tokens:2000, system:sys, stream:true,
@@ -2647,7 +2798,7 @@ const ADAPTERS = {
 
   /* Groq, OpenRouter and OpenAI all speak the same wire format. */
   async openaiCompatible({sys, prompt, onText, signal, cfg, key, label}){
-    const res = await fetch(`${cfg.base}/chat/completions`, { method:'POST', signal,
+    const res = await netFetch(`${cfg.base}/chat/completions`, { method:'POST', signal,
       headers:{ 'content-type':'application/json', 'authorization':`Bearer ${key}` },
       body: JSON.stringify({ model:cfg._model, stream:true, messages:[
         {role:'system', content:sys},{role:'user', content:prompt}] }) });
@@ -2667,7 +2818,7 @@ const ADAPTER_FOR = { chrome:'chrome', localdl:'localdl', ollama:'ollama', googl
   groq:'openaiCompatible', openrouter:'openaiCompatible', openai:'openaiCompatible',
   huggingface:'openaiCompatible', cerebras:'openaiCompatible', mistral:'openaiCompatible',
   deepseek:'openaiCompatible', together:'openaiCompatible', xai:'openaiCompatible',
-  lmstudio:'openaiCompatible' };
+  lmstudio:'openaiCompatible', gateway:'openaiCompatible' };
 
 /* Provider errors are written for developers. These are the four that
    actually happen, said the way a person would say them. */
@@ -2692,7 +2843,7 @@ async function runLive(providerId, prompt, type, onDelta, onText, signal){
     throw new Error(`${cfg.label} does not permit browser requests (CORS). This is not a key problem — no credential changes it. Use the desktop build or a self-hosted deployment.`);
   const fn = ADAPTERS[ADAPTER_FOR[providerId]];
   if (!fn) throw new Error(`No adapter for ${cfg.label}.`);
-  const runCfg = {...cfg, _model: modelOf(providerId)};
+  const runCfg = {...cfg, _model: modelOf(providerId), base: (S.bases?.[providerId] || cfg.base)};
   const sys = `${SHAPE[type]}\nAnswer in ${LOCALES[S.locale].outputLanguage}.`;
   const structured = type === 'list' || type === 'table' || type === 'gate' || type === 'score' || type === 'diff' || type === 'ranking' || type === 'timeline' || type === 'choice';
   const text = await fn({ sys, prompt, signal, cfg:runCfg, key:S.keys[providerId] ?? '', label:cfg.label,
@@ -2977,7 +3128,7 @@ const S = {
   view:'library', nbId:null, locale:'en', mode:'light',
   brand:'rams', provider:'auto', keys:{}, cellProvider:{}, models:{}, tests:{}, builtin:'absent', dl:null,
   local:{ status:'idle', progress:null, file:null, err:null, ready:null }, device:null,
-  editing:false, edits:{}, connectSel:null, testing:null,
+  editing:false, edits:{}, connectSel:null, testing:null, bases:{},
   typeset:'brand', density:'comfortable', modePref:'system', lookTab:0,
   sheet:null, runs:{}, storage:null, marks:{}, libShown: 30
 };
@@ -3159,6 +3310,18 @@ function renderLibrary(){
         <strong>On a phone:</strong> showing <b>Phone-friendly</b> notebooks by default
         (${phoneCount} short runs — no loops or maps). Downloaded models work; for Run all,
         the guided demo stays the smoothest way to explore. Turn the filter off anytime to see everything.
+      </p>` : ''}
+      ${(!isMobileClient() && !isDesktopShell()) ? `<p class="phone-banner desktop-cta" role="complementary">
+        <strong>Want the version that can do everything?</strong>
+        Throughline Desktop is free — company gateways, every provider (no CORS),
+        notebooks as real files, keys in your keychain. Nothing we host ever sees your work.
+        <a class="btn" style="margin-block-start:var(--p-space-3); display:inline-flex"
+           href="https://github.com/mhsenkow/throughline/releases/latest"
+           target="_blank" rel="noopener noreferrer">Download for Mac ↗</a>
+      </p>` : ''}
+      ${isDesktopShell() ? `<p class="phone-banner" role="status">
+        <strong>Desktop · free forever.</strong> Native HTTP, disk library, OS keychain.
+        Work account gateways are unlocked in Connect.
       </p>` : ''}
     </header>
 
@@ -3808,21 +3971,41 @@ function exportFailed(msg){
 
 /* ── Desktop upsell — honest about what a browser cannot fix ─────────── */
 function desktopStrip(){
+  if (isDesktopShell()){
+    const root = S.storage?.rootPath || 'Documents/Throughline';
+    return `
+    <div class="desktop-strip on">
+      <div class="grow">
+        <h3>You are on Throughline Desktop — free forever</h3>
+        <p>This build lifts the three ceilings the website cannot: every provider
+        (no CORS), notebooks as real files, keys in the macOS keychain. Nothing
+        we host ever sees your prompts or credentials.</p>
+        <div class="cap-list">
+          <div><span class="y">●</span><span>Native HTTP — company gateways and every API work</span></div>
+          <div><span class="y">●</span><span>Library folder · ${esc(root)}</span></div>
+          <div><span class="y">●</span><span>Keys in the OS keychain — survive restarts, never synced to us</span></div>
+          <div><span class="y">●</span><span>Same notebooks as the web — bring your own model</span></div>
+        </div>
+      </div>
+      <button class="btn" id="open-library-folder" type="button">Reveal library folder</button>
+    </div>`;
+  }
   return `
   <div class="desktop-strip">
     <div class="grow">
       <h3>${esc(t('desktopTitle'))}</h3>
-      <p>${esc(t('desktopBody'))}</p>
+      <p>${esc(t('desktopBody'))} Free forever. Same product — more power.</p>
       <div class="cap-list">
         <div><span class="y">●</span><span>Every provider — no CORS ceiling</span></div>
         <div><span class="y">●</span><span>Notebooks as real files on disk</span></div>
         <div><span class="y">●</span><span>Keys in the OS keychain</span></div>
+        <div><span class="y">●</span><span>Company gateways (Azure, Bedrock proxies, LiteLLM)</span></div>
         <div><span class="n">○</span><span>Browser: CORS-permissive providers only</span></div>
         <div><span class="n">○</span><span>Browser: storage the browser may clear</span></div>
         <div><span class="n">○</span><span>Browser: keys held in the tab</span></div>
       </div>
     </div>
-    <a class="btn" href="https://github.com/mhsenkow/throughline/releases" target="_blank" rel="noopener noreferrer">${esc(t('getDesktop'))} ↗</a>
+    <a class="btn" href="https://github.com/mhsenkow/throughline/releases/latest" target="_blank" rel="noopener noreferrer">${esc(t('getDesktop'))} ↗</a>
   </div>`;
 }
 
@@ -4196,15 +4379,22 @@ function connectDetail(id){
       <div class="step ${step>1?'done':''}">
         <span class="step-n">1</span>
         <div class="step-body">
-          <p>Get a key from ${esc(p.label)}. It opens in a new tab.</p>
-          <a class="btn" href="${p.signup}" target="_blank" rel="noopener noreferrer">
-            Open the ${esc(p.label)} key page ↗</a>
+          ${id==='gateway'
+            ? `<p>Point at any OpenAI-compatible gateway — Azure OpenAI, Bedrock proxy, LiteLLM, Hugging Face router, your company relay.</p>
+               <input type="url" data-base="${id}" value="${esc(S.bases[id] ?? p.base ?? '')}"
+                 placeholder="https://your-gateway.example/v1" autocomplete="off" spellcheck="false"
+                 aria-label="Gateway base URL">`
+            : `<p>Get a key from ${esc(p.label)}. It opens in a new tab.</p>
+               <a class="btn" href="${p.signup}" target="_blank" rel="noopener noreferrer">
+                 Open the ${esc(p.label)} key page ↗</a>`}
         </div>
       </div>
       <div class="step ${step>2?'done':''}">
         <span class="step-n">2</span>
         <div class="step-body">
-          <p>Paste it here. It stays in this tab and is never sent anywhere but ${esc(p.label)}.</p>
+          <p>Paste the key here. ${isDesktopShell()
+            ? 'On desktop it is stored in the OS keychain — not on our servers (we have none).'
+            : 'It stays in this tab and is never sent anywhere but ' + esc(p.label) + '.'}</p>
           <input type="password" data-key="${id}" value="${esc(S.keys[id] ?? '')}"
                  placeholder="Paste your key" autocomplete="off" spellcheck="false"
                  aria-label="${esc(p.label)} key">
@@ -4216,6 +4406,16 @@ function connectDetail(id){
         <div class="step-body">
           <p>Pick a model. The first one is a good default.</p>
           ${modelPicker(id)}
+        </div>
+      </div>` : ''}
+
+    ${p.reach === 'blocked' ? `
+      <div class="step">
+        <span class="step-n">1</span>
+        <div class="step-body">
+          <p><b>This needs the free desktop app.</b> A web page cannot call most company AI gateways — CORS blocks it, and no key fixes that.</p>
+          <a class="btn" href="https://github.com/mhsenkow/throughline/releases/latest" target="_blank" rel="noopener noreferrer">
+            Download Throughline Desktop ↗</a>
         </div>
       </div>` : ''}
 
@@ -4337,6 +4537,7 @@ function wireSheet(el){
     inp.oninput = () => {
       const id = inp.dataset.key;
       if (inp.value.trim()) S.keys[id] = inp.value.trim(); else delete S.keys[id];
+      if (isDesktopShell()) desktopSaveKey(id, inp.value.trim()).catch(()=>{});
       clearTimeout(t);
       if ((inp.value.trim().length) < 12) return;
       t = setTimeout(async () => {
@@ -4345,6 +4546,13 @@ function wireSheet(el){
         S.tests[id] = r.ok ? r : {ok:false, msg:humanError(r.msg, id)};
         S.testing = null; renderSheet(); render();
       }, 700);
+    };
+  });
+  el.querySelectorAll('[data-base]').forEach(inp => {
+    inp.oninput = () => {
+      const id = inp.dataset.base;
+      S.bases[id] = inp.value.trim();
+      if (PROVIDERS[id]) PROVIDERS[id].base = S.bases[id] || PROVIDERS[id].base;
     };
   });
   el.querySelectorAll('[data-model]').forEach(inp => {
@@ -4806,13 +5014,42 @@ addEventListener('keydown', e => { if (e.key==='Escape' && S.sheet){ S.sheet=nul
      scripted demo so the library is never gated behind setup. */
   if (isConnected('chrome')) S.provider = 'chrome';
   else if (S.provider === 'chrome') S.provider = 'auto';
-  if (!S.connectSel) S.connectSel = isMobileClient() ? 'localdl' : 'google';
-  try { const a = IdbAdapter(); await a.init(); S.storage = a; }
-  catch { S.storage = MemoryAdapter(); }
+  if (!S.connectSel) S.connectSel = isMobileClient() ? 'localdl' : (isDesktopShell() ? 'gateway' : 'google');
+  if (isDesktopShell() && tauriCore()){
+    try {
+      const root = await tauriCore().invoke('default_library_dir');
+      S.storage = DiskAdapter(root);
+      await desktopLoadKeys();
+      S.desktop = await desktopCaps();
+    } catch (e) {
+      console.warn('desktop storage', e);
+      try { const a = IdbAdapter(); await a.init(); S.storage = a; }
+      catch { S.storage = MemoryAdapter(); }
+    }
+  } else {
+    try { const a = IdbAdapter(); await a.init(); S.storage = a; }
+    catch { S.storage = MemoryAdapter(); }
+  }
   await loadMarks();
   await loadEdits();
   applyShareState();
   applyTheme(); render();
   loadLibrary(); /* async; re-renders when the full shelf arrives */
+  /* Bind desktop-only actions that live outside the view root. */
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest?.('#open-library-folder');
+    if (!btn || !tauriCore()) return;
+    try {
+      const root = S.storage?.rootPath || await tauriCore().invoke('default_library_dir');
+      await tauriCore().invoke('plugin:opener|open_path', { path: root }).catch(async () => {
+        /* opener API shape varies — fall back to shell open via plugin */
+        const { openPath } = window.__TAURI__?.opener || {};
+        if (openPath) await openPath(root);
+        else alert(`Library folder:\n${root}`);
+      });
+    } catch {
+      alert(`Library folder:\n${S.storage?.rootPath || '~/Documents/Throughline'}`);
+    }
+  });
 })();
 </script>

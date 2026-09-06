@@ -1,0 +1,45 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Throughline",
+  "version": "0.1.0",
+  "identifier": "org.throughline.desktop",
+  "build": {
+    "beforeDevCommand": "bash ../scripts/sync-desktop.sh",
+    "beforeBuildCommand": "bash ../scripts/sync-desktop.sh",
+    "frontendDist": "../src"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "title": "Throughline",
+        "width": 1280,
+        "height": 860,
+        "minWidth": 900,
+        "minHeight": 640,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["dmg", "app"],
+    "category": "Productivity",
+    "shortDescription": "Runnable notebooks that make AI capability legible — free, local-first.",
+    "longDescription": "Throughline is a library of short, linear, runnable notebooks. The desktop build lifts the browser ceilings: every provider (no CORS), notebooks as real files on disk, and keys in the OS keychain. Free forever. Bring your own model.",
+    "macOS": {
+      "minimumSystemVersion": "11.0"
+    },
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  },
+  "plugins": {}
+}

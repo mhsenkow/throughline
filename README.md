@@ -339,17 +339,28 @@ own origin.
 
 ## The desktop build
 
-Not yet started. When it is, per ENGINEERING-BRIEF §1.2 it should be **Tauri v2**,
-consuming the same source, and it exists to lift exactly three browser ceilings:
+**Ships as Throughline Desktop (Tauri v2)** in
+[`desktop/`](desktop/) — free forever, same notebooks as the web, three powers
+the browser cannot have:
 
-- **Every provider.** Requests originate outside the webview, so CORS does not
-  apply. This is the largest single gain and no amount of client work substitutes.
-- **Real files on disk.** Notebooks in a folder the user owns — git-able,
-  backup-able, immune to browser eviction (R9).
-- **Keys in the OS keychain** rather than held in a tab.
+| Ceiling | Web / phone | Desktop |
+|---|---|---|
+| Providers | CORS-permissive only | **Every OpenAI-compatible gateway** (Azure, Bedrock proxies, LiteLLM, company relays) via native HTTP |
+| Storage | IndexedDB (browser may clear) | **`~/Documents/Throughline/`** — git-able JSON on disk |
+| Keys | Held in the tab | **OS keychain** |
 
-The web build already points at it honestly, naming what the browser cannot fix
-rather than implying the desktop version is merely nicer.
+Download: **https://github.com/mhsenkow/throughline/releases/latest**
+
+Develop / rebuild:
+
+```bash
+./scripts/sync-desktop.sh
+cd desktop && cargo tauri dev      # iterate
+cd desktop && cargo tauri build    # ships .app + .dmg under src-tauri/target/release/bundle/
+```
+
+The website keeps a download strip and Connect refusal for "Work account" that
+points here — the desktop app unlocks that row instead of apologizing.
 
 ## Graduating to the monorepo
 
