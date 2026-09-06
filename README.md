@@ -185,7 +185,7 @@ together.
 | Ollama / Google / Groq / OpenRouter / Anthropic / OpenAI adapters | **Written and streaming**, none verified against a live key |
 | Guided demo provider | Scripted — deliberately, it is the R6 fix |
 | T2 File System Access backend | Detected, not implemented |
-| Tauri desktop build | Not started |
+| Tauri desktop build | **Shipped** (macOS DMG; Windows/Linux via CI) |
 
 ## The library
 
@@ -351,22 +351,27 @@ the browser cannot have:
 
 Download: **https://github.com/mhsenkow/throughline/releases/latest**
 
-**First open on macOS (unsigned build):** Gatekeeper may say the app is
-“damaged.” It isn’t — Chrome/Safari marked the download. Fix once:
+**Installers:** macOS `.dmg` (Apple Silicon + Intel), Windows NSIS `.exe`,
+Linux `.deb` + `.AppImage`. Built by [`.github/workflows/desktop-release.yml`](.github/workflows/desktop-release.yml)
+on tag push. Local Mac builds sign with Developer ID; notarization needs
+`APPLE_ID` / app-specific password / `APPLE_TEAM_ID=WC44W2QVE4` — see
+[`desktop/README.md`](desktop/README.md).
+
+**First open on macOS (if not yet notarized):** Gatekeeper may say the app is
+“damaged.” It isn’t — quarantine on the download. Fix once:
 
 ```bash
 xattr -cr /Applications/Throughline.app
 open /Applications/Throughline.app
 ```
 
-(Or: System Settings → Privacy & Security → Open Anyway, after a failed open.)
-
 Develop / rebuild:
 
 ```bash
 ./scripts/sync-desktop.sh
 cd desktop && cargo tauri dev      # iterate
-cd desktop && cargo tauri build    # ships .app + .dmg under src-tauri/target/release/bundle/
+cd desktop && cargo tauri build    # macOS .app + .dmg (signed when cert present)
+# Windows / Linux: push a v* tag, or Actions → Desktop release
 ```
 
 The website keeps a download strip and Connect refusal for "Work account" that

@@ -26,12 +26,27 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["dmg", "app"],
+    "targets": ["dmg", "app", "nsis", "deb", "appimage"],
     "category": "Productivity",
     "shortDescription": "Runnable notebooks that make AI capability legible — free, local-first.",
     "longDescription": "Throughline is a library of short, linear, runnable notebooks. The desktop build lifts the browser ceilings: every provider (no CORS), notebooks as real files on disk, and keys in the OS keychain. Free forever. Bring your own model.",
     "macOS": {
-      "minimumSystemVersion": "11.0"
+      "minimumSystemVersion": "11.0",
+      "signingIdentity": "Developer ID Application: Michael Senkow (WC44W2QVE4)",
+      "hardenedRuntime": true
+    },
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    },
+    "linux": {
+      "deb": {
+        "depends": []
+      },
+      "appimage": {
+        "bundleMediaFramework": false
+      }
     },
     "icon": [
       "icons/32x32.png",
