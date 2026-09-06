@@ -9276,7 +9276,7 @@
     "persona": "scholar",
     "featured": true,
     "title": "Write a Notebook",
-    "blurb": "Turns a capability you want someone to feel into a Throughline notebook — cell by cell — and emits paste-ready JSON. This is how the library grows.",
+    "blurb": "Turns a capability you want someone to feel into a Throughline notebook — cell by cell — and emits paste-ready JSON. Save the emit to Your notebooks on this device, or hand the file to someone else.",
     "teaches": "Teach — authorship as a runnable pipeline",
     "tags": [
       "authoring",
