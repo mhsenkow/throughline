@@ -368,7 +368,10 @@ input,textarea,select{font:inherit;color:inherit}
 .tag.loop{color:var(--accent-base); background:var(--accent-wash)}
 /* Surfaces blur what is behind them only when a theme asks for it. Default
    0px, so opaque themes pay nothing. */
-.card,.cell,.sheet,.menu,.topbar{backdrop-filter:blur(var(--surface-blur, 0px))}
+/* Blur on .topbar / .menu creates a containing block: position:fixed
+   children (the model menu on phones) get trapped inside the topbar and
+   become untappable. Keep glass on content surfaces only. */
+.card,.cell,.sheet{backdrop-filter:blur(var(--surface-blur, 0px))}
 
 .card{
   text-align:start; display:flex; flex-direction:column; gap:var(--p-space-3);
@@ -915,6 +918,8 @@ details.vars[open] > summary::before{transform:rotate(90deg)}
 .menu-item .sub{display:block; font-size:var(--p-size-0); color:var(--ink-muted)}
 .menu-item .tick{color:var(--accent-base)}
 .menu-sep{block-size:1px; background:var(--border-subtle); margin:var(--p-space-2) 0}
+/* Desktop: unused. Phones: full-viewport dismiss layer behind the sheet menu. */
+.menu-scrim{display:none}
 
 .picker{display:inline-flex; align-items:center; gap:var(--p-space-2)}
 .picker select{
@@ -1176,9 +1181,19 @@ table.out-table{min-inline-size:32rem}
   .menu{
     position:fixed; inset-inline:var(--p-space-3); inset-block-start:auto;
     inset-block-end:calc(var(--p-space-3) + env(safe-area-inset-bottom, 0px));
-    min-inline-size:0; max-block-size:70dvh; overflow-y:auto;
-    -webkit-overflow-scrolling:touch;
+    min-inline-size:0; max-inline-size:none; inline-size:auto;
+    max-block-size:min(70dvh, calc(100dvh - 5rem)); overflow-y:auto;
+    -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
+    z-index:50; box-shadow:var(--elevation-2);
   }
+  /* Scrim behind the model menu so outside taps dismiss and the sheet
+     reads as a real control, not a clipped topbar fragment. */
+  .menu-scrim{
+    display:block; position:fixed; inset:0; z-index:45;
+    background:rgb(0 0 0 / 0.28);
+    -webkit-tap-highlight-color:transparent;
+  }
+  .menu-scrim[hidden]{display:none !important}
   .share-pop{
     position:fixed; z-index:35;
     inset-inline:var(--p-space-3);
@@ -1409,6 +1424,7 @@ table.out-table{min-inline-size:32rem}
         <button class="switcher" id="btn-model" aria-haspopup="true" aria-expanded="false">
           <span class="dot" id="model-dot"></span><span id="model-name">…</span><span class="chev">▾</span>
         </button>
+        <div class="menu-scrim" id="model-scrim" hidden></div>
         <div class="menu" id="model-menu" hidden></div>
       </div>
       <div class="topbar-actions">
@@ -2035,6 +2051,9 @@ const CSP_CONNECT = [
   'https://huggingface.co',
   'https://cdn-lfs.huggingface.co',
   'https://cdn-lfs-us-1.huggingface.co',
+  /* HF Xet CDN — ONNX weights redirect here from huggingface.co/resolve/… */
+  'https://us.aws.cdn.hf.co',
+  'https://eu.aws.cdn.hf.co',
 ];
 
 /* Curated Transformers.js / ONNX chat models. Ranked per device at runtime —
@@ -2203,8 +2222,14 @@ async function downloadLocalModel(modelId, onProgress){
     S.provider = 'localdl';
     return true;
   } catch (e){
-    S.local = { status:'error', progress:null, file:null, err:e.message || String(e), ready:null };
-    throw e;
+    const raw = e.message || String(e);
+    const err = /failed to fetch|networkerror|load failed|csp|content security/i.test(raw)
+      ? 'Download was blocked before the files arrived. Check your connection, stay on this page, and try the smallest model (SmolLM2 135M). If it keeps failing, use a free cloud key instead.'
+      : /memory|out of memory|oom|wasm/i.test(raw)
+      ? 'This device ran out of memory loading that model. Pick a smaller one (SmolLM2 135M) or use a free cloud key.'
+      : raw;
+    S.local = { status:'error', progress:null, file:null, err, ready:null };
+    throw new Error(err);
   }
 }
 
@@ -2589,8 +2614,10 @@ function humanError(msg, id){
   if (/404|model|not found/i.test(m))
     return `The key works, but that model name was not recognised. Pick a different one from the list.`;
   if (/failed to fetch|networkerror|cors|load failed/i.test(m))
-    return `Could not reach ${PROVIDERS[id]?.label ?? 'the service'} from a web page. This is a browser restriction, not a problem with your key.`;
-  return m.slice(0, 180);
+    return id === 'localdl'
+      ? 'Could not download the model files. Stay on this page, try the smallest size, or paste a free cloud key instead.'
+      : `Could not reach ${PROVIDERS[id]?.label ?? 'the service'} from a web page. This is a browser restriction, not a problem with your key.`;
+  return m.slice(0, 240);
 }
 
 async function runLive(providerId, prompt, type, onDelta, onText, signal){
@@ -4163,7 +4190,8 @@ function wireSheet(el){
         last = pct; renderSheet();
       });
     } catch (e){
-      S.tests.localdl = {ok:false, msg:e.message || String(e)};
+      S.tests.localdl = {ok:false, msg:humanError(e.message || String(e), 'localdl')};
+      if (S.local) S.local.err = S.tests.localdl.msg;
     }
     renderSheet(); render();
   };
@@ -4266,12 +4294,14 @@ function renderSwitcher(){
     ? ['demo','localdl','google','groq','openrouter','chrome','anthropic','openai']
     : ['localdl','chrome','demo','ollama','google','groq','openrouter','anthropic','openai'];
   const rec = recommendLocalModel(S.device);
+  /* Never disable a row that can still be set up — a greyed Google / Groq
+     tap on a phone looked like a broken menu. Unconnected → open Connect. */
   menu.innerHTML =
     `<div class="menu-label">Use for every cell</div>` +
     row('auto', 'Auto', {cls: 'ok', txt: 'best connected model per cell'}, S.provider==='auto', false) +
     `<div class="menu-sep"></div>` +
     order.map(id => row(id, PROVIDERS[id].label, statusOf(id),
-                        S.provider===id, !isConnected(id) && id !== 'localdl')).join('') +
+                        S.provider===id, false)).join('') +
     (!isConnected('localdl')
       ? `<div class="menu-sep"></div><button class="menu-item" id="menu-local-dl">
            <span class="dot warn"></span><span class="grow">Download ${esc(rec.label)}
@@ -4288,10 +4318,14 @@ function renderSwitcher(){
 
   menu.querySelectorAll('[data-pick]').forEach(b => b.onclick = () => {
     const id = b.dataset.pick;
-    if (id === 'localdl' && !isConnected('localdl')){
-      closeMenu(); S.sheet='settings'; S.connectSel='localdl'; renderSheet(); return;
+    if (id === 'auto' || isConnected(id)){
+      S.provider = id; S.cellProvider = {}; closeMenu(); render();
+      return;
     }
-    S.provider = id; S.cellProvider = {}; closeMenu(); render();
+    closeMenu();
+    S.sheet = 'settings';
+    S.connectSel = id;
+    renderSheet();
   });
   const menuLocal = menu.querySelector('#menu-local-dl');
   if (menuLocal) menuLocal.onclick = () => {
@@ -4317,7 +4351,22 @@ function renderSwitcher(){
     renderSheet();
   };
 }
-const closeMenu = () => { const m=$('#model-menu'); m.hidden=true; $('#btn-model').setAttribute('aria-expanded','false'); };
+const closeMenu = () => {
+  const m = $('#model-menu');
+  if (m) m.hidden = true;
+  const scrim = $('#model-scrim');
+  if (scrim) scrim.hidden = true;
+  $('#btn-model')?.setAttribute('aria-expanded', 'false');
+};
+const openMenu = () => {
+  const m = $('#model-menu');
+  if (!m) return;
+  renderSwitcher();
+  m.hidden = false;
+  const scrim = $('#model-scrim');
+  if (scrim && matchMedia('(max-width:640px)').matches) scrim.hidden = false;
+  $('#btn-model').setAttribute('aria-expanded', 'true');
+};
 
 /* ── Edits ───────────────────────────────────────────────────────────────
    A template you cannot change is a demo. Editing one forks it into YOUR
@@ -4536,13 +4585,18 @@ function render(){
 $('#btn-model').onclick = e => {
   e.stopPropagation();
   const m = $('#model-menu');
-  m.hidden = !m.hidden;
-  $('#btn-model').setAttribute('aria-expanded', String(!m.hidden));
-  if (!m.hidden) renderSwitcher();
+  if (m.hidden) openMenu();
+  else closeMenu();
 };
+$('#model-scrim')?.addEventListener('click', e => {
+  e.stopPropagation();
+  closeMenu();
+});
 addEventListener('click', e => {
   const m = $('#model-menu');
-  if (!m.hidden && !e.target.closest('.switch-wrap')) closeMenu();
+  if (!m || m.hidden) return;
+  if (e.target.closest('.switch-wrap') || e.target.closest('#model-menu') || e.target.closest('#model-scrim')) return;
+  closeMenu();
 });
 $('#home').onclick = () => { S.view='library'; S.nbId=null; render(); scrollTop(); };
 $('#btn-look').querySelector('.ico').innerHTML = ICONS.look;
