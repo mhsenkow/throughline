@@ -351,6 +351,16 @@ the browser cannot have:
 
 Download: **https://github.com/mhsenkow/throughline/releases/latest**
 
+**First open on macOS (unsigned build):** Gatekeeper may say the app is
+“damaged.” It isn’t — Chrome/Safari marked the download. Fix once:
+
+```bash
+xattr -cr /Applications/Throughline.app
+open /Applications/Throughline.app
+```
+
+(Or: System Settings → Privacy & Security → Open Anyway, after a failed open.)
+
 Develop / rebuild:
 
 ```bash
