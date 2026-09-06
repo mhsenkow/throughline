@@ -1475,6 +1475,18 @@ table.out-table{min-inline-size:32rem}
 .img-alt{font-size:var(--p-size-2); color:var(--ink-secondary); line-height:1.5}
 .img-foot{display:flex; align-items:center; gap:var(--p-space-3); flex-wrap:wrap}
 
+/* A mapped media cell: several pictures, scenes or charts in one output. */
+.media-list{display:flex; flex-direction:column; gap:var(--p-space-4)}
+.media-list.grid{
+  display:grid; gap:var(--p-space-4);
+  grid-template-columns:repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+}
+.media-item{margin:0; display:flex; flex-direction:column; gap:var(--p-space-2)}
+.media-n{
+  font-family:var(--font-mono); font-size:var(--p-size-0); color:var(--ink-muted);
+  letter-spacing:var(--p-tracking-wide);
+}
+
 /* Big-model downloads (desktop) */
 .weights{display:flex; flex-direction:column; gap:var(--p-space-3); margin-block:var(--p-space-3)}
 .weight{
@@ -2905,11 +2917,16 @@ const sleep = ms => new Promise(r=>setTimeout(r,ms));
    positions and sizes, which is what makes .obj and .stl export a formatting
    step rather than a second feature. Same argument as tables-not-prose, one
    dimension further out. */
+const MEDIA_TYPES = new Set(['image','scene','diagram','chart']);
 const isImageVal   = v => !!v && typeof v === 'object' && v.kind === 'image' && typeof v.src === 'string';
 const isSceneVal   = v => !!v && typeof v === 'object' && Array.isArray(v.objects);
 const isDiagramVal = v => !!v && typeof v === 'object' && Array.isArray(v.nodes) && Array.isArray(v.edges);
 const isChartVal   = v => !!v && typeof v === 'object' && Array.isArray(v.series) && Array.isArray(v.labels);
 const imageAlt = v => v.alt || v.prompt || 'Generated image';
+const isMediaVal = v => isImageVal(v) || isSceneVal(v) || isDiagramVal(v) || isChartVal(v);
+/* A map over a media type lands here: N pictures, N scenes, N charts. Held as
+   one value so the bag, the export and the renderers all stay uniform. */
+const isMediaList = v => Array.isArray(v) && v.length > 0 && v.every(isMediaVal);
 
 function reshape(v, to){
   const isTable = v && !Array.isArray(v) && typeof v === 'object' && v.cols;
@@ -2917,7 +2934,12 @@ function reshape(v, to){
   const isDiff = v && typeof v === 'object' && 'before' in v && 'after' in v;
   const isRank = v && typeof v === 'object' && Array.isArray(v?.items) && Array.isArray(v?.criteria);
   const isTime = v && typeof v === 'object' && Array.isArray(v?.events);
-  if (isImageVal(v) || isSceneVal(v) || isDiagramVal(v) || isChartVal(v)){
+  if (isMediaList(v)){
+    if (to === 'list') return v.map(x => reshape(x, 'prose'));
+    if (to === 'table') return {cols:['#','What it is'], rows: v.map((x,i)=>[String(i+1), reshape(x, 'prose')])};
+    return v.map((x,i) => `${i+1}. ${reshape(x, 'prose')}`).join('\n\n');
+  }
+  if (isMediaVal(v)){
     /* Media re-presented as text describes itself; it is never redrawn into
        a different medium, which would be the demo inventing content. */
     if (to === 'list'){
@@ -3613,7 +3635,10 @@ function bagText(v){
   if (isChartVal(v))
     return [`${v.kind} chart${v.unit?` in ${v.unit}`:''}`,
       ...v.labels.map((l,i) => `${l}: ${v.series.map(se=>`${se.name} ${se.values[i] ?? '—'}`).join(', ')}`)].join('\n');
-  if (Array.isArray(v)) return v.map(x=>`- ${x}`).join('\n');
+  /* An array of typed values used to describe itself as "- [object Object]".
+     Recurse instead — this is what a downstream cell reads off a media map. */
+  if (Array.isArray(v))
+    return v.map(x => typeof x === 'string' ? `- ${x}` : bagText(x)).join('\n');
   if (typeof v === 'object' && 'verdict' in v){
     const parts = [`Verdict: ${v.verdict}`];
     if (v.reason) parts.push(`Reason: ${v.reason}`);
@@ -3722,6 +3747,13 @@ async function execCell(nb, rawCell, run, onChange){
         cs.value = value; cs.raw=''; cs.state='done'; cs.ms = Math.round(performance.now()-t0);
         run.bag[cell.output.name] = value;
       } else {
+        /* Mapping a media type keeps the VALUES, one per item, and the cell
+           holds a list of them. Flattening them to text — which this branch
+           used to do for everything — produced a cell that said `image` and
+           held prose: a typed contract lying about itself, which is the exact
+           failure the contract exists to prevent. Text types keep the joined
+           behaviour, because joined prose is what a prose map means. */
+        const media = MEDIA_TYPES.has(cell.output.type);
         const out = [];
         const mapCap = (isMobileClient() && resolveFor(cell) === 'localdl') ? 3 : list.length;
         const capped = list.slice(0, mapCap);
@@ -3730,20 +3762,33 @@ async function execCell(nb, rawCell, run, onChange){
           if (isMobileClient()) await yieldToMain();
           const bag = {...run.bag, [as]: typeof capped[i] === 'string' ? capped[i] : bagText(capped[i])};
           const prompt = renderPrompt(cell.prompt, nb, {bag});
+          if (cell.output.type === 'image'){
+            /* Drawing takes the other wire, once per item. */
+            const img = await runImage(providerId, prompt, cell,
+              note => { cs.raw = `${i + 1} of ${capped.length} — ${note}`; cs.state='streaming'; onChange(); },
+              ctrl.signal);
+            out.push(img);
+            onDelta([...out]);
+            continue;
+          }
           /* Force list-item as prose fragment then push; if output is list, coerce each. */
           const itemType = cell.output.type === 'list' ? 'prose' : cell.output.type;
           let piece;
           await runLive(providerId, prompt, itemType,
-            v => { piece = v; cs.value = cell.output.type==='list' ? [...out, v] : v; cs.state='streaming'; onChange(); },
+            v => { piece = v; cs.value = (media || cell.output.type==='list') ? [...out, v] : v; cs.state='streaming'; onChange(); },
             t => { cs.raw = t; onChange(); }, ctrl.signal, visionInputs(cell, run));
-          out.push(typeof piece === 'string' ? piece : bagText(piece));
-          onDelta(cell.output.type==='list' ? [...out] : out.join('\n\n'));
+          out.push(media ? piece : (typeof piece === 'string' ? piece : bagText(piece)));
+          onDelta((media || cell.output.type==='list') ? [...out] : out.join('\n\n'));
         }
-        if (list.length > capped.length){
-          out.push(`…stopped after ${capped.length} items on this phone — open on desktop or use the guided demo for the full map.`);
-        }
-        const value = cell.output.type==='list' ? out : out.join('\n\n');
-        cs.value = value; cs.raw=''; cs.state='done'; cs.ms = Math.round(performance.now()-t0);
+        const short = list.length > capped.length
+          ? `…stopped after ${capped.length} of ${list.length} on this phone — open on desktop, or use the guided demo for the whole map.`
+          : '';
+        /* A truncation note is a sentence: it can join a list of sentences,
+           and must never be pushed into a list of pictures. */
+        if (short && !media) out.push(short);
+        const value = (media || cell.output.type==='list') ? out : out.join('\n\n');
+        cs.value = value; cs.raw = (short && media) ? short : ''; cs.state='done';
+        cs.ms = Math.round(performance.now()-t0);
         run.bag[cell.output.name] = value;
       }
     } else {
@@ -4489,7 +4534,12 @@ function renderNotebook(){
     const cell = nb.cells.find(c=>c.id===el.dataset.run);
     await execCell(nb, cell, getRun(nb), render);
   });
-  const valueOf = id => getRun(nb).cells[id]?.value;
+  /* Accepts a plain cell id or an indexed `cellId#2` from a media list. */
+  const valueOf = key => {
+    const {id, idx} = splitKey(key);
+    const held = getRun(nb).cells[id]?.value;
+    return idx == null ? held : (Array.isArray(held) ? held[idx] : undefined);
+  };
   const slug = str => String(str).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
   view.querySelectorAll('[data-scene-mode]').forEach(b => b.onclick = () => {
     const cam = S.scenes[b.dataset.sceneMode] ??= defaultView();
@@ -4509,6 +4559,7 @@ function renderNotebook(){
   view.querySelectorAll('[data-img-save]').forEach(b => b.onclick = () => {
     const id = b.dataset.imgSave;
     const v = id === '__input' ? getRun(nb).bag['input.' + nb.input.id] : valueOf(id);
+    if (!isImageVal(v)) return;
     if (isImageVal(v)){
       const ext = (dataUrlParts(v.src)?.mime.split('/')[1] || 'png').replace('svg+xml', 'svg');
       saveDataURL(`${nb.id}-${slug(id)}.${ext}`, v.src);
@@ -5088,28 +5139,34 @@ function sceneSTL(scene, title){
   return out.join('\n') + '\n';
 }
 
-function sceneHTML(v, cell){
+/* A cell can now hold several scenes, so the camera key and the canvas id
+   carry the index. `cellId#2` rather than a second state container. */
+const mediaKey = (cellId, idx) => idx == null ? cellId : `${cellId}#${idx}`;
+const splitKey = (key) => { const [id, ix] = String(key).split('#'); return {id, idx: ix == null ? null : Number(ix)}; };
+
+function sceneHTML(v, cell, idx){
   const b = sceneBounds(v);
-  const view = S.scenes[cell.id] ??= defaultView();
+  const key = mediaKey(cell.id, idx);
+  const view = S.scenes[key] ??= defaultView();
   const dims = v.objects.length
     ? `${b.span.map(n => Math.round(n * 100) / 100).join(' × ')} ${v.units}` : '—';
-  return `<div class="scene" data-scene="${esc(cell.id)}">
-    <canvas class="scene-canvas" data-scene-canvas="${esc(cell.id)}"
+  return `<div class="scene" data-scene="${esc(key)}">
+    <canvas class="scene-canvas" data-scene-canvas="${esc(key)}"
       aria-label="3D view of ${esc(String(v.objects.length))} parts. Drag to orbit."></canvas>
     <div class="scene-bar">
       <span class="meta">${esc(String(v.objects.length))} part${v.objects.length === 1 ? '' : 's'} · ${esc(dims)}</span>
       <span class="spacer"></span>
-      <button class="btn secondary tiny" data-scene-mode="${esc(cell.id)}">${view.solid ? 'Wireframe' : 'Solid'}</button>
-      <button class="btn secondary tiny" data-scene-reset="${esc(cell.id)}">Reset view</button>
-      <button class="btn secondary tiny" data-scene-obj="${esc(cell.id)}">.obj</button>
-      <button class="btn secondary tiny" data-scene-stl="${esc(cell.id)}">.stl</button>
+      <button class="btn secondary tiny" data-scene-mode="${esc(key)}">${view.solid ? 'Wireframe' : 'Solid'}</button>
+      <button class="btn secondary tiny" data-scene-reset="${esc(key)}">Reset view</button>
+      <button class="btn secondary tiny" data-scene-obj="${esc(key)}">.obj</button>
+      <button class="btn secondary tiny" data-scene-stl="${esc(key)}">.stl</button>
     </div>
     <p class="scene-hint meta">Drag to orbit · scroll to zoom. The file exports the same triangles you are looking at.</p>
     ${v.notes ? `<p class="scene-notes">${inline(v.notes)}</p>` : ''}
   </div>`;
 }
 
-function imageHTML(v, cell, st){
+function imageHTML(v, cell, st, idx){
   /* Nothing renders from a remote origin, ever — see the note on the image
      adapters. A value that is not data: is a bug or an injection attempt, and
      either way it is shown as text rather than fetched. */
@@ -5122,24 +5179,37 @@ function imageHTML(v, cell, st){
       <span class="img-foot">
         <span class="meta">${esc(v.via || (v.source === 'attached' ? 'Attached by you' : 'Guided demo — drawn by hand, not by a model'))}</span>
         <span class="spacer"></span>
-        <button class="btn secondary tiny" data-img-save="${esc(cell?.id ?? '')}">Save picture</button>
+        <button class="btn secondary tiny" data-img-save="${esc(mediaKey(cell?.id ?? '', idx))}">Save picture</button>
       </span>
     </figcaption>
   </figure>`;
 }
 
-function outputHTML(v, type, streaming, cell, st){
-  const c = streaming ? '<span class="caret"></span>' : '';
+function mediaHTML(v, type, cell, st, idx){
   if (type==='image')
     return isImageVal(v)
-      ? imageHTML(v, cell, st) + c
-      : `<p class="meta">${esc(bagText(v) || 'No picture yet.')}</p>${c}`;
+      ? imageHTML(v, cell, st, idx)
+      : `<p class="meta">${esc(bagText(v) || 'No picture yet.')}</p>`;
   if (type==='scene')
-    return sceneHTML(isSceneVal(v) ? v : {units:'m', objects:[], notes:String(v ?? '')}, cell) + c;
+    return sceneHTML(isSceneVal(v) ? v : {units:'m', objects:[], notes:String(v ?? '')}, cell, idx);
   if (type==='diagram')
-    return diagramSVG(isDiagramVal(v) ? v : {nodes:[], edges:[], note:''}) + c;
-  if (type==='chart')
-    return chartSVG(isChartVal(v) ? v : {kind:'bar', unit:'', labels:[], series:[], note:String(v ?? '')}) + c;
+    return diagramSVG(isDiagramVal(v) ? v : {nodes:[], edges:[], note:''});
+  return chartSVG(isChartVal(v) ? v : {kind:'bar', unit:'', labels:[], series:[], note:String(v ?? '')});
+}
+
+function outputHTML(v, type, streaming, cell, st){
+  const c = streaming ? '<span class="caret"></span>' : '';
+  if (MEDIA_TYPES.has(type)){
+    /* A mapped cell holds several. Numbered, because the whole point of a map
+       is that item three came from input three. */
+    if (isMediaList(v))
+      return `<div class="media-list ${type==='image' ? 'grid' : ''}">${v.map((item, i) => `
+        <figure class="media-item">
+          <figcaption class="media-n">${i + 1}</figcaption>
+          ${mediaHTML(item, type, cell, st, i)}
+        </figure>`).join('')}</div>${c}`;
+    return mediaHTML(v, type, cell, st, null) + c;
+  }
   if (type==='gate'){
     const back = v.verdict==='revise' && !st?.exhausted;
     return `<div class="gate ${back?'back':'through'}">
@@ -5222,6 +5292,11 @@ function outputHTML(v, type, streaming, cell, st){
 }
 
 function varTypeLabel(v){
+  if (isMediaList(v)){
+    const kind = isImageVal(v[0]) ? 'image' : isSceneVal(v[0]) ? 'scene'
+      : isDiagramVal(v[0]) ? 'diagram' : 'chart';
+    return `${kind}[${v.length}]`;
+  }
   if (Array.isArray(v)) return `list[${v.length}]`;
   if (v?.cols) return `table[${v.rows.length}]`;
   if (isImageVal(v)) return 'image';
@@ -5239,6 +5314,7 @@ function varTypeLabel(v){
   return 'text';
 }
 function varPreview(v){
+  if (isMediaList(v)) return v.map(varPreview).join(' · ');
   if (Array.isArray(v)) return v.join(' · ');
   if (v?.cols) return v.rows.map(r=>r[0]).join(' · ');
   if (isImageVal(v)) return imageAlt(v);
@@ -6583,11 +6659,13 @@ async function copyShare(nb, btn){
    S — the same reason the run's values live in S rather than in the DOM. */
 function paintScenes(){
   for (const canvas of view.querySelectorAll('[data-scene-canvas]')){
-    const id = canvas.dataset.sceneCanvas;
+    const key = canvas.dataset.sceneCanvas;
+    const {id, idx} = splitKey(key);
     const nb = NOTEBOOKS.find(n => n.id === S.nbId);
-    const value = nb && S.runs[nb.id]?.cells[id]?.value;
+    const held = nb && S.runs[nb.id]?.cells[id]?.value;
+    const value = idx == null ? held : (Array.isArray(held) ? held[idx] : null);
     if (!isSceneVal(value)) continue;
-    const camera = S.scenes[id] ??= defaultView();
+    const camera = S.scenes[key] ??= defaultView();
     drawScene(canvas, value, camera);
     let drag = null;
     canvas.onpointerdown = e => {

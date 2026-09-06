@@ -321,6 +321,16 @@ def shape_ok(cell):
     # Media demos are hand-authored values, same as every other demo. The
     # image one is checked hardest because a remote src would break the CSP
     # and silently show nothing.
+    # A cell that maps over a list holds several values, one per item, so its
+    # demo is a list of them. Everything else holds exactly one.
+    mapped = bool(cell.get('map'))
+    if t in ('image', 'scene', 'diagram', 'chart') and mapped:
+        if not isinstance(d, list) or not d:
+            return f'{t} map demo must be a non-empty list, one value per item'
+        for item in d:
+            err = shape_ok({'output': {'type': t}, 'demo': item})
+            if err: return f'in mapped {t}: {err}'
+        return None
     if t == 'image':
         if not (isinstance(d, dict) and d.get('kind') == 'image'): return 'image demo'
         if not str(d.get('src','')).startswith('data:image/'):

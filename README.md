@@ -171,6 +171,7 @@ together.
 | Choice / map / ask cells — pick a path, map over a list, mid-run human input | **Real** |
 | Typed outputs: prose, markdown, list, table, gate, score, diff, ranking, timeline, choice | **Real** |
 | Media outputs: image, scene (3D), diagram, chart — same typed contract | **Real** |
+| `map` × media — one cell, N pictures / scenes / charts, numbered to inputs | **Real** |
 | 3D scenes render and export to `.obj` / `.stl` from the same triangles | **Real**, no library |
 | Image inputs: drop, paste or choose a picture; vision cells read it | **Real** |
 | Chains — send a finished value into another notebook, with provenance | **Real** |
@@ -195,7 +196,7 @@ together.
 
 ## The library
 
-**111 notebooks across 13 personas, 9 realms, and 8 concepts.** The home page
+**112 notebooks across 13 personas, 9 realms, and 8 concepts.** The home page
 filters on three axes, because they answer different questions:
 
 - **Persona** — whose job: manager, product, engineer, designer, marketer,
@@ -333,6 +334,26 @@ cell reading an image variable gets its description through `bagText()` — so a
 reasoning cell downstream of a photograph still runs on a text-only model
 instead of dead-ending. `check.sh` enforces both halves: a vision cell must read
 the picture input, and a notebook that takes a picture must have a vision cell.
+
+### Mapping over media
+
+A `map` cell runs its prompt once per item in a list. Until the media types
+landed it then **joined the results into one string** — which was right for
+prose and quietly wrong for everything else: a cell declaring `image` would
+end up holding text, and the renderer would print that text under a heading
+still claiming a picture. A typed contract lying about itself is the exact
+failure the contract exists to prevent, so it is worth naming rather than
+quietly fixing.
+
+Now a map over a media type keeps the **values**, one per item, and the cell
+holds a list of them: four prompts, four pictures, numbered to the routes that
+produced them. Same for scenes and charts — small multiples, each with its own
+camera and its own `.obj` export. Text maps keep the joined behaviour, because
+joined prose is what a prose map means.
+
+*Four Ways It Could Look* is the notebook that demonstrates it: write four
+routes that disagree, draw all four in one cell, then hold each against the
+brief.
 
 ## Chains — sending a result onward
 
@@ -575,6 +596,11 @@ Mitigations shipping in the viewer:
   local engine. That test also caught a second bug: `humanError()`
   mapped the 403 to "That key was not accepted", which for a provider that takes
   no key is an answer pointing at nothing. It now names the bot check.
+- **Some crossings are not supported, deliberately or not.** `ask` pauses for
+  typed text and cannot take a picture from a person mid-run; `choice` options
+  are text only; there is no audio, video, PDF or spreadsheet input. A `gate`
+  judging a media value reads its description through `bagText()` — that path
+  is written but untested.
 - **The local image engine adapter is unverified.** It is written to the
   documented Automatic1111 `/sdapi/v1/txt2img` shape, and no engine was running
   on this machine to test against (ports 7860 and 8188 were both silent).

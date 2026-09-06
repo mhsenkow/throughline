@@ -13409,5 +13409,140 @@
         "demo": "The legible lines come to 18.40 + 54.00 + 6.16 + 4.25 = £82.81. The stated subtotal is £98.76, leaving £15.95 for the faded line — which fits the visible pattern “1?.95” exactly, so the Danish oil was £15.95. The gap decides the digit; it was not necessary to guess it.\n\nThe rest holds: VAT at 20% of £98.76 is £19.752, printed as £19.75, and 98.76 + 19.75 = £118.51, which matches the total. The extraction is arithmetically sound and the one unreadable figure is now determined rather than estimated."
       }
     ]
+  },
+  {
+    "id": "four-ways",
+    "schemaVersion": "1.3.0",
+    "realm": "design",
+    "concept": "generate",
+    "persona": "designer",
+    "featured": true,
+    "title": "Four Ways It Could Look",
+    "blurb": "Writes four honestly different visual routes out of one brief, draws every one of them, and then makes you say which the brief actually asked for.",
+    "teaches": "Map over a list — one cell, four pictures, numbered to their inputs",
+    "tags": [
+      "image",
+      "map"
+    ],
+    "input": {
+      "id": "mark",
+      "label": "What the mark is for",
+      "placeholder": "What it stands on, where it will be seen, and what it must not look like.",
+      "seed": "A mark for a small structural engineering practice. Goes on drawings, site boards and a plain website. Must survive being stamped in one colour at 8 mm, and must not look like a tech start-up or a construction franchise."
+    },
+    "cells": [
+      {
+        "id": "routes",
+        "title": "Write four routes that disagree",
+        "requires": "reasoning",
+        "intent": "Four variations of one idea is a formality. These are required to disagree, so what comes back is a choice rather than a mood.",
+        "inputs": [
+          "input.mark"
+        ],
+        "output": {
+          "name": "routes",
+          "type": "list"
+        },
+        "prompt": "Read this brief and write FOUR visual routes that genuinely disagree with each other — different construction, different feeling, each defensible. One dense sentence each, describing subject, geometry, palette and medium concretely enough for a drawing model. No numbering, no preamble. Respond in {{locale.outputLanguage}}.\n\n{{input.mark}}",
+        "demo": [
+          "A hard geometric mark built from a single circle interrupted by one vertical stroke, near-black on warm paper, flat and unshaded — the logic of a section drawing rather than a picture of a building.",
+          "A hand-drawn arc repeated three times in warm orange on a near-black ground, the line weight visibly human, with one small solid dot where the arcs meet — engineering as a drawn craft rather than a system.",
+          "Flat primary blocks in red, blue and yellow above a single heavy black rule on plain white, with the name set large in a grotesque — Bauhaus plainness, loud at any size.",
+          "A fine concentric line engraving in muted green-grey, five rings crossed by four axes with a solid centre, on a cool paper ground — the look of an instrument dial or a surveyor's plate."
+        ]
+      },
+      {
+        "id": "boards",
+        "title": "Draw all four",
+        "requires": "image",
+        "intent": "One cell, four runs, numbered to the routes above. Reading a route and looking at it are different judgements, and only one of them settles anything.",
+        "inputs": [
+          "routes"
+        ],
+        "output": {
+          "name": "boards",
+          "type": "image"
+        },
+        "map": {
+          "over": "routes",
+          "as": "route"
+        },
+        "image": {
+          "aspect": "square"
+        },
+        "prompt": "{{route}}",
+        "demo": [
+          {
+            "kind": "image",
+            "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0ODAgMzIwIiB3aWR0aD0iNDgwIiBoZWlnaHQ9IjMyMCI+IDxyZWN0IHdpZHRoPSI0ODAiIGhlaWdodD0iMzIwIiBmaWxsPSIjZjNlZmU2Ii8+IDxjaXJjbGUgY3g9IjI0MCIgY3k9IjE1MCIgcj0iODYiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzFmMmEyNCIgc3Ryb2tlLXdpZHRoPSIyNiIvPiA8cmVjdCB4PSIyMTIiIHk9IjQ2IiB3aWR0aD0iNTYiIGhlaWdodD0iNTYiIGZpbGw9IiNmM2VmZTYiLz4gPHBhdGggZD0iTTI0MCA2NCB2MTcyIiBzdHJva2U9IiMxZjJhMjQiIHN0cm9rZS13aWR0aD0iMjYiLz4gPHRleHQgeD0iMjQwIiB5PSIyODYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMTUiIGxldHRlci1zcGFjaW5nPSI3IiBmaWxsPSIjMWYyYTI0Ij5HRU9NRVRSSUM8L3RleHQ+IDwvc3ZnPg==",
+            "alt": "Geometric route: a circle interrupted by one vertical stroke, near-black on warm paper"
+          },
+          {
+            "kind": "image",
+            "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0ODAgMzIwIiB3aWR0aD0iNDgwIiBoZWlnaHQ9IjMyMCI+IDxyZWN0IHdpZHRoPSI0ODAiIGhlaWdodD0iMzIwIiBmaWxsPSIjMWIxZDI0Ii8+IDxnIHN0cm9rZT0iI2YwYTM1ZSIgc3Ryb2tlLXdpZHRoPSIzIiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiPiA8cGF0aCBkPSJNMTIwIDIxMCBxNDAgLTExMCAxMjAgLTExMCB0MTIwIDExMCIvPiA8cGF0aCBkPSJNMTUwIDIxNCBxMzQgLTg2IDkwIC04NiB0OTAgODYiLz4gPHBhdGggZD0iTTE4MCAyMTggcTI4IC02MiA2MCAtNjIgdDYwIDYyIi8+IDwvZz4gPGNpcmNsZSBjeD0iMjQwIiBjeT0iMjEyIiByPSI5IiBmaWxsPSIjZjBhMzVlIi8+IDx0ZXh0IHg9IjI0MCIgeT0iMjg0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iR2VvcmdpYSxzZXJpZiIgZm9udC1zaXplPSIxNyIgZm9udC1zdHlsZT0iaXRhbGljIiBmaWxsPSIjZWZlN2RjIj5kcmF3biBieSBoYW5kPC90ZXh0PiA8L3N2Zz4=",
+            "alt": "Hand-drawn route: three repeated orange arcs on near-black with a solid dot"
+          },
+          {
+            "kind": "image",
+            "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0ODAgMzIwIiB3aWR0aD0iNDgwIiBoZWlnaHQ9IjMyMCI+IDxyZWN0IHdpZHRoPSI0ODAiIGhlaWdodD0iMzIwIiBmaWxsPSIjZmZmZmZmIi8+IDxyZWN0IHg9IjYwIiB5PSI2MCIgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiNlMDNiMmYiLz4gPHJlY3QgeD0iMTkyIiB5PSI2MCIgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMjAiIGZpbGw9IiMxYzU4YzQiLz4gPHJlY3QgeD0iMzI0IiB5PSI2MCIgd2lkdGg9Ijk2IiBoZWlnaHQ9IjEyMCIgZmlsbD0iI2YyYzUzZCIvPiA8cmVjdCB4PSI2MCIgeT0iMTkyIiB3aWR0aD0iMzYwIiBoZWlnaHQ9IjE2IiBmaWxsPSIjMTExMTExIi8+IDx0ZXh0IHg9IjYwIiB5PSIyNjYiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMzQiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiMxMTExMTEiPkJMT0NLPC90ZXh0PiA8L3N2Zz4=",
+            "alt": "Block route: flat red, blue and yellow squares above a heavy black rule on white"
+          },
+          {
+            "kind": "image",
+            "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0ODAgMzIwIiB3aWR0aD0iNDgwIiBoZWlnaHQ9IjMyMCI+IDxyZWN0IHdpZHRoPSI0ODAiIGhlaWdodD0iMzIwIiBmaWxsPSIjZThlYWU1Ii8+IDxnIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzRhNWE0OCIgc3Ryb2tlLXdpZHRoPSIxLjEiPiA8Y2lyY2xlIGN4PSIyNDAiIGN5PSIxNTAiIHI9IjEwNCIvPjxjaXJjbGUgY3g9IjI0MCIgY3k9IjE1MCIgcj0iODYiLz48Y2lyY2xlIGN4PSIyNDAiIGN5PSIxNTAiIHI9IjY4Ii8+IDxjaXJjbGUgY3g9IjI0MCIgY3k9IjE1MCIgcj0iNTAiLz48Y2lyY2xlIGN4PSIyNDAiIGN5PSIxNTAiIHI9IjMyIi8+IDxwYXRoIGQ9Ik0xMzYgMTUwIGgyMDggTTI0MCA0NiB2MjA4IE0xNjcgNzcgbDE0NiAxNDYgTTMxMyA3NyBsLTE0NiAxNDYiLz4gPC9nPiA8Y2lyY2xlIGN4PSIyNDAiIGN5PSIxNTAiIHI9IjEyIiBmaWxsPSIjNGE1YTQ4Ii8+IDx0ZXh0IHg9IjI0MCIgeT0iMjkyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjEzIiBsZXR0ZXItc3BhY2luZz0iNCIgZmlsbD0iIzRhNWE0OCI+RU5HUkFWRUQ8L3RleHQ+IDwvc3ZnPg==",
+            "alt": "Engraved route: fine concentric rings crossed by four axes in muted green-grey"
+          }
+        ]
+      },
+      {
+        "id": "pick",
+        "title": "Hold them against the brief",
+        "requires": "reasoning",
+        "intent": "Left alone, people choose the prettiest one. This puts each route back next to the constraint it has to survive.",
+        "inputs": [
+          "routes",
+          "input.mark"
+        ],
+        "output": {
+          "name": "pick",
+          "type": "table"
+        },
+        "prompt": "For each visual route below, judge it against the brief — not against taste. Say what it gets right, the specific way it fails the hardest constraint in the brief, and whether it survives that constraint. Respond in {{locale.outputLanguage}}.\n\nBrief: {{input.mark}}\n\nRoutes: {{routes}}",
+        "demo": {
+          "cols": [
+            "Route",
+            "What it gets right",
+            "Where it fails",
+            "Survives 8 mm, one colour?"
+          ],
+          "rows": [
+            [
+              "Geometric",
+              "Reads as structure without drawing a building; unmistakably not a franchise",
+              "Close to a dozen existing marks in the sector — the interrupted circle is well used",
+              "Yes — one weight, no fills to lose"
+            ],
+            [
+              "Hand-drawn",
+              "The warmest of the four, and the least likely to be mistaken for software",
+              "Three fine arcs at 8 mm become one grey smudge; it also reads as a studio, not an engineer",
+              "No — the line weight is the idea and the idea is what stamping destroys"
+            ],
+            [
+              "Block",
+              "Loudest at small size, and the only one legible across a site board at distance",
+              "Primaries plus a grotesque is the most start-up-adjacent thing here, which the brief bans",
+              "Yes, but only the black rule survives — the colour is doing the work"
+            ],
+            [
+              "Engraved",
+              "Says instrument and measurement, which is the closest to what the practice sells",
+              "Five rings and four axes is far too much detail for a stamp; needs half the elements",
+              "Not as drawn — it survives if reduced to two rings and one axis"
+            ]
+          ]
+        }
+      }
+    ]
   }
 ]
