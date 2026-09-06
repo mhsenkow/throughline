@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Required for Mac App Store -->
+  <key>com.apple.security.app-sandbox</key>
+  <true/>
+
+  <!-- Team + App ID (must match App Store Connect / provisioning profile) -->
+  <key>com.apple.application-identifier</key>
+  <string>WC44W2QVE4.org.throughline.desktop</string>
+  <key>com.apple.developer.team-identifier</key>
+  <string>WC44W2QVE4</string>
+
+  <!-- Outbound HTTPS to model providers / gateways -->
+  <key>com.apple.security.network.client</key>
+  <true/>
+
+  <!-- Folder picker + security-scoped bookmarks for an optional custom library root -->
+  <key>com.apple.security.files.user-selected.read-write</key>
+  <true/>
+  <key>com.apple.security.files.bookmarks.app-scope</key>
+  <true/>
+
+  <!-- WKWebView JIT (Tauri / WebKit) -->
+  <key>com.apple.security.cs.allow-jit</key>
+  <true/>
+
+  <!-- OS keychain for provider API keys -->
+  <key>keychain-access-groups</key>
+  <array>
+    <string>WC44W2QVE4.org.throughline.desktop</string>
+  </array>
+</dict>
+</plist>

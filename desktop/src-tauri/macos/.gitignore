@@ -1,0 +1,3 @@
+# Downloaded from developer.apple.com — never commit
+*.provisionprofile
+!*.provisionprofile.example
