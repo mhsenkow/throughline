@@ -3914,7 +3914,20 @@ function connectDetail(id){
         <p class="detail-vendor">${esc(p.vendor)} · ${esc(TIER_LABEL[p.tier])}</p>
       </div>
       <span class="status ${on?'ok':(p.reach==='blocked'||phoneBlocked)?'off':'warn'}">
-        ${on ? 'Ready' : (p.reach==='blocked'||phoneBlocked) ? 'Unavailable' : 'Not set up'}</span>
+        ${(() => {
+          if (on) return 'Ready';
+          if (p.reach==='blocked' || phoneBlocked) return 'Unavailable';
+          if (id === 'localdl'){
+            if (S.local?.status === 'downloading')
+              return S.local.progress!=null ? `Downloading ${S.local.progress}%` : 'Downloading…';
+            if (S.local?.status === 'error') return 'Download failed';
+            return 'Needs download';
+          }
+          if (id === 'chrome' && S.builtin === 'downloadable') return 'Needs download';
+          if (p.key === 'free' || p.key === 'paid') return 'Needs a key';
+          if (p.key === 'none') return 'Needs a check';
+          return 'Not ready';
+        })()}</span>
     </div>
     <p class="detail-plain">${esc(p.plain)}</p>
 
@@ -4072,6 +4085,7 @@ const settingsSheet = () => {
   const prefer = isMobileClient() ? 'localdl' : (connected().find(id=>id!=='demo') ?? 'google');
   const sel = S.connectSel ?? prefer;
   const mobileRec = isMobileClient();
+  const nMarks = Object.keys(S.marks).length;
   return `
   <div class="connect">
     <aside class="connect-list">
@@ -4098,15 +4112,18 @@ const settingsSheet = () => {
               ${phone && !on ? '<span class="rec" style="opacity:.7">Desktop</span>' : ''}
             </button>`;}).join('')}
         </div>`).join('')}
+      <p class="fine" style="padding:var(--p-space-3) 0 0; margin:0">
+        <button type="button" class="linkbtn" id="marks-in">Import marks from a file</button>
+        ${nMarks ? ` · ${nMarks} saved here` : ''}
+      </p>
+      <input type="file" id="marks-file" accept="application/json" hidden>
     </aside>
     <div class="connect-detail">${connectDetail(sel)}</div>
   </div>
   <div class="connect-foot">
     <span class="seg"><span class="dot ${cap.durable?'ok':'warn'}"></span>${esc(cap.label)}</span>
     <span class="spacer"></span>
-    <button class="btn secondary tiny" id="marks-out" ${Object.keys(S.marks).length?'':'disabled'}>Export marks</button>
-    <button class="btn secondary tiny" id="marks-in">Import marks</button>
-    <input type="file" id="marks-file" accept="application/json" hidden>
+    ${nMarks ? `<button class="btn secondary tiny" id="marks-out">Export ${nMarks} mark${nMarks===1?'':'s'}</button>` : ''}
   </div>`;
 };
 
