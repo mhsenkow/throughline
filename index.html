@@ -416,6 +416,53 @@ input,textarea,select{font:inherit;color:inherit}
   font-size:var(--p-size-1); color:var(--ink-muted);
   padding-block-start:var(--p-space-3); border-block-start:1px solid var(--border-subtle);
 }
+
+/* Library card density — separate from Appearance density (which scales the
+   whole app). Small is for scanning titles; large is for reading blurbs. */
+.card-size{
+  display:inline-flex; gap:0; border:1px solid var(--border-subtle);
+  border-radius:var(--radius-md); overflow:hidden; background:var(--surface-raised);
+}
+.card-size button{
+  margin:0; padding:var(--p-space-2) var(--p-space-3);
+  border:0; border-inline-end:1px solid var(--border-subtle);
+  background:transparent; color:var(--ink-secondary);
+  font:inherit; font-size:var(--p-size-1); letter-spacing:var(--p-tracking-wide);
+  cursor:pointer; min-inline-size:2.25rem;
+}
+.card-size button:last-child{border-inline-end:0}
+.card-size button[aria-pressed="true"]{
+  background:var(--accent-wash); color:var(--accent-base); font-weight:600;
+}
+.card-size button:hover{color:var(--ink-primary)}
+html[data-card-size="small"] .shelf{
+  gap:var(--p-space-3);
+  grid-template-columns:repeat(auto-fill,minmax(12.5rem,1fr));
+}
+html[data-card-size="small"] .card{
+  gap:var(--p-space-2); padding:var(--p-space-3);
+}
+html[data-card-size="small"] .card h3{font-size:var(--p-size-4); line-height:1.25}
+html[data-card-size="small"] .card > p:not(.eyebrow){display:none}
+html[data-card-size="small"] .card .eyebrow{font-size:var(--p-size-0)}
+html[data-card-size="small"] .card-foot{
+  padding-block-start:var(--p-space-2); gap:var(--p-space-2);
+}
+html[data-card-size="small"] .card-foot .tag:not(.mark-tag):not(.yours):not(.phone):not(.loop){
+  display:none;
+}
+html[data-card-size="large"] .shelf{
+  gap:var(--p-space-5);
+  grid-template-columns:repeat(auto-fill,minmax(24rem,1fr));
+}
+html[data-card-size="large"] .card{
+  gap:var(--p-space-4); padding:var(--p-space-6); min-block-size:11rem;
+}
+html[data-card-size="large"] .card h3{font-size:var(--p-size-7)}
+html[data-card-size="large"] .card > p:not(.eyebrow){
+  font-size:var(--p-size-4); line-height:1.55;
+  display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical; overflow:hidden;
+}
 .tag{
   padding:var(--p-space-1) var(--p-space-2); border-radius:var(--radius-pill);
   background:var(--surface-sunken); color:var(--ink-secondary); font-size:var(--p-size-0);
@@ -568,6 +615,68 @@ input,textarea,select{font:inherit;color:inherit}
   padding-inline-start:calc(var(--p-space-6) + var(--p-space-6));
 }
 .meta{font-size:var(--p-size-0); color:var(--ink-muted); font-family:var(--font-mono)}
+
+/* The notebook's first cell is where a person writes. Treat it as a page to
+   fill in, not another technical step with an index and a wire name. */
+.doc .cell.compose{
+  background:color-mix(in oklab, var(--accent-wash) 55%, var(--surface-raised));
+  box-shadow:inset 3px 0 0 var(--accent-base);
+}
+.doc .cell.compose .cell-head{
+  padding-block-end:var(--p-space-2);
+}
+.doc .cell.compose .cell-index{
+  font-family:var(--font-body); font-size:var(--p-size-0);
+  text-transform:uppercase; letter-spacing:var(--p-tracking-wide);
+  color:var(--accent-base); padding-block-start:0.45rem;
+}
+.doc .cell.compose .cell-titles h3{
+  font-size:var(--p-size-6); font-weight:var(--p-weight-bold); line-height:1.25;
+}
+.doc .cell.compose .compose-lede{
+  margin:var(--p-space-2) 0 0; color:var(--ink-secondary);
+  font-size:var(--p-size-3); line-height:1.5; max-width:42rem;
+}
+.doc .cell.compose .io-line{display:none}
+.doc .cell.compose .cell-body{
+  padding:0 var(--p-space-6) var(--p-space-6);
+  padding-inline-start:calc(var(--p-space-6) + var(--p-space-6));
+}
+.compose-media{
+  display:grid; gap:var(--p-space-4); margin-block-end:var(--p-space-4);
+}
+@media (min-width:760px){
+  .compose-media.with-shot{
+    grid-template-columns:minmax(14rem,0.85fr) minmax(0,1.25fr);
+    align-items:stretch;
+  }
+  .compose-media.with-shot .attach{margin-block-end:0; height:100%}
+  .compose-media.with-shot .dropzone{min-block-size:100%; height:100%}
+  .compose-media.with-shot .compose-write{min-block-size:100%}
+}
+.compose-write{
+  min-block-size:14rem; resize:vertical;
+  padding:var(--p-space-5); font-size:var(--p-size-4); line-height:1.65;
+  border-radius:var(--radius-lg); border:1px solid var(--border-subtle);
+  background:var(--surface-raised); box-shadow:var(--elevation-1);
+}
+.compose-write:focus{
+  border-color:var(--border-focus);
+  box-shadow:0 0 0 3px color-mix(in oklab, var(--accent-base) 18%, transparent);
+}
+.compose-write::placeholder{color:var(--ink-muted); opacity:1}
+.compose-actions{
+  display:flex; flex-wrap:wrap; gap:var(--p-space-2);
+  margin-block-start:var(--p-space-3);
+}
+.compose-note{
+  margin:var(--p-space-3) 0 0; font-size:var(--p-size-2);
+  color:var(--ink-muted); line-height:1.5; max-width:40rem;
+}
+.compose-label{
+  display:block; margin-block-end:var(--p-space-2);
+  font-size:var(--p-size-2); font-weight:var(--p-weight-medium); color:var(--ink-secondary);
+}
 
 .out{font-size:var(--p-size-3); line-height:1.65}
 .out p{margin:0 0 var(--p-space-3)}
@@ -1293,6 +1402,14 @@ table.out-table{min-inline-size:32rem}
     padding-inline-start:var(--p-space-4);
   }
   .cell-body{padding-block-end:var(--p-space-4)}
+  .doc .cell.compose .cell-body{
+    padding:0 var(--p-space-4) var(--p-space-5);
+  }
+  .compose-write{
+    min-block-size:11rem; font-size:var(--p-size-3); padding:var(--p-space-4);
+  }
+  .ask-box{padding:var(--p-space-4)}
+  .ask-box textarea{min-block-size:7.5rem; font-size:var(--p-size-3)}
   .cell-foot{padding-block:var(--p-space-3) var(--p-space-4); flex-wrap:wrap; row-gap:var(--p-space-2)}
   .doc-head{padding:var(--p-space-5) var(--p-space-4) var(--p-space-4)}
   .doc-tools{padding-inline:var(--p-space-3)}
@@ -1463,11 +1580,18 @@ table.out-table{min-inline-size:32rem}
 
 .ask-box{
   display:flex; flex-direction:column; gap:var(--p-space-3);
-  padding:var(--p-space-4); border-radius:var(--radius-md);
-  background:var(--surface-sunken); border:1px dashed var(--border-strong);
+  padding:var(--p-space-5); border-radius:var(--radius-lg);
+  background:color-mix(in oklab, var(--accent-wash) 40%, var(--surface-sunken));
+  border:1px solid var(--border-subtle);
 }
-.ask-box label{font-size:var(--p-size-2); font-weight:var(--p-weight-medium)}
-.ask-box textarea{min-block-size:5rem}
+.ask-box label{
+  font-size:var(--p-size-4); font-weight:var(--p-weight-bold); color:var(--ink-primary);
+}
+.ask-box textarea{
+  min-block-size:9rem; font-size:var(--p-size-4); line-height:1.6;
+  padding:var(--p-space-4); border-radius:var(--radius-lg);
+  background:var(--surface-raised); border-color:var(--border-subtle);
+}
 .ask-box .row{display:flex; gap:var(--p-space-2); justify-content:flex-end}
 
 .cell[data-state="waiting"]{box-shadow:inset 3px 0 0 var(--status-stale)}
@@ -2318,6 +2442,13 @@ const PROVIDERS = {
     signup:'https://huggingface.co/docs/transformers.js',
     note:'Powered by Transformers.js. First download needs the network; afterwards the browser cache usually makes it instant. Pick the size your device can hold.' },
 
+  localvision: {
+    label:'See pictures here', vendor:'Hugging Face · on this device', tier:'device', group:'nosetup',
+    key:'none', reach:'device', classes:['vision'], model:'moondream2',
+    plain:'Download a vision model once. It reads screenshots on this device — nothing you show it is uploaded. On a computer it starts automatically the first time a picture cell runs with nothing else connected.',
+    signup:'https://huggingface.co/Xenova/moondream2',
+    note:'Moondream2 via Transformers.js. Roughly 700 MB the first time. A free cloud vision key is faster; this is the private path, like on-device Whisper for recordings.' },
+
   ollama: {
     label:'Ollama', vendor:'On this machine', tier:'local', group:'nosetup',
     key:'none', reach:'localhost', surface:'desktop', classes:['fast','vision'], model:'llama3.2',
@@ -2802,6 +2933,12 @@ const surfaceLabel = id => {
       ? `${S.device.label} · WebGPU`
       : `${S.device.label} · WASM`;
   }
+  if (id === 'localvision'){
+    if (S.vision?.ready) return 'On this device · ready';
+    if (S.vision?.status === 'downloading')
+      return `Downloading${S.vision.progress!=null?` ${S.vision.progress}%`:''}`;
+    return isMobileClient() ? 'Opt-in download · ~700 MB' : 'Auto on first picture cell';
+  }
   const note = phoneSurfaceNote(id);
   if (!note) return PROVIDERS[id].vendor;
   if (id === 'chrome') return 'Desktop Chrome only';
@@ -2919,6 +3056,96 @@ async function transcribeOnDevice(file, onStage){
   return { text, seconds, via: `${ASR.label}, on this device` };
 }
 
+/* ── Vision in ────────────────────────────────────────────────────────
+   A screenshot is as sensitive as a recording: it is usually someone else's
+   product, a colleague's draft, or a screen full of customer data. Same rule
+   as Whisper — prefer a model that never leaves the machine, and fetch it as
+   a side-effect of needing it rather than a Connect ritual.
+
+   Moondream2 is larger than Whisper (~700 MB), so phones do not auto-start
+   the download; they opt in from Connect. Computers do, the first time a
+   vision cell runs with no other vision provider connected. */
+const VISION = {
+  hf:'Xenova/moondream2',
+  label:'Moondream2',
+  mb:700,
+  note:'Reads screens and photos on this device. Smaller and quieter than a cloud vision key; not as sharp on dense UI.'
+};
+let _visionBundle = null;
+let _visionLoad = null;
+
+function canAutoVision(){
+  if (S.vision?.ready || _visionBundle) return true;
+  /* Multi-hundred-MB on cellular is a bill, not a feature. */
+  if (isMobileClient()) return false;
+  return S.vision?.status !== 'unavailable';
+}
+
+async function ensureVisionModel(onProgress){
+  if (_visionBundle) return _visionBundle;
+  if (_visionLoad) return _visionLoad;
+  _visionLoad = (async () => {
+    S.vision = { status:'downloading', progress:0, file:null, err:null, ready:false };
+    try {
+      const tf = await loadTransformers();
+      const profile = await deviceProfile();
+      const report = (info) => {
+        if (info?.status === 'progress' && info.total){
+          const frac = info.loaded / info.total;
+          const file = String(info.file || '').split('/').pop();
+          S.vision = { ...S.vision, status:'downloading', progress:Math.round(frac * 100), file };
+          onProgress?.(frac, file);
+        }
+      };
+      const device = profile.webgpu ? 'webgpu' : 'wasm';
+      const dtype = {
+        embed_tokens: 'q4',
+        vision_encoder: profile.webgpu ? 'fp16' : 'q8',
+        decoder_model_merged: 'q4'
+      };
+      const processor = await tf.AutoProcessor.from_pretrained(VISION.hf, { progress_callback: report });
+      const tokenizer = await tf.AutoTokenizer.from_pretrained(VISION.hf, { progress_callback: report });
+      const model = await tf.Moondream1ForConditionalGeneration.from_pretrained(VISION.hf, {
+        dtype, device, progress_callback: report
+      });
+      _visionBundle = { processor, tokenizer, model, RawImage: tf.RawImage };
+      S.vision = { status:'ready', progress:100, file:null, err:null, ready:true };
+      return _visionBundle;
+    } catch (e) {
+      _visionBundle = null;
+      S.vision = { status:'error', progress:null, file:null, err:e?.message || String(e), ready:false };
+      throw e;
+    } finally {
+      _visionLoad = null;
+    }
+  })();
+  return _visionLoad;
+}
+
+async function visionOnDevice(prompt, imageSrc, onStage){
+  onStage?.(`Getting ${VISION.label} — about ${VISION.mb} MB, once.`);
+  const bundle = await ensureVisionModel((frac, name) =>
+    onStage?.(`Getting ${VISION.label} — ${Math.round(frac * 100)}%${name ? ` · ${name}` : ''}`));
+  onStage?.('Looking at the picture on this device…');
+  const image = await bundle.RawImage.fromURL(imageSrc);
+  const vision_inputs = await bundle.processor(image);
+  const q = String(prompt || 'Describe this image.').slice(0, 1200);
+  const text = `<image>\n\nQuestion: ${q}\n\nAnswer:`;
+  const text_inputs = bundle.tokenizer(text);
+  const output = await bundle.model.generate({
+    ...text_inputs,
+    ...vision_inputs,
+    do_sample: false,
+    max_new_tokens: isMobileClient() ? 128 : 256
+  });
+  const decoded = bundle.tokenizer.batch_decode(output, { skip_special_tokens: true });
+  let out = String(decoded?.[0] ?? '').trim();
+  const ans = out.match(/Answer:\s*([\s\S]*)$/i);
+  if (ans) out = ans[1].trim();
+  out = out.replace(/<\|endoftext\|>/g, '').trim();
+  return out || 'Nothing readable came back from the on-device vision model.';
+}
+
 /* Multipart, so this cannot go through netFetch — that bridge carries a
    string body. Both of these send permissive CORS headers, so plain fetch
    works from the page and from the desktop webview alike. */
@@ -3010,6 +3237,11 @@ const isConnected = id => {
     const want = S.models.localdl || PROVIDERS.localdl.model;
     return !!_localPipes[want] || (S.local?.ready === want && S.local?.status === 'ready');
   }
+  if (id === 'localvision'){
+    /* Only "connected" once the weights are here — Auto still routes to it on
+       computers via autoPick + canAutoVision before that, Whisper-style. */
+    return !!(S.vision?.ready || _visionBundle);
+  }
   /* Keyless network providers (Ollama) cannot be detected — only reached.
      A passing test is the evidence; there is nothing else to go on. */
   if (PROVIDERS[id].key === 'none') return S.tests[id]?.ok === true;
@@ -3026,16 +3258,25 @@ const connected = () => Object.keys(PROVIDERS).filter(isConnected);
    resolution rather than posing the question — PRODUCT-BRIEF §5.4. */
 function autoPick(cell){
   const able = connected().filter(id => PROVIDERS[id].classes.includes(cell.requires) && PROVIDERS[id].tier !== 'blocked');
+  /* Prefer a real vision path over demo when nothing cloud/local is keyed —
+     localvision auto-downloads on computers the way Whisper does for audio. */
+  if (cell.requires === 'vision'){
+    const live = able.filter(id => id !== 'demo');
+    if (!live.length && canAutoVision()) return 'localvision';
+  }
   const pool = able.length ? able : connected();
   return pool.sort((a,b) => TIER_RANK[PROVIDERS[b].tier] - TIER_RANK[PROVIDERS[a].tier])[0] ?? 'demo';
 }
 /* If the default or a pin points at something that is not connected (share
    link with m=chrome on a phone, key cleared, Nano absent), fall back to
-   Auto so Run never dead-ends on a provider the client cannot use. */
+   Auto so Run never dead-ends on a provider the client cannot use.
+   A pinned/default provider that cannot serve this cell's class also falls
+   through — otherwise "Always Download a model" would crash vision cells. */
 const resolveFor = cell => {
   const pinned = S.cellProvider[cell.id];
-  if (pinned && isConnected(pinned)) return pinned;
-  if (S.provider !== 'auto' && isConnected(S.provider)) return S.provider;
+  if (pinned && isConnected(pinned) && PROVIDERS[pinned].classes.includes(cell.requires)) return pinned;
+  if (S.provider !== 'auto' && isConnected(S.provider) && PROVIDERS[S.provider].classes.includes(cell.requires))
+    return S.provider;
   return autoPick(cell);
 };
 
@@ -3319,7 +3560,7 @@ const blobToDataURL = blob => new Promise((res, rej) => {
   r.readAsDataURL(blob);
 });
 const noVision = label => { throw new Error(
-  `${label} cannot see pictures. Pin this cell to a model that serves vision — Google, OpenAI, Anthropic, OpenRouter or Groq — or run it on the guided demo.`); };
+  `${label} cannot see pictures. Pin this cell to a model that serves vision — See pictures here, Google, OpenAI, Anthropic, OpenRouter or Groq — or run it on the guided demo.`); };
 
 async function fail(res, label){
   const body = await res.text().catch(()=>'');
@@ -3407,6 +3648,21 @@ const ADAPTERS = {
     onText(acc);
     await yieldToMain();
     return acc;
+  },
+
+  async localvision({sys, prompt, onText, signal, images}){
+    if (!images?.length)
+      throw new Error('See pictures here needs a picture attached. Drop or capture one first.');
+    if (signal?.aborted) throw new Error('aborted');
+    /* One image for now — Moondream is single-image VQA. Extra attachments
+       stay in the bag for later cells that read the text description. */
+    const src = images[0]?.src;
+    if (!src) throw new Error('That picture has no bytes to look at.');
+    const q = `${sys}\n\n${prompt}`.trim();
+    const out = await visionOnDevice(q, src, msg => onText(msg));
+    if (signal?.aborted) throw new Error('aborted');
+    onText(out);
+    return out;
   },
 
   async ollama({sys, prompt, onText, signal, cfg, images}){
@@ -3499,7 +3755,7 @@ const ADAPTERS = {
 
 /* Almost everything speaks the OpenAI wire format now, which is the single
    biggest reason this list could grow at all. */
-const ADAPTER_FOR = { chrome:'chrome', localdl:'localdl', ollama:'ollama', google:'google', anthropic:'anthropic',
+const ADAPTER_FOR = { chrome:'chrome', localdl:'localdl', localvision:'localvision', ollama:'ollama', google:'google', anthropic:'anthropic',
   groq:'openaiCompatible', openrouter:'openaiCompatible', openai:'openaiCompatible',
   huggingface:'openaiCompatible', cerebras:'openaiCompatible', mistral:'openaiCompatible',
   deepseek:'openaiCompatible', together:'openaiCompatible', xai:'openaiCompatible',
@@ -3690,8 +3946,8 @@ function humanError(msg, id){
   if (/connection refused|econnrefused|nothing answered/i.test(m))
     return `Nothing is listening at that address. Start ${PROVIDERS[id]?.label ?? 'the service'} first — Forge and A1111 need --api on the command line — then check again.`;
   if (/failed to fetch|networkerror|cors|load failed/i.test(m))
-    return id === 'localdl'
-      ? 'Could not download the model files. Stay on this page, try the smallest size, or paste a free cloud key instead.'
+    return id === 'localdl' || id === 'localvision'
+      ? 'Could not download the model files. Stay on this page, try again, or paste a free cloud key instead.'
       : `Could not reach ${PROVIDERS[id]?.label ?? 'the service'} from a web page. This is a browser restriction, not a problem with your key.`;
   return m.slice(0, 240);
 }
@@ -3726,6 +3982,13 @@ async function testProvider(id){
   if (id === 'demo') return {ok:true, msg:'Always available. No network involved.'};
   if (cfg.reach === 'blocked') return {ok:false, msg:'Blocked from any browser by CORS. Not a key problem.'};
   const t0 = performance.now();
+  if (id === 'localvision'){
+    try {
+      const tiny = 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" fill="#ddd"/><text x="32" y="36" text-anchor="middle" font-size="12" fill="#333">ok</text></svg>');
+      const out = await visionOnDevice('Reply with the single word: ready', tiny, ()=>{});
+      return {ok:true, msg:`Reachable — ${Math.round(performance.now()-t0)} ms. Replied "${String(out).slice(0,40)}".`};
+    } catch(e){ return {ok:false, msg: humanError(e.message || String(e), id)}; }
+  }
   /* An image-only provider cannot answer "reply with the word ready". Test it
      the only way that means anything: ask for the smallest real picture. */
   if (!cfg.classes.some(c => c !== 'image')){
@@ -4093,6 +4356,8 @@ const S = {
   local:{ status:'idle', progress:null, file:null, err:null, ready:null }, device:null,
   editing:false, edits:{}, connectSel:null, testing:null, bases:{},
   typeset:'brand', density:'comfortable', modePref:'system', lookTab:0,
+  /* Library card size only — Appearance density still scales the whole app. */
+  cardSize:'medium',
   sheet:null, runs:{}, storage:null, marks:{}, mine:{}, libShown: 30,
   /* A picture a person handed over mid-run, before they press Continue. Held
      apart from the run so an un-submitted attachment is not a result. */
@@ -4104,6 +4369,9 @@ const S = {
      deliberately: a recording of people talking is the most sensitive thing
      anyone hands this app. */
   asrEngine:'device', asrStage:null,
+  /* On-device vision (Moondream). Same shape as S.local / ASR: status of a
+     download that lets picture cells run without uploading the screenshot. */
+  vision:{ status:'idle', progress:null, file:null, err:null, ready:false },
   /* Camera per scene cell. Kept out of the run so orbiting a model is not a
      change to the run's result — it is how you are looking at it. */
   scenes:{},
@@ -4155,6 +4423,10 @@ function applyTheme(){
       html.style.setProperty(tok, `${(base*d).toFixed(3)}rem`);
     html.style.setProperty('--line', d < 1 ? '1.45' : d > 1 ? '1.7' : '1.55');
   } else html.style.setProperty('--line','1.55');
+
+  const cs = S.cardSize === 'small' || S.cardSize === 'large' ? S.cardSize : 'medium';
+  html.dataset.cardSize = cs;
+  try { localStorage.setItem('throughline.cardSize', cs); } catch {}
 }
 
 /* Theme resolution has three states, not two: an explicit host choice stamps
@@ -4423,6 +4695,14 @@ function renderLibrary(){
           <select id="sort">${Object.entries(SORTS).map(([k,v])=>
             `<option value="${k}" ${F.sort===k?'selected':''}>${esc(v.name)}</option>`).join('')}</select>
         </label>
+        <div class="sort">
+          <span class="eyebrow">Cards</span>
+          <div class="card-size" role="group" aria-label="Card size">
+            ${[['small','S','Titles only — densest grid'],['medium','M','Title and blurb'],['large','L','Roomy cards']].map(([k,lbl,title]) =>
+              `<button type="button" data-card-size="${k}" aria-pressed="${S.cardSize===k}" title="${esc(title)}">${lbl}</button>`
+            ).join('')}
+          </div>
+        </div>
         ${filtering ? `<button class="ghost" id="clear-filters">Clear</button>` : ''}
       </div>
 
@@ -4513,6 +4793,13 @@ function renderLibrary(){
   }
   const sort = $('#sort');
   if (sort) sort.onchange = () => { F.sort = sort.value; refilter(); };
+  view.querySelectorAll('[data-card-size]').forEach(b => b.onclick = () => {
+    S.cardSize = b.dataset.cardSize || 'medium';
+    applyTheme();
+    /* Size only — no need to refilter the result set. */
+    view.querySelectorAll('[data-card-size]').forEach(x =>
+      x.setAttribute('aria-pressed', String(x.dataset.cardSize === S.cardSize)));
+  });
   view.querySelectorAll('[data-concept]').forEach(b => b.onclick = () => {
     F.concept = F.concept === b.dataset.concept ? null : b.dataset.concept; S.libShown = LIB_PAGE; refilter(); });
   view.querySelectorAll('[data-persona]').forEach(b => b.onclick = () => {
@@ -4629,12 +4916,18 @@ function renderNotebook(){
 
     </div>
 
-    <div class="cell">
+    <div class="cell compose">
       <div class="cell-head">
-        <span class="cell-index">00</span>
+        <span class="cell-index">Start</span>
         <div class="cell-titles">
           <h3>${esc(nb.input.label)}</h3>
-          <div class="io-line"><span><b>out</b> input.${esc(nb.input.id)} · ${wantsImage ? 'image' : 'text'}</span></div>
+          <p class="compose-lede">${esc(nb.input.placeholder || (wantsImage
+            ? 'Add a picture, then say what matters about it.'
+            : wantsAudio
+            ? 'Drop a recording, or type what was said.'
+            : wantsFile
+            ? 'Drop a document, or paste the text you want read.'
+            : 'Write freely — this is what the notebook reads first.'))}</p>
         </div>
       </div>
       <div class="cell-body">
@@ -4646,50 +4939,68 @@ function renderNotebook(){
           <label class="dropzone file ${busy ? 'busy' : ''}" for="nb-audio" id="audiozone">
             <span class="dz-hint">${busy ? esc(S.asrStage)
               : S.docNote ? esc(S.docNote)
-              : 'Drop a recording here, or choose one — WAV, MP3, M4A, FLAC, OGG or WebM'}</span>
+              : 'Drop a recording, or choose one'}</span>
           </label>
           <input type="file" id="nb-audio" accept="audio/*,video/webm,.wav,.mp3,.m4a,.flac,.ogg,.webm" hidden>
           <div class="asr-row">
             <label class="field-inline">
               <span class="eyebrow">Transcribed by</span>
               <select id="asr-engine">
-                <option value="device" ${S.asrEngine === 'device' ? 'selected' : ''}>This device — nothing is uploaded</option>
-                ${heard.map(id => `<option value="${esc(id)}" ${S.asrEngine === id ? 'selected' : ''}>${esc(PROVIDERS[id].label)} · ${esc(audioModelOf(id))}</option>`).join('')}
+                <option value="device" ${S.asrEngine === 'device' ? 'selected' : ''}>This device — stays private</option>
+                ${heard.map(id => `<option value="${esc(id)}" ${S.asrEngine === id ? 'selected' : ''}>${esc(PROVIDERS[id].label)}</option>`).join('')}
               </select>
             </label>
           </div>
-          <p class="fine">${S.asrEngine === 'device'
-            ? `On this device with ${esc(ASR.label)} — a ${ASR.mb} MB download the first time, then nothing leaves the machine. ${esc(ASR.note)}`
-            : `Sent to ${esc(PROVIDERS[S.asrEngine]?.label ?? 'the provider')}, which means the recording leaves this machine. Faster and more accurate; your call.`}
-            The transcript lands in the box below, so you can correct it before anything reads it.</p>
+          <p class="compose-note">${S.asrEngine === 'device'
+            ? `Private on this device (${esc(ASR.label)}, ~${ASR.mb} MB once). Edit the transcript below before anything reads it.`
+            : `Sent to ${esc(PROVIDERS[S.asrEngine]?.label ?? 'the provider')} — faster, and it leaves this machine.`}</p>
         </div>`; })() : ''}
         ${wantsFile ? `
         <div class="attach" id="filezone-wrap">
           <label class="dropzone file" for="nb-file" id="filezone">
             <span class="dz-hint">${S.docNote
               ? esc(S.docNote)
-              : 'Drop a document here, or choose one — text, Markdown, CSV, TSV, JSON or PDF'}</span>
+              : 'Drop a document, or choose one'}</span>
           </label>
           <input type="file" id="nb-file" accept=".txt,.md,.markdown,.csv,.tsv,.json,.log,.yml,.yaml,.pdf,text/*,application/json,application/pdf" hidden>
-          <p class="fine">The file is read here, in this tab, and its text goes straight into the box
-            below — so what you can see is exactly what gets sent. PDFs are parsed in the page;
-            nothing is uploaded to a conversion service.</p>
+          <p class="compose-note">The text lands in the box below so you can see exactly what gets read.</p>
         </div>` : ''}
         ${wantsImage ? `
-        <div class="attach" id="attach">
-          <label class="dropzone ${curImage ? 'has' : ''}" for="nb-image" id="dropzone">
-            ${curImage ? `<img src="${esc(curImage.src)}" alt="${esc(curImage.alt || '')}">` : ''}
-            <span class="dz-hint">${curImage
-              ? esc(curImage.source === 'sample' ? 'Sample picture — drop your own over it' : curImage.alt || 'Your picture')
-              : 'Drop a picture here, paste one, or choose a file'}</span>
-          </label>
-          <input type="file" id="nb-image" accept="image/*" hidden>
-          <p class="fine">Pictures are scaled to ${ATTACH_MAX}px and held in this tab.
-            They are sent only to the model you pick for a cell that reads them, and only when you run it.
-            ${curImage && curImage.source !== 'sample' ? '<button type="button" class="linkbtn" id="attach-reset">Put the sample back</button>' : ''}</p>
-        </div>` : ''}
-        <textarea id="nb-input" placeholder="${esc(nb.input.placeholder)}">${esc(
-          wantsImage ? (curImage?.note ?? '') : (run.bag['input.'+nb.input.id] ?? nb.input.seed))}</textarea>
+        <div class="compose-media with-shot">
+          <div class="attach" id="attach">
+            <label class="dropzone ${curImage ? 'has' : ''}" for="nb-image" id="dropzone">
+              ${curImage ? `<img src="${esc(curImage.src)}" alt="${esc(curImage.alt || '')}">` : ''}
+              <span class="dz-hint">${curImage
+                ? esc(curImage.source === 'sample' ? 'Sample — drop yours over it' : curImage.alt || 'Your picture')
+                : 'Drop a picture, paste one, or choose a file'}</span>
+            </label>
+            <input type="file" id="nb-image" accept="image/*" hidden>
+            <div class="compose-actions">
+              ${typeof navigator.mediaDevices?.getDisplayMedia === 'function'
+                ? `<button type="button" class="btn secondary tiny" id="capture-screen">Capture a screen</button>` : ''}
+              ${!isConnected('localvision') || !(S.vision?.ready || _visionBundle)
+                ? `<button type="button" class="btn secondary tiny" id="prep-vision" title="Download ${VISION.label} (~${VISION.mb} MB) so picture cells can run without uploading">
+                     ${S.vision?.status==='downloading'
+                       ? `Getting vision model…${S.vision.progress!=null?` ${S.vision.progress}%`:''}`
+                       : `Private vision model`}</button>` : ''}
+              ${curImage && curImage.source !== 'sample' ? `<button type="button" class="linkbtn" id="attach-reset">Use sample</button>` : ''}
+            </div>
+          </div>
+          <div>
+            <label class="compose-label" for="nb-input">What should it know about this?</label>
+            <textarea id="nb-input" class="compose-write" rows="8" placeholder="${esc(nb.input.placeholder || 'Who is this for, and what are you trying to learn?')}">${esc(curImage?.note ?? '')}</textarea>
+          </div>
+        </div>
+        <p class="compose-note">${(S.vision?.ready || _visionBundle)
+          ? 'Picture stays in this tab. On-device vision is ready — nothing is uploaded unless you pick a cloud model.'
+          : canAutoVision()
+          ? 'Picture stays in this tab. With nothing else connected, a private vision model downloads once when you run.'
+          : 'Picture stays in this tab, and is only sent when a cell that reads pictures runs.'}</p>
+        ` : `
+        <label class="compose-label" for="nb-input">${wantsAudio || wantsFile ? 'Edit what will be read' : 'Your words'}</label>
+        <textarea id="nb-input" class="compose-write" rows="10" placeholder="${esc(nb.input.placeholder)}">${esc(
+          run.bag['input.'+nb.input.id] ?? nb.input.seed)}</textarea>
+        `}
       </div>
     </div>
 
@@ -4704,6 +5015,20 @@ function renderNotebook(){
 
   $('#back').onclick = () => { S.view='library'; S.nbId=null; render(); scrollTop(); };
   const ta = $('#nb-input');
+  const fitWrite = (el) => {
+    if (!el || el.tagName !== 'TEXTAREA') return;
+    el.style.blockSize = 'auto';
+    const min = parseFloat(getComputedStyle(el).minBlockSize) || 0;
+    el.style.blockSize = `${Math.max(min, el.scrollHeight + 2)}px`;
+  };
+  if (ta){
+    fitWrite(ta);
+    ta.addEventListener('input', () => fitWrite(ta));
+  }
+  view.querySelectorAll('.ask-box textarea').forEach(el => {
+    fitWrite(el);
+    el.addEventListener('input', () => fitWrite(el));
+  });
   const staleFromInput = () => {
     for (const c of nb.cells) if (c.inputs.includes(inKey)){
       for (const id of [c.id, ...downstream(nb,c.id)]){
@@ -4807,6 +5132,28 @@ function renderNotebook(){
     });
     const rst = $('#attach-reset');
     if (rst) rst.onclick = () => { run.bag[inKey] = seedValue(nb); staleFromInput(); render(); };
+    const cap = $('#capture-screen');
+    if (cap) cap.onclick = async () => {
+      cap.disabled = true;
+      try {
+        run.bag[inKey] = await captureScreenToImageValue(ta?.value);
+        staleFromInput(); render();
+      } catch (e) {
+        if (e?.name !== 'NotAllowedError') toast(e.message || String(e));
+        cap.disabled = false;
+      }
+    };
+    const prep = $('#prep-vision');
+    if (prep) prep.onclick = async () => {
+      prep.disabled = true;
+      try {
+        await ensureVisionModel(() => render());
+        toast(`${VISION.label} is ready on this device.`);
+      } catch (e) {
+        toast(e.message || String(e));
+      }
+      render();
+    };
   }
 
   $('#run-all').onclick = async () => {
@@ -5857,6 +6204,40 @@ async function fileToImageValue(file, note){
     source:'attached', w, h};
 }
 
+/* One frame from getDisplayMedia — the missing half of “show it a screen”.
+   Browser prompts for which window/tab/display; we never see anything else. */
+async function captureScreenToImageValue(note){
+  if (!navigator.mediaDevices?.getDisplayMedia)
+    throw new Error('This browser cannot capture a screen from the page.');
+  const stream = await navigator.mediaDevices.getDisplayMedia({
+    video: { displaySurface: 'browser' },
+    audio: false,
+    preferCurrentTab: false
+  });
+  try {
+    const track = stream.getVideoTracks()[0];
+    if (!track) throw new Error('No screen track came back.');
+    const video = document.createElement('video');
+    video.playsInline = true;
+    video.muted = true;
+    video.srcObject = stream;
+    await video.play();
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const w = video.videoWidth || 1280, h = video.videoHeight || 720;
+    const cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    cv.getContext('2d').drawImage(video, 0, 0);
+    track.stop();
+    const raw = cv.toDataURL('image/jpeg', 0.9);
+    const shrunk = await shrinkDataURL(raw);
+    const label = track.label || 'Captured screen';
+    return {kind:'image', src:shrunk.src, alt:label, note: note ?? '',
+      source:'attached', w:shrunk.w, h:shrunk.h};
+  } finally {
+    stream.getTracks().forEach(t => t.stop());
+  }
+}
+
 async function saveDataURL(filename, dataUrl){
   const d = dataUrlParts(dataUrl);
   if (!d){ exportFailed('That picture is not embedded bytes.'); return; }
@@ -6277,6 +6658,12 @@ function connectDetail(id){
             if (S.local?.status === 'error') return 'Download failed';
             return 'Needs download';
           }
+          if (id === 'localvision'){
+            if (S.vision?.status === 'downloading')
+              return S.vision.progress!=null ? `Downloading ${S.vision.progress}%` : 'Downloading…';
+            if (S.vision?.status === 'error') return 'Download failed';
+            return isMobileClient() ? 'Needs download' : 'Auto on first picture cell';
+          }
           if (id === 'chrome' && S.builtin === 'downloadable') return 'Needs download';
           if (p.key === 'free' || p.key === 'paid') return 'Needs a key';
           if (p.key === 'none') return 'Needs a check';
@@ -6355,6 +6742,31 @@ function connectDetail(id){
                <button class="btn secondary" data-test="localdl">Check it works</button>`
             : `<p>Download <b>${esc(spec.label)}</b> (${esc(spec.size)}). First time needs the network; later loads usually hit the browser cache.</p>
                <button class="btn" id="dl-local">Download ${esc(spec.label)}</button>`}
+          ${st.status==='error' && st.err ? `<div class="result bad">${esc(st.err)}</div>` : ''}
+        </div>
+      </div>`;
+    })() : ''}
+
+    ${id==='localvision' ? (() => {
+      const st = S.vision || {};
+      const ready = !!(st.ready || _visionBundle);
+      return `
+      <div class="step ${ready?'done':''}">
+        <span class="step-n">1</span>
+        <div class="step-body">
+          <p><b>${esc(VISION.label)}</b> (~${VISION.mb} MB). Reads screenshots and photos
+            on this device — the private path for picture cells, the same way Whisper
+            is the private path for recordings.</p>
+          <p class="fine">${esc(VISION.note)}</p>
+          ${st.status==='downloading'
+            ? `<p>Downloading${st.progress!=null?` — ${st.progress}%`:''}${st.file?` · ${esc(st.file)}`:''}. Keep this tab open.</p>`
+            : ready
+            ? `<p>Ready — picture cells can run without uploading.</p>
+               <button class="btn secondary" data-test="localvision">Check it works</button>`
+            : `<p>${isMobileClient()
+                ? 'On a phone this is opt-in — it is a large download. A free cloud vision key is usually happier.'
+                : 'On a computer this also starts automatically the first time a picture cell runs with nothing else connected.'}</p>
+               <button class="btn" id="dl-vision">Download ${esc(VISION.label)}</button>`}
           ${st.status==='error' && st.err ? `<div class="result bad">${esc(st.err)}</div>` : ''}
         </div>
       </div>`;
@@ -6764,6 +7176,22 @@ function wireSheet(el){
     }
     renderSheet(); render();
   };
+  const dlVision = el.querySelector('#dl-vision');
+  if (dlVision) dlVision.onclick = async () => {
+    dlVision.disabled = true;
+    try {
+      let last = -1;
+      await ensureVisionModel(() => {
+        const pct = S.vision?.progress ?? 0;
+        if (pct === last) return;
+        last = pct; renderSheet();
+      });
+      S.tests.localvision = {ok:true, msg:`${VISION.label} is on this device.`};
+    } catch (e){
+      S.tests.localvision = {ok:false, msg:humanError(e.message || String(e), 'localvision')};
+    }
+    renderSheet(); render();
+  };
   const dl = el.querySelector('#dl-builtin');
   if (dl) dl.onclick = async () => {
     try {
@@ -6816,6 +7244,13 @@ const READY_LABEL = () => {
 };
 
 function statusOf(id){
+  if (id === 'localvision'){
+    if (S.vision?.status === 'downloading')
+      return {cls:'warn', txt:`downloading${S.vision.progress!=null?` ${S.vision.progress}%`:'…'}`};
+    if (S.vision?.ready || _visionBundle) return {cls:'ok', txt:'ready'};
+    if (isMobileClient()) return {cls:'warn', txt:'opt-in — ~700 MB vision model'};
+    return {cls:'warn', txt:'auto on first picture cell · ~700 MB'};
+  }
   if (isConnected(id)) return {cls:'ok', txt:'ready'};
   if (id === 'localdl'){
     if (S.local?.status === 'downloading')
@@ -6861,8 +7296,8 @@ function renderSwitcher(){
   /* On phones, lead with downloadable on-device models; keep Chrome visible
      so the desktop Nano path stays discoverable with honest status copy. */
   const order = isMobileClient()
-    ? ['demo','localdl','google','groq','openrouter','chrome','anthropic','openai']
-    : ['localdl','chrome','demo','ollama','google','groq','openrouter','anthropic','openai'];
+    ? ['demo','localdl','localvision','google','groq','openrouter','chrome','anthropic','openai']
+    : ['localdl','localvision','chrome','demo','ollama','google','groq','openrouter','anthropic','openai'];
   const rec = recommendLocalModel(S.device);
   /* Never disable a row that can still be set up — a greyed Google / Groq
      tap on a phone looked like a broken menu. Unconnected → open Connect. */
@@ -7460,6 +7895,10 @@ addEventListener('keydown', e => { if (e.key==='Escape' && S.sheet){ S.sheet=nul
 
 (async function boot(){
   S.mode = resolveMode();
+  try {
+    const saved = localStorage.getItem('throughline.cardSize');
+    if (saved === 'small' || saved === 'medium' || saved === 'large') S.cardSize = saved;
+  } catch {}
   new MutationObserver(() => { if (S.modePref==='system'){ S.mode = resolveMode(); applyTheme(); } })
     .observe(document.documentElement, {attributes:true, attributeFilter:['data-theme']});
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {

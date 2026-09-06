@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy · Throughline</title>
+<meta name="description" content="Throughline privacy policy — what stays on your device, and what does not.">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --bg: #fcfcfb; --ink: #141312; --mute: #6b6862; --line: #dedbd5;
+    --font: ui-sans-serif, -apple-system, "Segoe UI", system-ui, sans-serif;
+    --display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #141312; --ink: #fcfcfb; --mute: #94908a; --line: #33312e; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 400 1.0625rem/1.55 var(--font);
+  }
+  main {
+    max-width: 38rem; margin: 0 auto;
+    padding: 3rem 1.25rem 4.5rem;
+  }
+  a { color: inherit; }
+  .brand {
+    font: 650 1.5rem/1.2 var(--display);
+    letter-spacing: -0.015em; text-decoration: none;
+  }
+  h1 {
+    font: 650 2rem/1.15 var(--display);
+    letter-spacing: -0.02em; margin: 2rem 0 0.5rem;
+  }
+  .updated { color: var(--mute); font-size: 0.875rem; margin: 0 0 2rem; }
+  h2 {
+    font: 650 1.125rem/1.3 var(--font);
+    margin: 2rem 0 0.5rem;
+  }
+  p, li { color: var(--ink); }
+  p { margin: 0.75rem 0; }
+  ul { padding-left: 1.2rem; margin: 0.5rem 0 1rem; }
+  li { margin: 0.35rem 0; }
+  hr { border: 0; border-top: 1px solid var(--line); margin: 2.5rem 0; }
+  .back { color: var(--mute); font-size: 0.875rem; }
+</style>
+</head>
+<body>
+<main>
+  <a class="brand" href="./">Throughline</a>
+  <h1>Privacy</h1>
+  <p class="updated">Last updated: 6 September 2026</p>
+
+  <p>Throughline is a free, local-first library of runnable notebooks. This page
+  describes what the product does — and does not — do with your data.</p>
+
+  <h2>No account</h2>
+  <p>Throughline does not require an account. We do not run a Throughline user
+  database of notebooks, prompts, or API keys.</p>
+
+  <h2>What stays on your device</h2>
+  <ul>
+    <li><strong>API keys</strong> — stored in the browser (web) or the operating
+      system keychain (desktop). They are never sent to Throughline servers.</li>
+    <li><strong>Notebooks and run transcripts</strong> — kept in browser storage
+      or, on desktop, in a folder you control on disk.</li>
+    <li><strong>Marks and edits</strong> — stored locally with your library.</li>
+  </ul>
+
+  <h2>Network requests</h2>
+  <p>When you run a notebook against a model provider, your device talks
+  <strong>directly</strong> to the endpoint you chose (for example OpenAI,
+  Anthropic, Google, Groq, OpenRouter, a company gateway, or a local server).
+  Throughline does not proxy those requests. The privacy practices of each
+  provider apply to that traffic.</p>
+  <p>The website may load optional on-device model assets from public CDNs
+  (for example Hugging Face or jsDelivr) when you choose a downloaded model.
+  Desktop builds use the same idea: traffic goes to destinations you configure,
+  not to a Throughline backend for inference.</p>
+
+  <h2>Hosting and analytics</h2>
+  <p>The static website may be served via ordinary web hosting or a CDN. If a
+  host enables basic access logs or a privacy-preserving analytics beacon
+  (for example Cloudflare), those systems may see standard request metadata
+  such as IP address and user agent. Throughline does not use that data to
+  identify you, build a profile, or sell advertising.</p>
+
+  <h2>Children</h2>
+  <p>Throughline is a general productivity tool. It is not directed at children
+  under 13, and we do not knowingly collect personal information from children.</p>
+
+  <h2>Changes</h2>
+  <p>If this policy changes in a material way, we will update the date above.
+  Continued use of Throughline after an update means you accept the revised
+  policy.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this policy:
+  <a href="https://github.com/mhsenkow/throughline/issues">github.com/mhsenkow/throughline</a>.</p>
+
+  <hr>
+  <p class="back"><a href="./">← Back to Throughline</a></p>
+</main>
+</body>
+</html>

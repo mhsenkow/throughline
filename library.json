@@ -13832,5 +13832,170 @@
         ]
       }
     ]
+  },
+  {
+    "id": "read-the-error",
+    "schemaVersion": "1.3.0",
+    "realm": "tech",
+    "concept": "diagnose",
+    "persona": "engineer",
+    "featured": true,
+    "title": "Read the Error",
+    "blurb": "Show it a screenshot of a failure — a dialog, a red build, a stack in a terminal — and it says what actually broke and what to try first.",
+    "teaches": "Vision on a real incident, not a chat paste of the log",
+    "tags": [
+      "vision",
+      "debug"
+    ],
+    "input": {
+      "id": "shot",
+      "label": "A screenshot of the error or failed state",
+      "placeholder": "Say what you were trying to do when this appeared.",
+      "seed": "I pushed to main. The deploy board turned red. I have not opened the logs yet.",
+      "accepts": "image",
+      "seedImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MjAgMzIwIiB3aWR0aD0iNDIwIiBoZWlnaHQ9IjMyMCI+CjxyZWN0IHdpZHRoPSI0MjAiIGhlaWdodD0iMzIwIiBmaWxsPSIjZjRmM2YwIi8+CjxyZWN0IHg9IjYwIiB5PSI0OCIgd2lkdGg9IjMwMCIgaGVpZ2h0PSIyMjQiIHJ4PSIxMCIgZmlsbD0iI2ZmZiIgc3Ryb2tlPSIjZTJkZWQ3Ii8+CjxyZWN0IHg9IjYwIiB5PSI0OCIgd2lkdGg9IjMwMCIgaGVpZ2h0PSI0MCIgcng9IjEwIiBmaWxsPSIjZmJmYWY4Ii8+CjxjaXJjbGUgY3g9Ijg0IiBjeT0iNjgiIHI9IjciIGZpbGw9IiNjNDQiLz4KPHRleHQgeD0iMTAwIiB5PSI3MyIgZm9udC1mYW1pbHk9IkhlbHZldGljYSxBcmlhbCIgZm9udC1zaXplPSIxMyIgZm9udC13ZWlnaHQ9IjYwMCIgZmlsbD0iIzIyMiI+RGVwbG95IGZhaWxlZDwvdGV4dD4KPHRleHQgeD0iODQiIHk9IjEyMCIgZm9udC1mYW1pbHk9IkhlbHZldGljYSxBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzQ0NCI+RXJyb3I6IEVDT05OUkVGVVNFRCAxMjcuMC4wLjE6NTQzMjwvdGV4dD4KPHRleHQgeD0iODQiIHk9IjE0MiIgZm9udC1mYW1pbHk9IkhlbHZldGljYSxBcmlhbCIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzg4OCI+YXQgUG9vbC5jb25uZWN0ICgvYXBwL25vZGVfbW9kdWxlcy9wZy9saWIvaW5kZXguanM6NTQpPC90ZXh0Pgo8dGV4dCB4PSI4NCIgeT0iMTY0IiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjExIiBmaWxsPSIjODg4Ij5hdCBhc3luYyBib290ICgvYXBwL3NyYy9zZXJ2ZXIuanM6MTgpPC90ZXh0Pgo8dGV4dCB4PSI4NCIgeT0iMTg2IiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjExIiBmaWxsPSIjODg4Ij5CdWlsZCA0ODIxIMK3IG1haW4gwrcgMTQ6MDIgVVRDPC90ZXh0Pgo8cmVjdCB4PSI4NCIgeT0iMjE0IiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iIzIyMiIvPgo8dGV4dCB4PSIxMzQiIHk9IjIzNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkhlbHZldGljYSxBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iI2ZmZiI+UmV0cnk8L3RleHQ+CjxyZWN0IHg9IjE5NiIgeT0iMjE0IiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iI2ZiZmFmOCIgc3Ryb2tlPSIjZGVkYmQ1Ii8+Cjx0ZXh0IHg9IjI0NiIgeT0iMjM0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjY2Ij5Mb2dzPC90ZXh0Pgo8L3N2Zz4=",
+      "seedAlt": "Sample deploy failure dialog: ECONNREFUSED 127.0.0.1:5432, Retry and Logs"
+    },
+    "cells": [
+      {
+        "id": "seen",
+        "title": "Read what is on the screen",
+        "requires": "vision",
+        "intent": "Before diagnosis, inventory. Misreading the error is how you spend an hour on the wrong service.",
+        "inputs": [
+          "input.shot"
+        ],
+        "output": {
+          "name": "seen",
+          "type": "list"
+        },
+        "prompt": "Look at the attached screenshot of a failure. List every concrete signal you can see — error text, codes, paths, buttons, timestamps, service names — in reading order. Quote exact strings where they matter. Do not diagnose yet. Respond in {{locale.outputLanguage}}.\n\nWhat they were doing: {{input.shot}}",
+        "demo": [
+          "Title: “Deploy failed”.",
+          "Error line: “ECONNREFUSED 127.0.0.1:5432”.",
+          "Stack mentions Pool.connect in pg and async boot in server.js.",
+          "Meta: “Build 4821 · main · 14:02 UTC”.",
+          "Two actions: “Retry” and “Logs”."
+        ]
+      },
+      {
+        "id": "cause",
+        "title": "Name the likely cause",
+        "requires": "reasoning",
+        "intent": "One sentence that a teammate could act on — not a lecture on networking.",
+        "inputs": [
+          "seen",
+          "input.shot"
+        ],
+        "output": {
+          "name": "cause",
+          "type": "prose"
+        },
+        "prompt": "From this inventory of a failure screen, say the most likely cause in one or two sentences, then the single smallest check that would confirm or kill that theory. Respond in {{locale.outputLanguage}}.\n\nInventory:\n{{seen}}\n\nContext:\n{{input.shot}}",
+        "demo": "The app cannot reach Postgres on localhost port 5432 — either the database is down in that environment, or the deploy is still pointing at 127.0.0.1 instead of the managed host. Confirm by opening Logs and checking whether anything is listening on 5432 in that runtime (or whether DATABASE_URL still says localhost)."
+      },
+      {
+        "id": "next",
+        "title": "Three things to try, in order",
+        "requires": "reasoning",
+        "intent": "A short ordered list beats a wall of maybes.",
+        "inputs": [
+          "cause",
+          "seen"
+        ],
+        "output": {
+          "name": "next",
+          "type": "list"
+        },
+        "prompt": "Given this cause and the screen inventory, list three concrete next steps in the order someone should try them. Each step should take under five minutes and have a clear pass/fail. Respond in {{locale.outputLanguage}}.\n\nCause: {{cause}}\n\nInventory: {{seen}}",
+        "demo": [
+          "Open Logs and search for DATABASE_URL / 5432 — pass if the host is not 127.0.0.1.",
+          "If it is localhost, point the deploy env at the managed database and redeploy once.",
+          "If the host is already correct, check that the database service in that environment is up, then press Retry."
+        ]
+      }
+    ]
+  },
+  {
+    "id": "name-the-stall",
+    "schemaVersion": "1.3.0",
+    "realm": "design",
+    "concept": "critique",
+    "persona": "designer",
+    "featured": true,
+    "title": "Name the Stall",
+    "blurb": "One picture of a screen. It points at the exact control where a first-time visitor stops — and what would unstick them.",
+    "teaches": "Vision that finds the hesitation, not a redesign of everything",
+    "tags": [
+      "vision",
+      "ux"
+    ],
+    "input": {
+      "id": "shot",
+      "label": "A screenshot of the screen you care about",
+      "placeholder": "Who arrives here, and what they are trying to finish.",
+      "seed": "An invite screen for a workspace. The sender is a teammate; the visitor has never used the product.",
+      "accepts": "image",
+      "seedImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MjAgNDgwIiB3aWR0aD0iNDIwIiBoZWlnaHQ9IjQ4MCI+CjxyZWN0IHdpZHRoPSI0MjAiIGhlaWdodD0iNDgwIiBmaWxsPSIjZjRmM2YwIi8+CjxyZWN0IHg9IjI0IiB5PSIyNCIgd2lkdGg9IjM3MiIgaGVpZ2h0PSI0MzIiIHJ4PSIxMCIgZmlsbD0iI2ZmZiIgc3Ryb2tlPSIjZTJkZWQ3Ii8+Cjx0ZXh0IHg9IjQ4IiB5PSI2NCIgZm9udC1mYW1pbHk9IkhlbHZldGljYSxBcmlhbCIgZm9udC1zaXplPSIxOCIgZm9udC13ZWlnaHQ9IjYwMCIgZmlsbD0iIzIyMiI+SW52aXRlIGEgdGVhbW1hdGU8L3RleHQ+Cjx0ZXh0IHg9IjQ4IiB5PSI4OCIgZm9udC1mYW1pbHk9IkhlbHZldGljYSxBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0iIzhhODU3ZCI+VGhleSBnZXQgZWRpdCBhY2Nlc3MgdG8gdGhpcyB3b3Jrc3BhY2UuPC90ZXh0Pgo8dGV4dCB4PSI0OCIgeT0iMTI4IiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjExIiBmaWxsPSIjNmI2ODYyIj5FbWFpbDwvdGV4dD4KPHJlY3QgeD0iNDgiIHk9IjEzNiIgd2lkdGg9IjMyNCIgaGVpZ2h0PSIzNiIgcng9IjYiIGZpbGw9IiNmYmZhZjgiIHN0cm9rZT0iI2RlZGJkNSIvPgo8dGV4dCB4PSI0OCIgeT0iMjA0IiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjExIiBmaWxsPSIjNmI2ODYyIj5Sb2xlPC90ZXh0Pgo8cmVjdCB4PSI0OCIgeT0iMjEyIiB3aWR0aD0iMzI0IiBoZWlnaHQ9IjM2IiByeD0iNiIgZmlsbD0iI2ZiZmFmOCIgc3Ryb2tlPSIjZGVkYmQ1Ii8+Cjx0ZXh0IHg9IjYwIiB5PSIyMzUiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiNiM2FlYTYiPlNlbGVjdCBhIHJvbGXigKY8L3RleHQ+Cjx0ZXh0IHg9IjQ4IiB5PSIyODAiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiM2YjY4NjIiPk1lc3NhZ2UgKG9wdGlvbmFsKTwvdGV4dD4KPHJlY3QgeD0iNDgiIHk9IjI4OCIgd2lkdGg9IjMyNCIgaGVpZ2h0PSI3MiIgcng9IjYiIGZpbGw9IiNmYmZhZjgiIHN0cm9rZT0iI2RlZGJkNSIvPgo8cmVjdCB4PSI0OCIgeT0iMzg4IiB3aWR0aD0iMzI0IiBoZWlnaHQ9IjQyIiByeD0iNiIgZmlsbD0iIzViNGNlMCIvPgo8dGV4dCB4PSIyMTAiIHk9IjQxNCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkhlbHZldGljYSxBcmlhbCIgZm9udC1zaXplPSIxNCIgZm9udC13ZWlnaHQ9IjYwMCIgZmlsbD0iI2ZmZiI+U2VuZCBpbnZpdGU8L3RleHQ+Cjwvc3ZnPg==",
+      "seedAlt": "Sample invite screen: email, role select empty, optional message, Send invite"
+    },
+    "cells": [
+      {
+        "id": "inventory",
+        "title": "What the screen asks for",
+        "requires": "vision",
+        "intent": "List the work before judging the work.",
+        "inputs": [
+          "input.shot"
+        ],
+        "output": {
+          "name": "inventory",
+          "type": "list"
+        },
+        "prompt": "Look at the attached interface. List every field, control and decision a first-time visitor must complete, in order. Note which ones are empty or undecided in the picture. Respond in {{locale.outputLanguage}}.\n\nWho arrives and why: {{input.shot}}",
+        "demo": [
+          "Email — empty.",
+          "Role — showing “Select a role…”, undecided.",
+          "Message — optional, empty.",
+          "Send invite — primary button."
+        ]
+      },
+      {
+        "id": "stall",
+        "title": "Where they stop",
+        "requires": "reasoning",
+        "intent": "One stall, named precisely — the rest of the page is noise until this moves.",
+        "inputs": [
+          "inventory",
+          "input.shot"
+        ],
+        "output": {
+          "name": "stall",
+          "type": "prose"
+        },
+        "prompt": "From this inventory, name the single control where a first-time visitor is most likely to stall, and why — in two sentences. Be specific about the control. Respond in {{locale.outputLanguage}}.\n\nInventory:\n{{inventory}}\n\nContext:\n{{input.shot}}",
+        "demo": "They stop on Role. Email they already know; “Select a role…” asks them to invent a permission model they have never seen, with no hint what Editor or Viewer can do."
+      },
+      {
+        "id": "unstick",
+        "title": "The smallest unstick",
+        "requires": "reasoning",
+        "intent": "One change that would let them continue — not a redesign brief.",
+        "inputs": [
+          "stall",
+          "inventory"
+        ],
+        "output": {
+          "name": "unstick",
+          "type": "list"
+        },
+        "prompt": "Given that stall, list three smallest changes that would let a first-time visitor continue — prefer copy, defaults and helper text over layout. Respond in {{locale.outputLanguage}}.\n\nStall: {{stall}}\n\nInventory: {{inventory}}",
+        "demo": [
+          "Default Role to Viewer and say “you can change this later”.",
+          "Under the Role field, one line: “Viewer can read; Editor can change”.",
+          "If the inviter already has a role in mind, pre-fill it from the invite link so the visitor never opens the menu."
+        ]
+      }
+    ]
   }
 ]

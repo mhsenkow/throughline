@@ -173,7 +173,8 @@ together.
 | Media outputs: image, scene (3D), diagram, chart — same typed contract | **Real** |
 | `map` × media — one cell, N pictures / scenes / charts, numbered to inputs | **Real** |
 | 3D scenes render and export to `.obj` / `.stl` from the same triangles | **Real**, no library |
-| Image inputs: drop, paste or choose a picture; vision cells read it | **Real** |
+| Image inputs: drop, paste, capture a screen, or choose a file; vision cells read it | **Real** |
+| On-device vision (Moondream2) auto-downloads for picture cells when nothing else is connected | **Real**, desktop auto / phone opt-in |
 | Document inputs: text, Markdown, CSV, TSV, JSON — and PDF, parsed in the page | **Real** |
 | Audio inputs: a recording transcribed **on the device** by Whisper, no key | **Real**, tested on real speech |
 | `ask` can stop the run and take a **picture** from a person | **Real** |
@@ -375,6 +376,14 @@ Transformers.js runtime the app already loads for text models, and nothing is
 uploaded. It is English-only and it will mishear names — the card says so, and
 the transcript lands in the box where you can correct it *before* anything reads
 it.
+
+**Screenshots get the same treatment.** A picture of a screen is usually
+someone else's product, a draft, or a pane full of customer data. On a computer,
+the first vision cell with nothing else connected auto-downloads **Moondream2**
+(~700 MB, once) via Connect → *See pictures here*, and the bytes never leave the
+machine. Phones opt in from Connect so a large fetch is never a surprise on
+cellular. Image inputs also offer **Capture a screen** where the browser supports
+`getDisplayMedia` — pick a window or tab, one frame lands in the dropzone.
 
 A connected provider that serves the new `audio` class — Groq or OpenAI — is
 offered in the same control, with the trade stated plainly: faster and more
@@ -691,11 +700,12 @@ Mitigations shipping in the viewer:
   local engine. That test also caught a second bug: `humanError()`
   mapped the 403 to "That key was not accepted", which for a provider that takes
   no key is an answer pointing at nothing. It now names the bot check.
-- **No microphone recording yet, no video, no OCR.** Transcription is in and
-  tested, but only for a file you already have: capturing from a mic needs a
-  microphone to test against and this build was not written near one. A scanned
-  PDF needs OCR that is not here. Both are refused by name rather than failing
-  oddly.
+- **No microphone recording yet, no video, no dedicated OCR library.**
+  Transcription is in and tested, but only for a file you already have.
+  Screen capture from the page is in (browser picker → one frame); continuous
+  region tools and mic capture are not. A scanned PDF still needs OCR that is
+  not here — photo + a vision notebook (now with on-device Moondream) is the
+  workaround. Both remaining gaps are refused by name rather than failing oddly.
 - Chains are one hop by design, not a saved pipeline.
 - **The local image engine adapter is unverified.** It is written to the
   documented Automatic1111 `/sdapi/v1/txt2img` shape, and no engine was running
