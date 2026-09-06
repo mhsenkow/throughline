@@ -6,6 +6,12 @@
 <meta name="theme-color" content="#141312" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="icons/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta property="og:title" content="Throughline">
+<meta property="og:description" content="Runnable notebooks that show you what AI can actually do.">
+<meta property="og:image" content="icons/icon-512.png">
 
 <style>
 /* Baseline reset — harmless duplication when this file is published as an
@@ -31,6 +37,18 @@ img{max-width:100%}
   --p-accent-400:#7a6cf0; --p-accent-500:#5b4ce0; --p-accent-600:#4a3cc4;
   --p-amber-500:#b8860b; --p-red-500:#c0392b; --p-green-500:#2d7a4f; --p-blue-500:#2b6cb0;
 
+  /* Categorical series colours. Fixed order, never cycled or generated: a
+     sixth series folds into the fifth rather than inventing a hue. These are
+     the Okabe–Ito set, stepped per mode so both sit inside the readable
+     lightness band against their own surface, and checked with the palette
+     validator rather than by eye — adjacent-pair separation under protanopia,
+     deuteranopia and tritanopia, plus a normal-vision floor. Do not nudge one
+     of these without re-running that check. */
+  --p-series-1:#0072b2; --p-series-2:#e69f00; --p-series-3:#009e73;
+  --p-series-4:#56b4e9; --p-series-5:#cc79a7;
+  --p-series-1-dk:#0072b2; --p-series-2-dk:#c78200; --p-series-3-dk:#009e73;
+  --p-series-4-dk:#c673a1; --p-series-5-dk:#3c9cd0;
+
   --p-font-display:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;
   --p-font-body:ui-sans-serif,-apple-system,'Segoe UI',Inter,system-ui,sans-serif;
   --p-font-mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
@@ -54,6 +72,9 @@ img{max-width:100%}
   --surface-raised:var(--p-gray-0);
   --surface-sunken:var(--p-gray-50);
   --surface-inverse:var(--p-gray-900);
+
+  --series-1:var(--p-series-1); --series-2:var(--p-series-2); --series-3:var(--p-series-3);
+  --series-4:var(--p-series-4); --series-5:var(--p-series-5);
 
   --ink-primary:var(--p-gray-900);
   --ink-secondary:var(--p-gray-600);
@@ -107,6 +128,10 @@ img{max-width:100%}
   --surface-raised:var(--p-gray-800);
   --surface-sunken:#0d0c0c;
   --surface-inverse:var(--p-gray-50);
+  /* Dark is chosen, not flipped: its own steps, validated against the dark
+     surface. Three of the five had to move to stay inside the band. */
+  --series-1:var(--p-series-1-dk); --series-2:var(--p-series-2-dk); --series-3:var(--p-series-3-dk);
+  --series-4:var(--p-series-4-dk); --series-5:var(--p-series-5-dk);
   --ink-primary:var(--p-gray-50);
   --ink-secondary:var(--p-gray-300);
   --ink-muted:var(--p-gray-500);
@@ -1436,6 +1461,98 @@ table.out-table{min-inline-size:32rem}
 .cell[data-state="waiting"]{box-shadow:inset 3px 0 0 var(--status-stale)}
 .badge[data-s="waiting"]{color:var(--status-stale)}
 
+/* ── Media outputs ──────────────────────────────────────────────────────
+   Drawn with the same Tier-2 tokens as everything else, so a scene, a chart
+   and a diagram re-theme with the page instead of carrying their own palette
+   around. The only literal colours in here are the shading multipliers in
+   the 3D renderer, which are light, not brand. */
+.img-out{margin:0; display:flex; flex-direction:column; gap:var(--p-space-3)}
+.img-out img{
+  display:block; inline-size:100%; block-size:auto; border-radius:var(--radius-md);
+  border:1px solid var(--border-subtle); background:var(--surface-sunken);
+}
+.img-out figcaption{display:flex; flex-direction:column; gap:var(--p-space-2)}
+.img-alt{font-size:var(--p-size-2); color:var(--ink-secondary); line-height:1.5}
+.img-foot{display:flex; align-items:center; gap:var(--p-space-3); flex-wrap:wrap}
+
+.attach{display:flex; flex-direction:column; gap:var(--p-space-2); margin-block-end:var(--p-space-3)}
+.dropzone{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:var(--p-space-2); min-block-size:8rem; padding:var(--p-space-4);
+  border:1px dashed var(--border-strong); border-radius:var(--radius-md);
+  background:var(--surface-sunken); cursor:pointer; text-align:center;
+  transition:border-color var(--motion-fast), background var(--motion-fast);
+}
+.dropzone:hover, .dropzone.over{border-color:var(--accent-base); background:var(--accent-wash)}
+.dropzone.has{padding:var(--p-space-2)}
+.dropzone img{
+  max-block-size:16rem; inline-size:auto; border-radius:var(--radius-sm);
+  border:1px solid var(--border-subtle);
+}
+.dz-hint{font-size:var(--p-size-2); color:var(--ink-secondary)}
+
+.scene{display:flex; flex-direction:column; gap:var(--p-space-2)}
+.scene-canvas{
+  inline-size:100%; display:block; border-radius:var(--radius-md);
+  border:1px solid var(--border-subtle); background:var(--surface-sunken);
+  touch-action:none; cursor:grab;
+}
+.scene-canvas:active{cursor:grabbing}
+.scene-bar{display:flex; align-items:center; gap:var(--p-space-2); flex-wrap:wrap}
+.scene-hint{font-size:var(--p-size-1)}
+.scene-notes{margin:0; font-size:var(--p-size-2); color:var(--ink-secondary); line-height:1.55}
+
+.diagram-wrap{overflow-x:auto; padding-block:var(--p-space-2)}
+.diagram{max-inline-size:100%; block-size:auto; margin-inline:auto; display:block}
+.dg-shape{fill:var(--surface-sunken); stroke:var(--border-strong); stroke-width:1}
+.dg-shape.dg-start, .dg-shape.dg-end{fill:var(--accent-wash); stroke:var(--accent-base)}
+.dg-shape.dg-decision{fill:var(--surface-raised); stroke:var(--border-strong)}
+.dg-label{
+  fill:var(--ink-primary); font-family:var(--font-body); font-size:11.5px;
+  font-weight:var(--p-weight-medium); text-anchor:middle;
+}
+.dg-note{fill:var(--ink-muted); font-family:var(--font-body); font-size:10px; text-anchor:middle}
+.dg-edge{fill:none; stroke:var(--border-strong); stroke-width:1.4}
+.dg-edge.back{stroke-dasharray:4 3; stroke:var(--accent-base)}
+.dg-arrowhead{fill:var(--border-strong)}
+/* Knock the edge out from behind the label rather than boxing it — the line
+   stays continuous and the word stays readable. */
+.dg-edge-label{fill:var(--ink-muted); font-family:var(--font-body); font-size:10px; text-anchor:middle;
+  paint-order:stroke; stroke:var(--surface-raised); stroke-width:3px; stroke-linejoin:round}
+
+.chart-wrap{display:flex; flex-direction:column; gap:var(--p-space-2)}
+.chart{inline-size:100%; block-size:auto}
+.ch-grid{stroke:var(--border-subtle); stroke-width:1}
+.ch-axis{stroke:var(--border-strong); stroke-width:1.2}
+.ch-tick, .ch-xlabel{fill:var(--ink-muted); font-family:var(--font-body); font-size:10.5px}
+.ch-bar.s0, .ch-dot.s0{fill:var(--series-1)}
+.ch-bar.s1, .ch-dot.s1{fill:var(--series-2)}
+.ch-bar.s2, .ch-dot.s2{fill:var(--series-3)}
+.ch-bar.s3, .ch-dot.s3{fill:var(--series-4)}
+.ch-bar.s4, .ch-dot.s4{fill:var(--series-5)}
+/* A 2px surface ring keeps overlapping markers from merging into one blob. */
+.ch-dot{stroke:var(--surface-raised); stroke-width:2}
+.ch-line{fill:none; stroke-width:2; stroke-linejoin:round; stroke-linecap:round}
+.ch-line.s0{stroke:var(--series-1)}
+.ch-line.s1{stroke:var(--series-2)}
+.ch-line.s2{stroke:var(--series-3)}
+.ch-line.s3{stroke:var(--series-4)}
+.ch-line.s4{stroke:var(--series-5)}
+.ch-tag{fill:var(--ink-secondary); font-family:var(--font-body); font-size:10.5px}
+.ch-legend{display:flex; flex-wrap:wrap; gap:var(--p-space-3)}
+.ch-key{display:inline-flex; align-items:center; gap:var(--p-space-2); font-size:var(--p-size-1); color:var(--ink-secondary)}
+.ch-key i{inline-size:10px; block-size:10px; border-radius:2px; display:inline-block}
+.ch-key i.s0{background:var(--series-1)}
+.ch-key i.s1{background:var(--series-2)}
+.ch-key i.s2{background:var(--series-3)}
+.ch-key i.s3{background:var(--series-4)}
+.ch-key i.s4{background:var(--series-5)}
+.ch-note{margin:0; font-size:var(--p-size-1); color:var(--ink-muted)}
+
+@media (max-width:640px){
+  .scene-bar{gap:var(--p-space-1)}
+}
+
 </style>
 
 <div class="nb-root" id="root" data-mode="light">
@@ -2041,13 +2158,20 @@ const FREE_NOTE = 'Free tier. Key is free to obtain and stays in this tab.';
 
 /* Capability classes a cell can ask for via `requires`. A provider declares
    what it can actually serve, so a cell can tell you when it is running below
-   the class it was written for — rather than silently returning a worse answer. */
-const CLASSES = ['fast','reasoning'];
+   the class it was written for — rather than silently returning a worse answer.
+
+   `vision` and `image` are modalities, not tiers: a provider may be excellent
+   at reasoning and unable to see a picture at all. Keeping them in the same
+   list is what lets one rule — "pick the best connected provider that serves
+   this class" — route a critique cell and a moodboard cell without a second
+   mechanism. A cell that asks for a modality nobody connected can serve says
+   so in place, exactly as an under-class cell already does. */
+const CLASSES = ['fast','reasoning','vision','image'];
 
 const PROVIDERS = {
   demo: {
     label:'Guided demo', vendor:'Nothing — scripted', tier:'demo', group:'nosetup',
-    key:'none', reach:'none', classes:['fast','reasoning'],
+    key:'none', reach:'none', classes:['fast','reasoning','vision','image'],
     plain:'Try any notebook right now. Nothing to set up, nothing to sign up for.',
     note:'Pre-scripted responses. No network request is made at all.' },
 
@@ -2069,8 +2193,9 @@ const PROVIDERS = {
 
   ollama: {
     label:'Ollama', vendor:'On this machine', tier:'local', group:'nosetup',
-    key:'none', reach:'localhost', surface:'desktop', classes:['fast'], model:'llama3.2',
-    models:['llama3.2','llama3.1:8b','qwen2.5:7b','mistral','phi4','gemma2:9b','deepseek-r1:8b'],
+    key:'none', reach:'localhost', surface:'desktop', classes:['fast','vision'], model:'llama3.2',
+    models:['llama3.2','llama3.1:8b','qwen2.5:7b','mistral','phi4','gemma2:9b','deepseek-r1:8b',
+            'llava','llama3.2-vision','qwen2.5vl:7b'],
     base:'http://localhost:11434',
     plain:'Free and private, if you already run Ollama on this computer.',
     signup:'https://ollama.com/download',
@@ -2078,7 +2203,7 @@ const PROVIDERS = {
 
   lmstudio: {
     label:'LM Studio', vendor:'On this machine', tier:'local', group:'nosetup',
-    key:'none', reach:'localhost', surface:'desktop', classes:['fast'], model:'local-model',
+    key:'none', reach:'localhost', surface:'desktop', classes:['fast','vision'], model:'local-model',
     base:'http://localhost:1234/v1',
     plain:'Free and private, if you already run LM Studio on this computer.',
     signup:'https://lmstudio.ai',
@@ -2086,15 +2211,18 @@ const PROVIDERS = {
 
   google: {
     label:'Google AI Studio', vendor:'Gemini', tier:'free', group:'free', recommended:true,
-    key:'free', reach:'expected', classes:['fast','reasoning'], model:'gemini-2.0-flash',
+    key:'free', reach:'expected', classes:['fast','reasoning','vision','image'],
+    model:'gemini-2.0-flash',
     models:['gemini-2.0-flash','gemini-2.5-flash','gemini-2.0-flash-lite','gemini-2.5-pro'],
+    imageModel:'gemini-2.5-flash-image',
+    imageModels:['gemini-2.5-flash-image','gemini-2.0-flash-preview-image-generation'],
     plain:'The easiest good option. Free, takes about a minute, works with everything here.',
     signup:'https://aistudio.google.com/apikey',
     note:'Generous free quota.' },
 
   openrouter: {
     label:'OpenRouter', vendor:'Hundreds of models, one key', tier:'free', group:'free',
-    key:'free', reach:'expected', classes:['fast','reasoning'],
+    key:'free', reach:'expected', classes:['fast','reasoning','vision'],
     model:'meta-llama/llama-3.3-70b-instruct:free',
     models:['meta-llama/llama-3.3-70b-instruct:free','deepseek/deepseek-r1:free',
             'google/gemma-3-27b-it:free','qwen/qwen-2.5-72b-instruct:free',
@@ -2106,17 +2234,21 @@ const PROVIDERS = {
 
   groq: {
     label:'Groq', vendor:'Very fast open models', tier:'free', group:'free',
-    key:'free', reach:'expected', classes:['fast','reasoning'], model:'llama-3.3-70b-versatile',
+    key:'free', reach:'expected', classes:['fast','reasoning','vision'], model:'llama-3.3-70b-versatile',
     models:['llama-3.3-70b-versatile','llama-3.1-8b-instant','qwen/qwen3-32b',
-            'deepseek-r1-distill-llama-70b','gemma2-9b-it'],
+            'deepseek-r1-distill-llama-70b','gemma2-9b-it',
+            'meta-llama/llama-4-scout-17b-16e-instruct'],
     base:'https://api.groq.com/openai/v1', signup:'https://console.groq.com/keys',
     plain:'Free and remarkably fast. Answers arrive almost instantly.',
     note:'Open-weight models, so reasoning-class cells read thinner than a frontier model.' },
 
   huggingface: {
     label:'Hugging Face', vendor:'Open model router', tier:'free', group:'free',
-    key:'free', reach:'expected', classes:['fast','reasoning'],
+    key:'free', reach:'expected', classes:['fast','reasoning','vision','image'],
     model:'meta-llama/Llama-3.3-70B-Instruct',
+    imageModel:'black-forest-labs/FLUX.1-schnell',
+    imageModels:['black-forest-labs/FLUX.1-schnell','stabilityai/stable-diffusion-xl-base-1.0',
+                 'Qwen/Qwen-Image'],
     models:['meta-llama/Llama-3.3-70B-Instruct','Qwen/Qwen2.5-72B-Instruct',
             'deepseek-ai/DeepSeek-R1','mistralai/Mistral-Small-24B-Instruct-2501',
             'google/gemma-2-27b-it','microsoft/phi-4'],
@@ -2133,8 +2265,9 @@ const PROVIDERS = {
 
   mistral: {
     label:'Mistral', vendor:'European models', tier:'free', group:'free',
-    key:'free', reach:'unverified', classes:['fast','reasoning'], model:'mistral-small-latest',
-    models:['mistral-small-latest','mistral-large-latest','open-mistral-nemo','magistral-small-latest'],
+    key:'free', reach:'unverified', classes:['fast','reasoning','vision'], model:'mistral-small-latest',
+    models:['mistral-small-latest','mistral-large-latest','open-mistral-nemo','magistral-small-latest',
+            'pixtral-12b-2409'],
     base:'https://api.mistral.ai/v1', signup:'https://console.mistral.ai/api-keys',
     plain:'Free tier available. European provider.',
     note:'Browser reachability not verified here — press Test and it will tell you plainly.' },
@@ -2148,8 +2281,11 @@ const PROVIDERS = {
 
   together: {
     label:'Together AI', vendor:'Open model host', tier:'paid', group:'paid',
-    key:'paid', reach:'expected', classes:['fast','reasoning'],
+    key:'paid', reach:'expected', classes:['fast','reasoning','image'],
     model:'meta-llama/Llama-3.3-70B-Instruct-Turbo',
+    imageModel:'black-forest-labs/FLUX.1-schnell-Free',
+    imageModels:['black-forest-labs/FLUX.1-schnell-Free','black-forest-labs/FLUX.1-schnell',
+                 'black-forest-labs/FLUX.1-dev'],
     models:['meta-llama/Llama-3.3-70B-Instruct-Turbo','Qwen/Qwen2.5-72B-Instruct-Turbo',
             'deepseek-ai/DeepSeek-R1'],
     base:'https://api.together.xyz/v1', signup:'https://api.together.ai/settings/api-keys',
@@ -2164,7 +2300,7 @@ const PROVIDERS = {
 
   anthropic: {
     label:'Anthropic', vendor:'Claude', tier:'frontier', group:'paid',
-    key:'paid', reach:'expected', classes:['fast','reasoning'], model:'claude-sonnet-5',
+    key:'paid', reach:'expected', classes:['fast','reasoning','vision'], model:'claude-sonnet-5',
     models:['claude-sonnet-5','claude-opus-5','claude-haiku-4-5-20251001'],
     signup:'https://console.anthropic.com/settings/keys',
     plain:'Paid, and the strongest results on the reasoning notebooks here.',
@@ -2172,10 +2308,21 @@ const PROVIDERS = {
 
   openai: {
     label:'OpenAI', vendor:'GPT', tier:'frontier', group:'paid',
-    key:'paid', reach:'expected', classes:['fast','reasoning'], model:'gpt-4o',
+    key:'paid', reach:'expected', classes:['fast','reasoning','vision','image'], model:'gpt-4o',
     models:['gpt-4o','gpt-4o-mini','o3-mini','gpt-4.1'],
+    imageModel:'gpt-image-1', imageModels:['gpt-image-1','dall-e-3'],
     base:'https://api.openai.com/v1', signup:'https://platform.openai.com/api-keys',
     plain:'Paid.', note:'' },
+
+  pollinations: {
+    label:'Pollinations', vendor:'Open image generation', tier:'free', group:'nosetup',
+    key:'none', reach:'unverified', classes:['image'],
+    model:'flux', models:['flux','turbo'],
+    imageModel:'flux', imageModels:['flux','turbo'],
+    base:'https://image.pollinations.ai',
+    plain:'Makes pictures with no account and no key at all. The only keyless way to run the image notebooks for real.',
+    signup:'https://pollinations.ai',
+    note:'Free and anonymous, which also means rate-limited and occasionally slow. The picture is fetched as bytes and kept in the page, so nothing renders from someone else\u2019s server.' },
 
   gateway: {
     label:'Work account', vendor:'OpenAI-compatible gateway',
@@ -2183,9 +2330,10 @@ const PROVIDERS = {
     group:'paid',
     key:'paid',
     reach: isDesktopShell() ? 'expected' : 'blocked',
-    classes:['fast','reasoning'],
+    classes:['fast','reasoning','vision','image'],
     model:'gpt-4o',
     models:['gpt-4o','gpt-4o-mini','claude-sonnet-4','gemini-2.0-flash'],
+    imageModel:'gpt-image-1', imageModels:['gpt-image-1','dall-e-3'],
     base:'https://api.openai.com/v1',
     plain: isDesktopShell()
       ? 'Paste any OpenAI-compatible base URL — Azure, Bedrock proxy, LiteLLM, company gateway. Desktop has no CORS ceiling.'
@@ -2197,6 +2345,12 @@ const PROVIDERS = {
 };
 
 const modelOf = id => S.models[id] ?? PROVIDERS[id].model ?? '';
+/* An image model is a separate choice from a text model at the same provider:
+   one key, two catalogues. Pinning them to one field would make picking a
+   drawing model silently change which model writes your prose. */
+const imageModelOf = id => S.imageModels[id] ?? PROVIDERS[id].imageModel ?? '';
+const servesImage = id => !!PROVIDERS[id]?.classes.includes('image');
+const servesVision = id => !!PROVIDERS[id]?.classes.includes('vision');
 
 const TIER_RANK = { frontier:4, paid:3.5, free:3, local:2, device:1, demo:0, blocked:-1 };
 const TIER_LABEL = { demo:'Ready now', device:'On your device', local:'On your machine',
@@ -2223,6 +2377,9 @@ const CSP_CONNECT = [
   /* HF Xet CDN — ONNX weights redirect here from huggingface.co/resolve/… */
   'https://us.aws.cdn.hf.co',
   'https://eu.aws.cdn.hf.co',
+  /* Image generation. Bytes are fetched and turned into a data URL rather
+     than rendered from a remote src, so img-src stays 'self' data:. */
+  'https://image.pollinations.ai',
 ];
 
 /* Curated Transformers.js / ONNX chat models. Ranked per device at runtime —
@@ -2520,12 +2677,50 @@ const sleep = ms => new Promise(r=>setTimeout(r,ms));
 /* When the output type is overridden, the scripted value is RE-PRESENTED in
    the new shape — never regenerated. A demo that invented new content to fill
    a table you asked for would be lying about what the model would do. */
+/* ── Media values ─────────────────────────────────────────────────────
+   A picture in the bag is a VALUE, not a link to one. Generated bytes are
+   turned into a data URL the moment they arrive, which is why img-src can
+   stay `'self' data:` — the page never renders from somebody else's server,
+   the export is self-contained, and a run you saved still has its pictures
+   in it when that provider is gone. The cost is a fatter export, paid
+   deliberately.
+
+   A 3D result is geometry, not a picture of geometry: typed objects with
+   positions and sizes, which is what makes .obj and .stl export a formatting
+   step rather than a second feature. Same argument as tables-not-prose, one
+   dimension further out. */
+const isImageVal   = v => !!v && typeof v === 'object' && v.kind === 'image' && typeof v.src === 'string';
+const isSceneVal   = v => !!v && typeof v === 'object' && Array.isArray(v.objects);
+const isDiagramVal = v => !!v && typeof v === 'object' && Array.isArray(v.nodes) && Array.isArray(v.edges);
+const isChartVal   = v => !!v && typeof v === 'object' && Array.isArray(v.series) && Array.isArray(v.labels);
+const imageAlt = v => v.alt || v.prompt || 'Generated image';
+
 function reshape(v, to){
   const isTable = v && !Array.isArray(v) && typeof v === 'object' && v.cols;
   const isScore = v && typeof v === 'object' && 'value' in v && 'max' in v && 'basis' in v;
   const isDiff = v && typeof v === 'object' && 'before' in v && 'after' in v;
   const isRank = v && typeof v === 'object' && Array.isArray(v?.items) && Array.isArray(v?.criteria);
   const isTime = v && typeof v === 'object' && Array.isArray(v?.events);
+  if (isImageVal(v) || isSceneVal(v) || isDiagramVal(v) || isChartVal(v)){
+    /* Media re-presented as text describes itself; it is never redrawn into
+       a different medium, which would be the demo inventing content. */
+    if (to === 'list'){
+      if (isSceneVal(v)) return v.objects.map(o => `**${o.label}** — ${o.shape}, ${o.size.map(n=>Math.round(n*100)/100).join(' × ')}`);
+      if (isDiagramVal(v)) return v.edges.map(e => `**${nodeLabel(v,e.from)}** → ${nodeLabel(v,e.to)}${e.label?` (${e.label})`:''}`);
+      if (isChartVal(v)) return v.labels.map((l,i) => `**${l}** — ${v.series.map(se=>`${se.name}: ${se.values[i] ?? '—'}`).join(' · ')}`);
+      return [imageAlt(v)];
+    }
+    if (to === 'table'){
+      if (isSceneVal(v)) return {cols:['Part','Shape','Size','At'], rows: v.objects.map(o=>[o.label, o.shape, o.size.join(' × '), o.at.join(', ')])};
+      if (isDiagramVal(v)) return {cols:['From','To','Along'], rows: v.edges.map(e=>[nodeLabel(v,e.from), nodeLabel(v,e.to), e.label||''])};
+      if (isChartVal(v)) return {cols:['', ...v.series.map(se=>se.name)], rows: v.labels.map((l,i)=>[l, ...v.series.map(se=>String(se.values[i] ?? ''))])};
+      return {cols:['Image'], rows:[[imageAlt(v)]]};
+    }
+    if (isSceneVal(v)) return v.objects.map(o=>`- ${o.label}: ${o.shape} ${o.size.join('×')} at ${o.at.join(', ')}`).join('\n');
+    if (isDiagramVal(v)) return v.edges.map(e=>`${nodeLabel(v,e.from)} → ${nodeLabel(v,e.to)}${e.label?` (${e.label})`:''}`).join('\n');
+    if (isChartVal(v)) return v.labels.map((l,i)=>`${l}: ${v.series.map(se=>`${se.name} ${se.values[i] ?? '—'}`).join(', ')}`).join('\n');
+    return imageAlt(v);
+  }
   if (to === 'list'){
     if (Array.isArray(v)) return v;
     if (isTable) return v.rows.map(r => `**${r[0]}** — ${r.slice(1).join(' · ')}`);
@@ -2601,8 +2796,65 @@ const SHAPE = {
   diff:'Respond with JSON of the form {"before":"...","after":"...","changes":[{"was":"...","now":"...","why":"..."}]} and nothing else.',
   ranking:'Respond with JSON of the form {"criteria":["..."],"items":[{"name":"...","scores":[number],"total":number,"note":"..."}]} and nothing else. Order items best-first.',
   timeline:'Respond with JSON of the form {"events":[{"when":"...","what":"...","why":"..."}]} and nothing else. Order events earliest-first.',
-  choice:'Respond with JSON of the form {"options":[{"id":"...","label":"...","cost":"...","note":"..."}],"selected":null} and nothing else. Offer 2–4 real options with honest costs. Leave selected null.'
+  choice:'Respond with JSON of the form {"options":[{"id":"...","label":"...","cost":"...","note":"..."}],"selected":null} and nothing else. Offer 2–4 real options with honest costs. Leave selected null.',
+  scene:'Respond with JSON of the form {"units":"m","objects":[{"shape":"box"|"sphere"|"cylinder"|"cone"|"plane","label":"...","at":[x,y,z],"size":[w,h,d],"color":"#rrggbb"}],"notes":"..."} and nothing else. Y is up and y=0 is the floor, so `at` is the CENTRE of the object and a 2 m tall thing standing on the floor has y=1. Use real measurements in the stated units. Twenty objects at most.',
+  diagram:'Respond with JSON of the form {"nodes":[{"id":"...","label":"...","kind":"start"|"step"|"decision"|"end","note":"..."}],"edges":[{"from":"...","to":"...","label":"..."}]} and nothing else. ids are short slugs; every edge must join two ids that exist. Fourteen nodes at most.',
+  chart:'Respond with JSON of the form {"kind":"bar"|"line","unit":"...","labels":["..."],"series":[{"name":"...","values":[number]}],"note":"..."} and nothing else. Every series must have exactly one value per label. Numbers only — no units inside the numbers.',
+  image:'Describe the picture to be drawn in one dense paragraph: subject, composition, medium, palette, lighting. No preamble.'
 };
+
+/* Image prompts are written for a drawing model, which reads a paragraph and
+   ignores instructions about JSON. The wire path for an image cell therefore
+   never goes near coerce(); this string exists so that a text model asked to
+   *write* an image brief has the same contract. */
+
+const nodeLabel = (d, id) => (d.nodes.find(n => n.id === id)?.label) ?? id;
+const SHAPES_3D = ['box','sphere','cylinder','cone','plane'];
+const numOr = (x, d) => Number.isFinite(Number(x)) ? Number(x) : d;
+const hexOr = (x) => /^#?[0-9a-fA-F]{6}$/.test(String(x ?? '')) ? (String(x).startsWith('#') ? String(x) : '#'+x) : null;
+
+function normScene(v){
+  const objects = (Array.isArray(v.objects) ? v.objects : []).slice(0, 48).map((o, i) => ({
+    shape: SHAPES_3D.includes(o?.shape) ? o.shape : 'box',
+    label: String(o?.label ?? `part ${i+1}`).slice(0, 80),
+    at:   [numOr(o?.at?.[0], 0), numOr(o?.at?.[1], 0), numOr(o?.at?.[2], 0)],
+    /* A zero-sized object is invisible and un-exportable; clamp rather than
+       drop it, so the count on screen matches the count in the JSON. */
+    size: [Math.abs(numOr(o?.size?.[0], 1)) || 0.05,
+           Math.abs(numOr(o?.size?.[1], 1)) || 0.05,
+           Math.abs(numOr(o?.size?.[2], 1)) || 0.05],
+    color: hexOr(o?.color)
+  }));
+  return {units: String(v.units ?? 'm').slice(0, 12), objects, notes: String(v.notes ?? '')};
+}
+function normDiagram(v){
+  const seen = new Set();
+  const nodes = (Array.isArray(v.nodes) ? v.nodes : []).slice(0, 30).map((n, i) => {
+    let id = String(n?.id ?? `n${i+1}`);
+    while (seen.has(id)) id += '_';
+    seen.add(id);
+    return {id, label: String(n?.label ?? id).slice(0, 90),
+      kind: ['start','step','decision','end'].includes(n?.kind) ? n.kind : 'step',
+      note: String(n?.note ?? '').slice(0, 160)};
+  });
+  const ids = new Set(nodes.map(n => n.id));
+  const edges = (Array.isArray(v.edges) ? v.edges : [])
+    .filter(e => ids.has(String(e?.from)) && ids.has(String(e?.to)))
+    .slice(0, 60)
+    .map(e => ({from: String(e.from), to: String(e.to), label: String(e?.label ?? '').slice(0, 60)}));
+  return {nodes, edges, note: String(v.note ?? '')};
+}
+function normChart(v){
+  const labels = (Array.isArray(v.labels) ? v.labels : []).slice(0, 40).map(x => String(x).slice(0, 40));
+  const series = (Array.isArray(v.series) ? v.series : []).slice(0, 6).map((se, i) => ({
+    name: String(se?.name ?? `series ${i+1}`).slice(0, 40),
+    /* Pad rather than reject: a model that returns one short series should
+       show a gap in that series, not lose the whole chart. */
+    values: labels.map((_, j) => Number.isFinite(Number(se?.values?.[j])) ? Number(se.values[j]) : null)
+  }));
+  return {kind: v.kind === 'line' ? 'line' : 'bar', unit: String(v.unit ?? '').slice(0, 24),
+    labels, series, note: String(v.note ?? '')};
+}
 
 function coerce(text, type){
   if (type==='gate'){
@@ -2624,6 +2876,9 @@ function coerce(text, type){
     if (type==='ranking' && Array.isArray(v?.items)) return {criteria: (v.criteria||[]).map(String), items: v.items.map(it=>({name:String(it.name??''), scores:(it.scores||[]).map(Number), total:Number(it.total??0), note:String(it.note??'')}))};
     if (type==='timeline' && Array.isArray(v?.events)) return {events: v.events.map(e=>({when:String(e.when??''), what:String(e.what??''), why:String(e.why??'')}))};
     if (type==='choice' && Array.isArray(v?.options)) return {options: v.options.map(o=>({id:String(o.id??''), label:String(o.label??''), cost:String(o.cost??''), note:String(o.note??'')})), selected: v.selected ?? null};
+    if (type==='scene' && Array.isArray(v?.objects)) return normScene(v);
+    if (type==='diagram' && Array.isArray(v?.nodes)) return normDiagram(v);
+    if (type==='chart' && Array.isArray(v?.series)) return normChart(v);
   }catch{} }
   if (type==='list') return text.split('\n').map(l=>l.replace(/^\s*[-•*\d.]+\s*/,'').trim()).filter(Boolean);
   if (type==='score') return {value:0, max:10, basis:text.trim().slice(0,300), band:'unparsed'};
@@ -2631,6 +2886,11 @@ function coerce(text, type){
   if (type==='ranking') return {criteria:[], items:[{name:'Result', scores:[], total:0, note:text.trim().slice(0,200)}]};
   if (type==='timeline') return {events:[{when:'—', what:text.trim().slice(0,200), why:''}]};
   if (type==='choice') return {options:[{id:'a', label:text.trim().slice(0,120), cost:'', note:''}], selected:null};
+  /* Unparsed geometry is worse than no geometry — an empty scene that says so
+     beats a box in the middle of nowhere that looks like an answer. */
+  if (type==='scene') return {units:'m', objects:[], notes:text.trim().slice(0,300)};
+  if (type==='diagram') return {nodes:[{id:'n1', label:text.trim().slice(0,90), kind:'step', note:''}], edges:[], note:''};
+  if (type==='chart') return {kind:'bar', unit:'', labels:[], series:[], note:text.trim().slice(0,300)};
   return {cols:['Result'], rows:[[text.trim()]]};
 }
 
@@ -2659,6 +2919,21 @@ async function* ndjson(res){
       try { yield JSON.parse(line); } catch {} }
   }
 }
+/* Every picture that enters or leaves this app is a data URL, so these two
+   helpers are the entire media transport layer. */
+function dataUrlParts(src){
+  const m = /^data:([^;,]+)(?:;[^,]*)?;base64,([\s\S]*)$/.exec(String(src || ''));
+  return m ? {mime: m[1], b64: m[2]} : null;
+}
+const blobToDataURL = blob => new Promise((res, rej) => {
+  const r = new FileReader();
+  r.onload = () => res(String(r.result));
+  r.onerror = () => rej(new Error('The picture arrived but could not be read.'));
+  r.readAsDataURL(blob);
+});
+const noVision = label => { throw new Error(
+  `${label} cannot see pictures. Pin this cell to a model that serves vision — Google, OpenAI, Anthropic, OpenRouter or Groq — or run it on the guided demo.`); };
+
 async function fail(res, label){
   const body = await res.text().catch(()=>'');
   let msg = body;
@@ -2668,7 +2943,8 @@ async function fail(res, label){
 
 /* ── Adapters. One shape in, text out. ──────────────────────────────── */
 const ADAPTERS = {
-  async chrome({sys, prompt, onText, signal}){
+  async chrome({sys, prompt, onText, signal, images}){
+    if (images?.length) noVision('The built-in browser model');
     const LM = self.LanguageModel ?? self.ai?.languageModel;
     if (!LM) throw new Error(isMobileClient()
       ? 'On-device model is not available in phone browsers. Use the guided demo or a free cloud key.'
@@ -2694,7 +2970,8 @@ const ADAPTERS = {
     } finally { session.destroy?.(); }
   },
 
-  async localdl({sys, prompt, onText, signal, cfg}){
+  async localdl({sys, prompt, onText, signal, cfg, images}){
+    if (images?.length) noVision('A small downloaded text model');
     const modelId = cfg._model || S.models.localdl || 'smol135';
     if (S.local?.ready !== modelId){
       throw new Error('That model is not downloaded yet. Open Connect → Download a model and download it first.');
@@ -2745,13 +3022,16 @@ const ADAPTERS = {
     return acc;
   },
 
-  async ollama({sys, prompt, onText, signal, cfg}){
+  async ollama({sys, prompt, onText, signal, cfg, images}){
     let res;
+    /* Ollama takes bare base64, without the data: prefix. */
+    const user = {role:'user', content:prompt};
+    if (images?.length) user.images = images.map(im => dataUrlParts(im.src)?.b64).filter(Boolean);
     try {
       res = await netFetch('http://localhost:11434/api/chat', { method:'POST', signal,
         headers:{'content-type':'application/json'},
         body: JSON.stringify({ model:cfg._model, stream:true,
-          messages:[{role:'system',content:sys},{role:'user',content:prompt}] }) });
+          messages:[{role:'system',content:sys}, user] }) });
     } catch {
       throw new Error('Could not reach Ollama on localhost:11434. Either it is not running, or it is refusing this origin — start it with OLLAMA_ORIGINS set to allow this page. An https page also cannot call http://localhost at all.');
     }
@@ -2764,13 +3044,18 @@ const ADAPTERS = {
     return acc;
   },
 
-  async google({sys, prompt, onText, signal, cfg, key}){
+  async google({sys, prompt, onText, signal, cfg, key, images}){
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(cfg._model)}:streamGenerateContent?alt=sse`;
+    const parts = [{text:prompt}];
+    for (const im of images ?? []){
+      const d = dataUrlParts(im.src);
+      if (d) parts.push({inline_data:{mime_type:d.mime, data:d.b64}});
+    }
     /* Key travels in a header, never the query string. */
     const res = await netFetch(url, { method:'POST', signal,
       headers:{'content-type':'application/json','x-goog-api-key':key},
       body: JSON.stringify({ systemInstruction:{parts:[{text:sys}]},
-        contents:[{role:'user', parts:[{text:prompt}]}] }) });
+        contents:[{role:'user', parts}] }) });
     if (!res.ok) await fail(res, 'Google AI Studio');
     let acc='';
     for await (const j of sseLines(res)){
@@ -2781,12 +3066,19 @@ const ADAPTERS = {
     return acc;
   },
 
-  async anthropic({sys, prompt, onText, signal, cfg, key}){
+  async anthropic({sys, prompt, onText, signal, cfg, key, images}){
+    /* Claude reads images best when they precede the question about them. */
+    const content = [];
+    for (const im of images ?? []){
+      const d = dataUrlParts(im.src);
+      if (d) content.push({type:'image', source:{type:'base64', media_type:d.mime, data:d.b64}});
+    }
+    content.push({type:'text', text:prompt});
     const res = await netFetch('https://api.anthropic.com/v1/messages', { method:'POST', signal,
       headers:{ 'content-type':'application/json', 'x-api-key':key,
         'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
       body: JSON.stringify({ model:cfg._model, max_tokens:2000, system:sys, stream:true,
-        messages:[{role:'user', content:prompt}] }) });
+        messages:[{role:'user', content}] }) });
     if (!res.ok) await fail(res, 'Anthropic');
     let acc='';
     for await (const j of sseLines(res)){
@@ -2797,11 +3089,17 @@ const ADAPTERS = {
   },
 
   /* Groq, OpenRouter and OpenAI all speak the same wire format. */
-  async openaiCompatible({sys, prompt, onText, signal, cfg, key, label}){
+  async openaiCompatible({sys, prompt, onText, signal, cfg, key, label, images}){
+    /* Plain string content while there are no images: some gateways that
+       accept the array form for vision still choke on it for text-only. */
+    const content = images?.length
+      ? [{type:'text', text:prompt},
+         ...images.map(im => ({type:'image_url', image_url:{url:im.src}}))]
+      : prompt;
     const res = await netFetch(`${cfg.base}/chat/completions`, { method:'POST', signal,
       headers:{ 'content-type':'application/json', 'authorization':`Bearer ${key}` },
       body: JSON.stringify({ model:cfg._model, stream:true, messages:[
-        {role:'system', content:sys},{role:'user', content:prompt}] }) });
+        {role:'system', content:sys},{role:'user', content}] }) });
     if (!res.ok) await fail(res, label);
     let acc='';
     for await (const j of sseLines(res)){
@@ -2820,6 +3118,114 @@ const ADAPTER_FOR = { chrome:'chrome', localdl:'localdl', ollama:'ollama', googl
   deepseek:'openaiCompatible', together:'openaiCompatible', xai:'openaiCompatible',
   lmstudio:'openaiCompatible', gateway:'openaiCompatible' };
 
+/* ── Drawing. A separate wire, deliberately. ──────────────────────────────
+   Image generation is not streaming text with a different content type: the
+   endpoints differ, the model catalogue differs, and there is nothing to
+   show until the whole picture exists. Pretending it fitted the text adapter
+   would have meant a fake stream and a fake typed value.
+
+   Every adapter here ends the same way — bytes in hand, turned into a data
+   URL. No adapter may return a remote src. That single rule is what keeps
+   img-src at `'self' data:`, makes an exported run self-contained, and stops
+   a provider's CDN learning who is looking at what. */
+const ASPECTS = {
+  square: {w:1024, h:1024, openai:'1024x1024', dalle:'1024x1024'},
+  wide:   {w:1344, h:768,  openai:'1536x1024', dalle:'1792x1024'},
+  tall:   {w:768,  h:1344, openai:'1024x1536', dalle:'1024x1792'}
+};
+const aspectOf = cell => ASPECTS[cell?.image?.aspect] ?? ASPECTS.square;
+
+async function imageBlob(res, label){
+  if (!res.ok) await fail(res, label);
+  const blob = await res.blob();
+  if (!blob.type.startsWith('image/')){
+    const text = await blob.text().catch(()=> '');
+    throw new Error(`${label} replied with ${blob.type || 'no content type'} instead of a picture. ${text.slice(0,160)}`);
+  }
+  return blobToDataURL(blob);
+}
+
+const IMAGE_ADAPTERS = {
+  /* OpenAI's /images/generations, which Together also implements. gpt-image-1
+     always returns base64 and rejects response_format; the DALL·E models
+     default to a URL we could not render under this CSP, so ask for base64. */
+  async openaiImages({prompt, signal, cfg, key, label, aspect}){
+    const model = cfg._imageModel;
+    const dalle = /^dall-e/.test(model);
+    const body = { model, prompt, n:1,
+      size: dalle ? aspect.dalle : aspect.openai };
+    if (dalle) body.response_format = 'b64_json';
+    if (/flux/i.test(model)){
+      /* Together's FLUX wants explicit pixels and a step count. */
+      delete body.size; body.width = aspect.w; body.height = aspect.h;
+      body.steps = 4; body.response_format = 'b64_json';
+    }
+    const res = await netFetch(`${cfg.base}/images/generations`, { method:'POST', signal,
+      headers:{ 'content-type':'application/json', 'authorization':`Bearer ${key}` },
+      body: JSON.stringify(body) });
+    if (!res.ok) await fail(res, label);
+    const j = await res.json();
+    const row = j.data?.[0] ?? {};
+    if (row.b64_json) return `data:image/png;base64,${row.b64_json}`;
+    throw new Error(`${label} returned a link to the picture rather than the picture. This build only accepts image bytes, so nothing is fetched from a third-party CDN when you look at a run.`);
+  },
+
+  async googleImage({prompt, signal, cfg, key}){
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(cfg._imageModel)}:generateContent`;
+    const res = await netFetch(url, { method:'POST', signal,
+      headers:{'content-type':'application/json','x-goog-api-key':key},
+      body: JSON.stringify({ contents:[{role:'user', parts:[{text:prompt}]}],
+        generationConfig:{ responseModalities:['TEXT','IMAGE'] } }) });
+    if (!res.ok) await fail(res, 'Google AI Studio');
+    const j = await res.json();
+    for (const part of j.candidates?.[0]?.content?.parts ?? []){
+      const d = part.inlineData ?? part.inline_data;
+      if (d?.data) return `data:${d.mimeType ?? d.mime_type ?? 'image/png'};base64,${d.data}`;
+    }
+    const said = j.candidates?.[0]?.content?.parts?.map(x=>x.text).filter(Boolean).join(' ') ?? '';
+    throw new Error(`Google answered without a picture.${said ? ' It said: ' + said.slice(0,180) : ' Check the image model is one that draws.'}`);
+  },
+
+  async hfImage({prompt, signal, cfg, key, aspect}){
+    const res = await netFetch(`https://router.huggingface.co/hf-inference/models/${cfg._imageModel}`,
+      { method:'POST', signal,
+        headers:{ 'content-type':'application/json', 'authorization':`Bearer ${key}` },
+        body: JSON.stringify({ inputs: prompt,
+          parameters:{ width:aspect.w, height:aspect.h } }) });
+    return imageBlob(res, 'Hugging Face');
+  },
+
+  /* No key, no account, no request body — the whole prompt is the path. */
+  async pollinations({prompt, signal, cfg, aspect}){
+    const q = new URLSearchParams({ width:String(aspect.w), height:String(aspect.h),
+      model: cfg._imageModel || 'flux', nologo:'true', referrer:'throughline' });
+    const res = await netFetch(`${cfg.base}/prompt/${encodeURIComponent(prompt)}?${q}`,
+      { method:'GET', signal });
+    return imageBlob(res, 'Pollinations');
+  }
+};
+
+const IMAGE_ADAPTER_FOR = { openai:'openaiImages', together:'openaiImages', gateway:'openaiImages',
+  google:'googleImage', huggingface:'hfImage', pollinations:'pollinations' };
+
+/* One picture in, one value out. There is no partial image to stream, so the
+   cell shows what it is doing in words instead of faking a progress bar it
+   cannot measure. */
+async function runImage(providerId, prompt, cell, onNote, signal){
+  const cfg = PROVIDERS[providerId];
+  if (!servesImage(providerId))
+    throw new Error(`${cfg.label} does not draw. Pin this cell to Pollinations (no key), Google, OpenAI, Together or Hugging Face — or run it on the guided demo.`);
+  const fn = IMAGE_ADAPTERS[IMAGE_ADAPTER_FOR[providerId]];
+  if (!fn) throw new Error(`No image adapter for ${cfg.label}.`);
+  const aspect = aspectOf(cell);
+  const model = imageModelOf(providerId);
+  onNote(`Drawing with ${cfg.label} · ${model}. Nothing streams — the picture arrives whole.`);
+  const src = await fn({ prompt, signal, aspect, key:S.keys[providerId] ?? '', label:cfg.label,
+    cfg:{...cfg, _imageModel:model, base:(S.bases?.[providerId] || cfg.base)} });
+  return { kind:'image', src, alt:prompt.slice(0, 300), prompt,
+    w:aspect.w, h:aspect.h, via:`${cfg.label} · ${model}` };
+}
+
 /* Provider errors are written for developers. These are the four that
    actually happen, said the way a person would say them. */
 function humanError(msg, id){
@@ -2837,16 +3243,20 @@ function humanError(msg, id){
   return m.slice(0, 240);
 }
 
-async function runLive(providerId, prompt, type, onDelta, onText, signal){
+async function runLive(providerId, prompt, type, onDelta, onText, signal, images){
   const cfg = PROVIDERS[providerId];
+  if (!cfg.classes.some(c => c !== 'image'))
+    throw new Error(`${cfg.label} only makes pictures. Pick a model that writes for this cell.`);
+  if (images?.length && !servesVision(providerId))
+    noVision(cfg.label);
   if (cfg.reach === 'blocked')
     throw new Error(`${cfg.label} does not permit browser requests (CORS). This is not a key problem — no credential changes it. Use the desktop build or a self-hosted deployment.`);
   const fn = ADAPTERS[ADAPTER_FOR[providerId]];
   if (!fn) throw new Error(`No adapter for ${cfg.label}.`);
   const runCfg = {...cfg, _model: modelOf(providerId), base: (S.bases?.[providerId] || cfg.base)};
   const sys = `${SHAPE[type]}\nAnswer in ${LOCALES[S.locale].outputLanguage}.`;
-  const structured = type === 'list' || type === 'table' || type === 'gate' || type === 'score' || type === 'diff' || type === 'ranking' || type === 'timeline' || type === 'choice';
-  const text = await fn({ sys, prompt, signal, cfg:runCfg, key:S.keys[providerId] ?? '', label:cfg.label,
+  const structured = type !== 'prose' && type !== 'markdown';
+  const text = await fn({ sys, prompt, signal, cfg:runCfg, key:S.keys[providerId] ?? '', label:cfg.label, images,
     /* Prose streams straight into the cell. Structured output cannot be
        parsed half-formed, so its raw text streams into a progress view and
        the typed value lands once. */
@@ -2863,6 +3273,16 @@ async function testProvider(id){
   if (id === 'demo') return {ok:true, msg:'Always available. No network involved.'};
   if (cfg.reach === 'blocked') return {ok:false, msg:'Blocked from any browser by CORS. Not a key problem.'};
   const t0 = performance.now();
+  /* An image-only provider cannot answer "reply with the word ready". Test it
+     the only way that means anything: ask for the smallest real picture. */
+  if (!cfg.classes.some(c => c !== 'image')){
+    try {
+      const v = await runImage(id, 'a single small grey circle on a white background',
+        {image:{aspect:'square'}}, ()=>{}, AbortSignal.timeout(60000));
+      const kb = Math.round(v.src.length * 0.75 / 1024);
+      return {ok:true, msg:`Reachable — drew a picture in ${Math.round(performance.now()-t0)} ms (${kb} KB).`};
+    } catch(e){ return {ok:false, msg: humanError(e.message || String(e), id)}; }
+  }
   try {
     const out = await runLive(id, 'Reply with the single word: ready', 'prose', ()=>{}, ()=>{},
       AbortSignal.timeout(30000));
@@ -2895,6 +3315,22 @@ function downstream(nb, cellId){
 function bagText(v){
   if (v == null) return '';
   if (typeof v === 'string') return v;
+  /* A downstream text cell cannot see a picture. It gets the description and
+     is told a picture exists, rather than a data URL that would blow the
+     context window and say nothing. Vision cells receive the bytes instead —
+     see visionInputs(). */
+  if (isImageVal(v))
+    return [v.note ? v.note : '', `[image: ${imageAlt(v)}]`].filter(Boolean).join('\n\n');
+  if (isSceneVal(v))
+    return [`Scene (${v.units}):`, ...v.objects.map(o =>
+      `- ${o.label}: ${o.shape} ${o.size.join(' × ')} centred at ${o.at.join(', ')}`),
+      v.notes ? `Notes: ${v.notes}` : ''].filter(Boolean).join('\n');
+  if (isDiagramVal(v))
+    return [...v.nodes.map(n => `- ${n.label}${n.note?` (${n.note})`:''}`),
+      ...v.edges.map(e => `${nodeLabel(v,e.from)} → ${nodeLabel(v,e.to)}${e.label?` [${e.label}]`:''}`)].join('\n');
+  if (isChartVal(v))
+    return [`${v.kind} chart${v.unit?` in ${v.unit}`:''}`,
+      ...v.labels.map((l,i) => `${l}: ${v.series.map(se=>`${se.name} ${se.values[i] ?? '—'}`).join(', ')}`)].join('\n');
   if (Array.isArray(v)) return v.map(x=>`- ${x}`).join('\n');
   if (typeof v === 'object' && 'verdict' in v){
     const parts = [`Verdict: ${v.verdict}`];
@@ -2953,6 +3389,22 @@ function invalidateFrom(nb, run, cellId){
 const anyBusy = run => Object.values(run.cells).some(c =>
   c.ctrl || c.state === 'running' || c.state === 'streaming');
 
+/* A cell sees only the pictures it declared as inputs, and only if it declared
+   `requires: "vision"`. Two rules doing one job: a cell's inputs are its whole
+   world, and `requires` is where a cell states what it needs. A reasoning cell
+   that reads an image variable gets the description through bagText() and can
+   therefore still run on a text-only model — which is the difference between
+   a notebook that degrades and one that dead-ends. */
+function visionInputs(cell, run){
+  if (cell.requires !== 'vision') return [];
+  const out = [];
+  for (const ref of cell.inputs ?? []){
+    const v = run.bag[ref];
+    if (isImageVal(v)) out.push(v);
+  }
+  return out.slice(0, 4);
+}
+
 async function execCell(nb, rawCell, run, onChange){
   const cell = eff(nb.id, rawCell);
   const cs = run.cells[cell.id];
@@ -3001,7 +3453,7 @@ async function execCell(nb, rawCell, run, onChange){
           let piece;
           await runLive(providerId, prompt, itemType,
             v => { piece = v; cs.value = cell.output.type==='list' ? [...out, v] : v; cs.state='streaming'; onChange(); },
-            t => { cs.raw = t; onChange(); }, ctrl.signal);
+            t => { cs.raw = t; onChange(); }, ctrl.signal, visionInputs(cell, run));
           out.push(typeof piece === 'string' ? piece : bagText(piece));
           onDelta(cell.output.type==='list' ? [...out] : out.join('\n\n'));
         }
@@ -3017,8 +3469,12 @@ async function execCell(nb, rawCell, run, onChange){
         ? {...cell, _reshapeTo: cell.output.type} : cell;
       const value = providerId === 'demo'
         ? await runDemo(demoCell, {...run.bag, __pass: run.passes[cell.id] ?? 1}, onDelta, ctrl.signal)
+        /* A drawing cell takes a different wire entirely — see runImage(). */
+        : cell.output.type === 'image'
+        ? await runImage(providerId, renderPrompt(cell.prompt, nb, run), cell,
+                         note => { cs.raw = note; cs.state='streaming'; onChange(); }, ctrl.signal)
         : await runLive(providerId, renderPrompt(cell.prompt, nb, run), cell.output.type,
-                        onDelta, onText, ctrl.signal);
+                        onDelta, onText, ctrl.signal, visionInputs(cell, run));
       cs.value = value; cs.raw=''; cs.state='done'; cs.ms = Math.round(performance.now()-t0);
       run.bag[cell.output.name] = value;
       /* choice: pause until the user picks, unless demo auto-selects later via UI. */
@@ -3126,11 +3582,14 @@ async function confirmMobileRunAll(nb){
 
 const S = {
   view:'library', nbId:null, locale:'en', mode:'light',
-  brand:'rams', provider:'auto', keys:{}, cellProvider:{}, models:{}, tests:{}, builtin:'absent', dl:null,
+  brand:'rams', provider:'auto', keys:{}, cellProvider:{}, models:{}, imageModels:{}, tests:{}, builtin:'absent', dl:null,
   local:{ status:'idle', progress:null, file:null, err:null, ready:null }, device:null,
   editing:false, edits:{}, connectSel:null, testing:null, bases:{},
   typeset:'brand', density:'comfortable', modePref:'system', lookTab:0,
-  sheet:null, runs:{}, storage:null, marks:{}, libShown: 30
+  sheet:null, runs:{}, storage:null, marks:{}, libShown: 30,
+  /* Camera per scene cell. Kept out of the run so orbiting a model is not a
+     change to the run's result — it is how you are looking at it. */
+  scenes:{}
 };
 
 /* Keys live here and nowhere else — never written to storage, never sent to
@@ -3178,8 +3637,17 @@ function applyTheme(){
 const resolveMode = () => document.documentElement.dataset.theme
   ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 
+/* A notebook that reads a picture ships one, for the same reason every other
+   notebook ships a seed: R6 says the first run must not wait on setup. The
+   sample is authored and travels in library.json, so "Run all" works on a
+   phone with nothing attached and nothing connected. */
+const seedValue = nb => nb.input.accepts === 'image'
+  ? {kind:'image', src:nb.input.seedImage, alt:nb.input.seedAlt ?? 'Sample supplied with this notebook',
+     note:nb.input.seed ?? '', source:'sample'}
+  : nb.input.seed;
+
 const getRun = nb => S.runs[nb.id] ??= {
-  passes:{}, bag:{ ['input.'+nb.input.id]: nb.input.seed },
+  passes:{}, bag:{ ['input.'+nb.input.id]: seedValue(nb) },
   cells:Object.fromEntries(nb.cells.map(c=>[c.id,{state:'idle',value:null,error:null,ms:0}]))
 };
 
@@ -3529,6 +3997,9 @@ function renderNotebook(){
     return;
   }
   const run = getRun(nb);
+  const inKey = 'input.' + nb.input.id;
+  const wantsImage = nb.input.accepts === 'image';
+  const curImage = isImageVal(run.bag[inKey]) ? run.bag[inKey] : null;
   const busy = Object.values(run.cells).some(c=>c.state==='running'||c.state==='streaming'||c.state==='waiting');
   view.innerHTML = `
     <button class="ghost" id="back" style="margin-block-end:var(--p-space-4)">${esc(t('back'))}</button>
@@ -3576,11 +4047,25 @@ function renderNotebook(){
         <span class="cell-index">00</span>
         <div class="cell-titles">
           <h3>${esc(nb.input.label)}</h3>
-          <div class="io-line"><span><b>out</b> input.${esc(nb.input.id)} · text</span></div>
+          <div class="io-line"><span><b>out</b> input.${esc(nb.input.id)} · ${wantsImage ? 'image' : 'text'}</span></div>
         </div>
       </div>
       <div class="cell-body">
-        <textarea id="nb-input" placeholder="${esc(nb.input.placeholder)}">${esc(run.bag['input.'+nb.input.id] ?? nb.input.seed)}</textarea>
+        ${wantsImage ? `
+        <div class="attach" id="attach">
+          <label class="dropzone ${curImage ? 'has' : ''}" for="nb-image" id="dropzone">
+            ${curImage ? `<img src="${esc(curImage.src)}" alt="${esc(curImage.alt || '')}">` : ''}
+            <span class="dz-hint">${curImage
+              ? esc(curImage.source === 'sample' ? 'Sample picture — drop your own over it' : curImage.alt || 'Your picture')
+              : 'Drop a picture here, paste one, or choose a file'}</span>
+          </label>
+          <input type="file" id="nb-image" accept="image/*" hidden>
+          <p class="fine">Pictures are scaled to ${ATTACH_MAX}px and held in this tab.
+            They are sent only to the model you pick for a cell that reads them, and only when you run it.
+            ${curImage && curImage.source !== 'sample' ? '<button type="button" class="linkbtn" id="attach-reset">Put the sample back</button>' : ''}</p>
+        </div>` : ''}
+        <textarea id="nb-input" placeholder="${esc(nb.input.placeholder)}">${esc(
+          wantsImage ? (curImage?.note ?? '') : (run.bag['input.'+nb.input.id] ?? nb.input.seed))}</textarea>
       </div>
     </div>
 
@@ -3595,18 +4080,56 @@ function renderNotebook(){
 
   $('#back').onclick = () => { S.view='library'; S.nbId=null; render(); scrollTop(); };
   const ta = $('#nb-input');
-  const commit = () => {
-    const key = 'input.'+nb.input.id;
-    if (run.bag[key] === ta.value) return;
-    run.bag[key] = ta.value;
-    for (const c of nb.cells) if (c.inputs.includes(key)){
+  const staleFromInput = () => {
+    for (const c of nb.cells) if (c.inputs.includes(inKey)){
       for (const id of [c.id, ...downstream(nb,c.id)]){
         const st = run.cells[id]; if (st.state==='done') st.state='stale';
       }
     }
+  };
+  const commit = () => {
+    const prev = run.bag[inKey];
+    /* With a picture attached the note is one field of one typed value, not a
+       second variable — so a cell still declares exactly one input. */
+    const next = wantsImage
+      ? {...(isImageVal(prev) ? prev : seedValue(nb)), note: ta.value}
+      : ta.value;
+    const same = wantsImage
+      ? (isImageVal(prev) && prev.src === next.src && prev.note === next.note)
+      : prev === next;
+    if (same) return;
+    run.bag[inKey] = next;
+    staleFromInput();
     render();
   };
   ta.onblur = commit;
+
+  if (wantsImage){
+    const dz = $('#dropzone'), file = $('#nb-image');
+    const take = async (f) => {
+      try {
+        run.bag[inKey] = await fileToImageValue(f, ta.value);
+        staleFromInput(); render();
+      } catch(e){ toast(e.message || String(e)); }
+    };
+    file.onchange = () => { if (file.files?.[0]) take(file.files[0]); };
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+    dz.addEventListener('drop', e => {
+      e.preventDefault(); dz.classList.remove('over');
+      const f = e.dataTransfer?.files?.[0]; if (f) take(f);
+    });
+    /* Paste anywhere in the notebook, because that is how a screenshot
+       actually arrives — from the clipboard, not from a file dialog. */
+    view.addEventListener('paste', e => {
+      const item = [...(e.clipboardData?.items ?? [])].find(i => i.type.startsWith('image/'));
+      if (!item) return;
+      e.preventDefault();
+      const f = item.getAsFile(); if (f) take(f);
+    });
+    const rst = $('#attach-reset');
+    if (rst) rst.onclick = () => { run.bag[inKey] = seedValue(nb); staleFromInput(); render(); };
+  }
 
   $('#run-all').onclick = async () => {
     commit();
@@ -3665,6 +4188,31 @@ function renderNotebook(){
     commit();
     const cell = nb.cells.find(c=>c.id===el.dataset.run);
     await execCell(nb, cell, getRun(nb), render);
+  });
+  const valueOf = id => getRun(nb).cells[id]?.value;
+  const slug = str => String(str).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  view.querySelectorAll('[data-scene-mode]').forEach(b => b.onclick = () => {
+    const cam = S.scenes[b.dataset.sceneMode] ??= defaultView();
+    cam.solid = !cam.solid; render();
+  });
+  view.querySelectorAll('[data-scene-reset]').forEach(b => b.onclick = () => {
+    S.scenes[b.dataset.sceneReset] = defaultView(); render();
+  });
+  view.querySelectorAll('[data-scene-obj]').forEach(b => b.onclick = () => {
+    const id = b.dataset.sceneObj, v = valueOf(id);
+    if (isSceneVal(v)) saveFile(`${nb.id}-${slug(id)}.obj`, sceneOBJ(v, nb.title), 'model/obj');
+  });
+  view.querySelectorAll('[data-scene-stl]').forEach(b => b.onclick = () => {
+    const id = b.dataset.sceneStl, v = valueOf(id);
+    if (isSceneVal(v)) saveFile(`${nb.id}-${slug(id)}.stl`, sceneSTL(v, nb.title), 'model/stl');
+  });
+  view.querySelectorAll('[data-img-save]').forEach(b => b.onclick = () => {
+    const id = b.dataset.imgSave;
+    const v = id === '__input' ? getRun(nb).bag['input.' + nb.input.id] : valueOf(id);
+    if (isImageVal(v)){
+      const ext = (dataUrlParts(v.src)?.mime.split('/')[1] || 'png').replace('svg+xml', 'svg');
+      saveDataURL(`${nb.id}-${slug(id)}.${ext}`, v.src);
+    }
   });
   view.querySelectorAll('[data-choose]').forEach(btn => btn.onclick = async () => {
     const cell = nb.cells.find(c=>c.id===btn.dataset.choose);
@@ -3747,7 +4295,7 @@ function cellHTML(nb, raw, i, run){
     ${S.editing ? `
     <div class="cell-edit">
       <div class="edit-row">
-        ${raw.gate || ['gate','choice','score','diff','ranking','timeline'].includes(raw.output.type) || raw.ask || raw.map
+        ${raw.gate || ['gate','choice','score','diff','ranking','timeline','image','scene','diagram','chart'].includes(raw.output.type) || raw.ask || raw.map
           ? `<span class="field-inline"><span class="eyebrow">Output as</span><span>${esc(raw.output.type)}${raw.map?' · map':''}${raw.ask?' · ask':''}</span></span>`
           : `<label class="field-inline">
           <span class="eyebrow">Output as</span>
@@ -3807,8 +4355,450 @@ function classNotice(cell){
   </div>`;
 }
 
+/* ═════════ ui/media — drawing the non-text outputs ═════════════════════
+   Three renderers, no libraries. That is not asceticism: script-src is pinned
+   to a hash of this one inline script, so a charting or 3D library could not
+   execute here even if it were bundled. What it buys is that a scene, a
+   diagram and a chart are all just the typed value drawn with the page's own
+   tokens — they re-theme with everything else and there is no second styling
+   system to keep in sync. */
+
+const cssVar = (el, name, fallback) => {
+  const v = getComputedStyle(el).getPropertyValue(name).trim();
+  return v || fallback;
+};
+
+/* Wrap a label into short lines. SVG has no text wrapping, and a diagram
+   whose labels run off the node is not a diagram. */
+function wrapLabel(text, per = 18, max = 3){
+  const words = String(text ?? '').split(/\s+/).filter(Boolean);
+  const lines = [];
+  let cur = '';
+  for (const w of words){
+    if (!cur) cur = w;
+    else if ((cur + ' ' + w).length <= per) cur += ' ' + w;
+    else { lines.push(cur); cur = w; if (lines.length === max) break; }
+  }
+  if (cur && lines.length < max) lines.push(cur);
+  const shown = lines.join(' ');
+  if (shown.length < words.join(' ').length && lines.length)
+    lines[lines.length-1] = lines[lines.length-1].slice(0, per - 1) + '…';
+  return lines.length ? lines : ['—'];
+}
+
+/* ── Diagram ─────────────────────────────────────────────────────────
+   Longest-path layering, which is the standard cheap answer and the right
+   one here: these graphs are small, mostly acyclic, and read top to bottom.
+   A cycle cannot hang the layout — the depth is capped and a back edge is
+   simply drawn as a back edge. */
+const NODE_W = 156, NODE_PAD = 12, LINE_H = 15, GAP_X = 26, GAP_Y = 62;
+
+function layoutDiagram(d){
+  const adj = new Map(d.nodes.map(n => [n.id, []]));
+  const indeg = new Map(d.nodes.map(n => [n.id, 0]));
+  for (const e of d.edges){ adj.get(e.from).push(e.to); indeg.set(e.to, indeg.get(e.to) + 1); }
+  const layer = new Map();
+  const roots = d.nodes.filter(n => !indeg.get(n.id)).map(n => n.id);
+  const seeds = roots.length ? roots : d.nodes.slice(0, 1).map(n => n.id);
+  const queue = [...seeds];
+  for (const id of seeds) layer.set(id, 0);
+  let guard = 0;
+  while (queue.length && guard++ < 4000){
+    const id = queue.shift();
+    for (const to of adj.get(id) ?? []){
+      const want = (layer.get(id) ?? 0) + 1;
+      if (want < 24 && (layer.get(to) ?? -1) < want){ layer.set(to, want); queue.push(to); }
+    }
+  }
+  for (const n of d.nodes) if (!layer.has(n.id)) layer.set(n.id, 0);
+
+  const rows = new Map();
+  for (const n of d.nodes){
+    const l = layer.get(n.id);
+    if (!rows.has(l)) rows.set(l, []);
+    rows.get(l).push(n);
+  }
+  const levels = [...rows.keys()].sort((a,b) => a - b);
+  const widest = Math.max(1, ...levels.map(l => rows.get(l).length));
+  const W = widest * NODE_W + (widest - 1) * GAP_X;
+  const box = new Map();
+  let y = 0;
+  for (const l of levels){
+    const row = rows.get(l);
+    const rowW = row.length * NODE_W + (row.length - 1) * GAP_X;
+    let x = (W - rowW) / 2;
+    let tallest = 0;
+    for (const n of row){
+      /* A diamond holds about half the text a rectangle of the same size does,
+         so decisions get shorter lines and more room rather than overflowing. */
+      const diamond = n.kind === 'decision';
+      const lines = wrapLabel(n.label, diamond ? 13 : 20, 3);
+      const h = NODE_PAD * 2 + lines.length * LINE_H + (n.note ? LINE_H : 0)
+        + (diamond ? 26 : 0);
+      box.set(n.id, {x, y, w: NODE_W, h, lines, node: n});
+      x += NODE_W + GAP_X;
+      tallest = Math.max(tallest, h);
+    }
+    y += tallest + GAP_Y;
+  }
+  return {box, W, H: Math.max(y - GAP_Y, 1)};
+}
+
+function diagramSVG(d){
+  if (!d.nodes.length) return '<p class="meta">No diagram came back.</p>';
+  const {box, W, H} = layoutDiagram(d);
+  const PAD = 14;
+  const shape = (b) => {
+    const {x, y, w, h, node} = b;
+    if (node.kind === 'decision'){
+      const cx = x + w/2, cy = y + h/2;
+      return `<polygon class="dg-shape dg-decision" points="${cx},${y} ${x+w},${cy} ${cx},${y+h} ${x},${cy}"/>`;
+    }
+    /* A full h/2 pill on a three-line node curves in under its own text. */
+    const r = node.kind === 'start' || node.kind === 'end' ? Math.min(16, h/2) : 7;
+    return `<rect class="dg-shape dg-${esc(node.kind)}" x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}"/>`;
+  };
+  const nodes = [...box.values()].map(b => {
+    const block = b.lines.length * LINE_H + (b.node.note ? LINE_H : 0);
+    const top = b.y + (b.h - block) / 2 + 11;
+    const lines = b.lines.map((ln, i) =>
+      `<tspan x="${b.x + b.w/2}" dy="${i ? LINE_H : 0}">${esc(ln)}</tspan>`).join('');
+    return `<g>${shape(b)}
+      <text class="dg-label" x="${b.x + b.w/2}" y="${top}">${lines}</text>
+      ${b.node.note ? `<text class="dg-note" x="${b.x + b.w/2}" y="${top + b.lines.length * LINE_H + 2}">${esc(wrapLabel(b.node.note, 26, 1)[0])}</text>` : ''}
+    </g>`;
+  }).join('');
+  const edges = d.edges.map(e => {
+    const a = box.get(e.from), b = box.get(e.to);
+    if (!a || !b) return '';
+    const forward = b.y > a.y;
+    const x1 = a.x + a.w/2, y1 = forward ? a.y + a.h : a.y;
+    const x2 = b.x + b.w/2, y2 = forward ? b.y : b.y + b.h;
+    const my = (y1 + y2) / 2;
+    const path = forward
+      ? `M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`
+      /* A back edge takes the outside so it cannot be mistaken for the flow. */
+      : `M${x1},${y1} C${x1 - 90},${y1} ${x2 - 90},${y2} ${x2},${y2}`;
+    const label = e.label
+      ? `<text class="dg-edge-label" x="${(x1 + x2)/2}" y="${my - 3}">${esc(wrapLabel(e.label, 16, 1)[0])}</text>` : '';
+    return `<path class="dg-edge ${forward ? '' : 'back'}" d="${path}" marker-end="url(#dg-arrow)"/>${label}`;
+  }).join('');
+  /* Natural size, capped to the column. Fitting a tall flow into a fixed box
+     shrinks the labels below readable and gains nothing — a long process is
+     long, and scrolling it is the honest answer. */
+  return `<div class="diagram-wrap"><svg class="diagram" viewBox="${-PAD} ${-PAD} ${W + PAD*2} ${H + PAD*2}"
+    width="${W + PAD*2}" height="${H + PAD*2}"
+    role="img" aria-label="Diagram of ${esc(String(d.nodes.length))} steps" preserveAspectRatio="xMidYMid meet">
+    <defs><marker id="dg-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L8,4 L0,8 z" class="dg-arrowhead"/></marker></defs>
+    ${edges}${nodes}
+  </svg></div>`;
+}
+
+/* ── Chart ───────────────────────────────────────────────────────────── */
+function niceCeil(x){
+  if (!(x > 0)) return 1;
+  const e = Math.pow(10, Math.floor(Math.log10(x)));
+  const f = x / e;
+  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * e;
+}
+function chartSVG(c){
+  if (!c.labels.length || !c.series.length) return `<p class="meta">${esc(c.note || 'No data came back.')}</p>`;
+  const W = 720, H = 300, L = 52, R = 14, T = 16, B = 46;
+  const all = c.series.flatMap(se => se.values).filter(v => v != null);
+  const lo = Math.min(0, ...all), hiRaw = Math.max(0, ...all);
+  const hi = niceCeil(hiRaw) || 1;
+  const span = (hi - lo) || 1;
+  const px = i => L + (c.labels.length === 1 ? (W - L - R)/2
+    : (i * (W - L - R)) / (c.labels.length - (c.kind === 'bar' ? 0 : 1)) + (c.kind === 'bar' ? 0 : 0));
+  const py = v => T + (H - T - B) * (1 - ((v - lo) / span));
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map(f => lo + f * span);
+  const grid = ticks.map(v => `<g><line class="ch-grid" x1="${L}" y1="${py(v)}" x2="${W - R}" y2="${py(v)}"/>
+    <text class="ch-tick" x="${L - 8}" y="${py(v) + 4}" text-anchor="end">${esc(String(Math.round(v * 100) / 100))}</text></g>`).join('');
+  const band = (W - L - R) / c.labels.length;
+  const xLabels = c.labels.map((l, i) => {
+    const x = c.kind === 'bar' ? L + band * (i + 0.5) : px(i);
+    return `<text class="ch-xlabel" x="${x}" y="${H - B + 18}" text-anchor="middle">${esc(wrapLabel(l, 12, 1)[0])}</text>`;
+  }).join('');
+  let marks = '';
+  if (c.kind === 'bar'){
+    const n = c.series.length;
+    const bw = Math.max(3, (band * 0.72) / n);
+    marks = c.series.map((se, si) => se.values.map((v, i) => {
+      if (v == null) return '';
+      const x = L + band * (i + 0.5) - (bw * n)/2 + bw * si;
+      const y0 = py(0), y1 = py(v);
+      return `<rect class="ch-bar s${si % 5}" x="${x}" y="${Math.min(y0, y1)}" width="${bw}"
+        height="${Math.max(1, Math.abs(y1 - y0))}"><title>${esc(`${se.name} · ${c.labels[i]}: ${v}${c.unit ? ' ' + c.unit : ''}`)}</title></rect>`;
+    }).join('')).join('');
+  } else {
+    marks = c.series.map((se, si) => {
+      const pts = se.values.map((v, i) => v == null ? null : `${px(i)},${py(v)}`).filter(Boolean).join(' ');
+      const dots = se.values.map((v, i) => v == null ? '' :
+        `<circle class="ch-dot s${si % 5}" cx="${px(i)}" cy="${py(v)}" r="3.2"><title>${esc(`${se.name} · ${c.labels[i]}: ${v}${c.unit ? ' ' + c.unit : ''}`)}</title></circle>`).join('');
+      return `<polyline class="ch-line s${si % 5}" points="${pts}"/>${dots}`;
+    }).join('');
+  }
+  const legend = c.series.length > 1
+    ? `<div class="ch-legend">${c.series.map((se, i) =>
+        `<span class="ch-key"><i class="s${i % 5}"></i>${esc(se.name)}</span>`).join('')}</div>` : '';
+  return `<div class="chart-wrap">
+    <svg class="chart" viewBox="0 0 ${W} ${H}" role="img"
+      aria-label="${esc(`${c.kind} chart of ${c.series.map(se=>se.name).join(', ')}`)}">
+      ${grid}
+      <line class="ch-axis" x1="${L}" y1="${py(Math.max(lo, 0))}" x2="${W - R}" y2="${py(Math.max(lo, 0))}"/>
+      ${marks}${xLabels}
+    </svg>
+    ${legend}
+    ${c.unit || c.note ? `<p class="ch-note">${esc([c.unit && `Measured in ${c.unit}.`, c.note].filter(Boolean).join(' '))}</p>` : ''}
+  </div>`;
+}
+
+/* ── Scene ───────────────────────────────────────────────────────────
+   Typed geometry, drawn by a painter's-algorithm rasteriser about eighty
+   lines long. The point is not the renderer; it is that the value is real
+   geometry, so .obj and .stl are a formatting step and not a second feature.
+   Every downstream thing — export, re-theme, a text cell reading the scene —
+   works off the same objects the model returned. */
+const SCENE_PALETTE = ['#8a8fa3','#b08968','#7a9b8e','#a3859b','#98a37a','#6f8fae'];
+const SEG = 16;
+
+function shadeHex(hex, k){
+  const n = parseInt(hex.slice(1), 16);
+  const ch = [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+    .map(v => Math.max(0, Math.min(255, Math.round(v * k))));
+  return `rgb(${ch.join(',')})`;
+}
+
+function sceneTris(scene){
+  const tris = [];
+  const push = (a, b, c, color) => tris.push({a, b, c, color});
+  scene.objects.forEach((o, idx) => {
+    const [cx, cy, cz] = o.at;
+    const [sx, sy, sz] = o.size;
+    const col = o.color || SCENE_PALETTE[idx % SCENE_PALETTE.length];
+    const rx = sx/2, rz = sz/2, hy = (o.shape === 'plane' ? 0.002 : sy/2);
+    if (o.shape === 'box' || o.shape === 'plane'){
+      const v = [[cx-rx,cy-hy,cz-rz],[cx+rx,cy-hy,cz-rz],[cx+rx,cy-hy,cz+rz],[cx-rx,cy-hy,cz+rz],
+                 [cx-rx,cy+hy,cz-rz],[cx+rx,cy+hy,cz-rz],[cx+rx,cy+hy,cz+rz],[cx-rx,cy+hy,cz+rz]];
+      for (const f of [[0,2,1],[0,3,2],[4,5,6],[4,6,7],[0,1,5],[0,5,4],
+                       [1,2,6],[1,6,5],[2,3,7],[2,7,6],[3,0,4],[3,4,7]])
+        push(v[f[0]], v[f[1]], v[f[2]], col);
+    } else if (o.shape === 'sphere'){
+      const RS = 9, SS = 14;
+      const at = (i, j) => { const th = Math.PI * i / RS, ph = 2 * Math.PI * j / SS;
+        return [cx + rx * Math.sin(th) * Math.cos(ph), cy + hy * Math.cos(th), cz + rz * Math.sin(th) * Math.sin(ph)]; };
+      for (let i = 0; i < RS; i++) for (let j = 0; j < SS; j++){
+        push(at(i,j), at(i+1,j), at(i+1,j+1), col);
+        push(at(i,j), at(i+1,j+1), at(i,j+1), col);
+      }
+    } else {
+      const top = [cx, cy + hy, cz], bot = [cx, cy - hy, cz];
+      for (let j = 0; j < SEG; j++){
+        const a0 = 2*Math.PI*j/SEG, a1 = 2*Math.PI*(j+1)/SEG;
+        const b0 = [cx + rx*Math.cos(a0), cy - hy, cz + rz*Math.sin(a0)];
+        const b1 = [cx + rx*Math.cos(a1), cy - hy, cz + rz*Math.sin(a1)];
+        push(bot, b1, b0, col);
+        if (o.shape === 'cone'){ push(b0, b1, top, col); }
+        else {
+          const t0 = [b0[0], cy + hy, b0[2]], t1 = [b1[0], cy + hy, b1[2]];
+          push(b0, b1, t1, col); push(b0, t1, t0, col);
+          push(top, t0, t1, col);
+        }
+      }
+    }
+  });
+  return tris;
+}
+
+function sceneBounds(scene){
+  if (!scene.objects.length) return {cx:0, cy:0, cz:0, r:1, span:[0,0,0]};
+  let lo = [Infinity,Infinity,Infinity], hi = [-Infinity,-Infinity,-Infinity];
+  for (const o of scene.objects) for (let k = 0; k < 3; k++){
+    lo[k] = Math.min(lo[k], o.at[k] - o.size[k]/2);
+    hi[k] = Math.max(hi[k], o.at[k] + o.size[k]/2);
+  }
+  const span = [hi[0]-lo[0], hi[1]-lo[1], hi[2]-lo[2]];
+  return {cx:(lo[0]+hi[0])/2, cy:(lo[1]+hi[1])/2, cz:(lo[2]+hi[2])/2,
+    r: Math.max(0.5, Math.hypot(...span)/2), span, lo, hi};
+}
+
+const defaultView = () => ({yaw: -0.62, pitch: 0.42, zoom: 1, solid: true});
+
+function drawScene(canvas, scene, view){
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = Math.max(240, canvas.clientWidth || 480);
+  const h = Math.max(200, Math.round(w * 0.58));
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  canvas.style.height = h + 'px';
+  const g = canvas.getContext('2d');
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, w, h);
+
+  const ink = cssVar(canvas, '--ink-primary', '#222');
+  const rule = cssVar(canvas, '--border-subtle', '#ddd');
+  const b = sceneBounds(scene);
+  const scale = view.zoom * Math.min(w, h) / (b.r * 2.5);
+  const cy_ = Math.cos(view.yaw), sy_ = Math.sin(view.yaw);
+  const cp = Math.cos(view.pitch), sp = Math.sin(view.pitch);
+  const proj = (p) => {
+    const x = p[0] - b.cx, y = p[1] - b.cy, z = p[2] - b.cz;
+    const X = x * cy_ + z * sy_, Z = -x * sy_ + z * cy_;
+    const Y2 = y * cp - Z * sp, Z2 = y * sp + Z * cp;
+    return [w/2 + X * scale, h/2 - Y2 * scale, Z2];
+  };
+
+  /* Ground grid, one line per unit, so the scale is readable without a ruler. */
+  if (scene.objects.length){
+    const step = Math.max(0.25, niceCeil(Math.max(b.span[0], b.span[2]) / 6));
+    const ext = Math.max(b.span[0], b.span[2]) / 2 + step;
+    g.strokeStyle = rule; g.lineWidth = 1; g.globalAlpha = 0.75;
+    for (let t = -Math.ceil(ext/step); t <= Math.ceil(ext/step); t++){
+      const u = t * step;
+      for (const seg of [[[b.cx + u, 0, b.cz - ext], [b.cx + u, 0, b.cz + ext]],
+                         [[b.cx - ext, 0, b.cz + u], [b.cx + ext, 0, b.cz + u]]]){
+        const a = proj(seg[0]), c = proj(seg[1]);
+        g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(c[0], c[1]); g.stroke();
+      }
+    }
+    g.globalAlpha = 1;
+  }
+
+  const L = [0.38, 0.82, 0.43];
+  const tris = sceneTris(scene).map(t => {
+    const A = proj(t.a), B = proj(t.b), C = proj(t.c);
+    return {A, B, C, color: t.color, z: (A[2] + B[2] + C[2]) / 3,
+      n: (() => {
+        const u = [t.b[0]-t.a[0], t.b[1]-t.a[1], t.b[2]-t.a[2]];
+        const v = [t.c[0]-t.a[0], t.c[1]-t.a[1], t.c[2]-t.a[2]];
+        const n = [u[1]*v[2]-u[2]*v[1], u[2]*v[0]-u[0]*v[2], u[0]*v[1]-u[1]*v[0]];
+        const m = Math.hypot(...n) || 1;
+        return [n[0]/m, n[1]/m, n[2]/m];
+      })()};
+  });
+  /* Painter's algorithm: farthest first. Small scenes of convex primitives are
+     exactly the case where this is right and a depth buffer is overkill. */
+  tris.sort((p, q) => p.z - q.z);
+  for (const t of tris){
+    const lam = Math.abs(t.n[0]*L[0] + t.n[1]*L[1] + t.n[2]*L[2]);
+    /* Ceiling of 1.0 — past it every light face clips to white and the model
+       loses its edges exactly where the light is best. */
+    const k = 0.42 + 0.58 * lam;
+    g.beginPath();
+    g.moveTo(t.A[0], t.A[1]); g.lineTo(t.B[0], t.B[1]); g.lineTo(t.C[0], t.C[1]); g.closePath();
+    if (view.solid){ g.fillStyle = shadeHex(t.color, k); g.fill(); }
+    else { g.strokeStyle = ink; g.globalAlpha = 0.28; g.lineWidth = 1; g.stroke(); g.globalAlpha = 1; }
+  }
+  /* Labels last, at each object's top, so a scene reads as a parts list too.
+     Nearest first, and a label that would land on one already placed is
+     dropped rather than stacked — an unreadable pile of names is worse than
+     a few unnamed parts, and the parts list under the canvas has them all. */
+  if (view.solid){
+    g.font = '500 11px ' + cssVar(canvas, '--font-body', 'system-ui');
+    g.textAlign = 'center';
+    const placed = [];
+    const labels = scene.objects
+      .map(o => ({o, p: proj([o.at[0], o.at[1] + o.size[1]/2, o.at[2]])}))
+      .sort((a, b) => b.p[2] - a.p[2]);
+    for (const {o, p} of labels){
+      const text = wrapLabel(o.label, 22, 1)[0];
+      const tw = g.measureText(text).width;
+      const box = {x: p[0] - tw/2 - 4, y: p[1] - 20, w: tw + 8, h: 14};
+      if (box.x < 0 || box.x + box.w > w || box.y < 0) continue;
+      if (placed.some(q => box.x < q.x + q.w && box.x + box.w > q.x
+                        && box.y < q.y + q.h && box.y + box.h > q.y)) continue;
+      placed.push(box);
+      g.fillStyle = cssVar(canvas, '--surface-raised', '#fff');
+      g.globalAlpha = 0.82;
+      g.fillRect(box.x, box.y, box.w, box.h);
+      g.globalAlpha = 1;
+      g.fillStyle = ink;
+      g.fillText(text, p[0], p[1] - 9);
+    }
+  }
+}
+
+/* Geometry out. Same triangles the canvas drew — the picture and the file
+   cannot disagree. */
+function sceneOBJ(scene, title){
+  const tris = sceneTris(scene);
+  const lines = [`# ${title} — exported from Throughline`, `# units: ${scene.units}`];
+  for (const t of tris) for (const p of [t.a, t.b, t.c])
+    lines.push(`v ${p.map(n => n.toFixed(4)).join(' ')}`);
+  for (let i = 0; i < tris.length; i++)
+    lines.push(`f ${i*3+1} ${i*3+2} ${i*3+3}`);
+  return lines.join('\n') + '\n';
+}
+function sceneSTL(scene, title){
+  const tris = sceneTris(scene);
+  const out = [`solid ${title.replace(/\s+/g, '_')}`];
+  for (const t of tris){
+    const u = [t.b[0]-t.a[0], t.b[1]-t.a[1], t.b[2]-t.a[2]];
+    const v = [t.c[0]-t.a[0], t.c[1]-t.a[1], t.c[2]-t.a[2]];
+    const n = [u[1]*v[2]-u[2]*v[1], u[2]*v[0]-u[0]*v[2], u[0]*v[1]-u[1]*v[0]];
+    const m = Math.hypot(...n) || 1;
+    out.push(`  facet normal ${(n[0]/m).toFixed(6)} ${(n[1]/m).toFixed(6)} ${(n[2]/m).toFixed(6)}`);
+    out.push('    outer loop');
+    for (const p of [t.a, t.b, t.c]) out.push(`      vertex ${p.map(x => x.toFixed(4)).join(' ')}`);
+    out.push('    endloop');
+    out.push('  endfacet');
+  }
+  out.push(`endsolid ${title.replace(/\s+/g, '_')}`);
+  return out.join('\n') + '\n';
+}
+
+function sceneHTML(v, cell){
+  const b = sceneBounds(v);
+  const view = S.scenes[cell.id] ??= defaultView();
+  const dims = v.objects.length
+    ? `${b.span.map(n => Math.round(n * 100) / 100).join(' × ')} ${v.units}` : '—';
+  return `<div class="scene" data-scene="${esc(cell.id)}">
+    <canvas class="scene-canvas" data-scene-canvas="${esc(cell.id)}"
+      aria-label="3D view of ${esc(String(v.objects.length))} parts. Drag to orbit."></canvas>
+    <div class="scene-bar">
+      <span class="meta">${esc(String(v.objects.length))} part${v.objects.length === 1 ? '' : 's'} · ${esc(dims)}</span>
+      <span class="spacer"></span>
+      <button class="btn secondary tiny" data-scene-mode="${esc(cell.id)}">${view.solid ? 'Wireframe' : 'Solid'}</button>
+      <button class="btn secondary tiny" data-scene-reset="${esc(cell.id)}">Reset view</button>
+      <button class="btn secondary tiny" data-scene-obj="${esc(cell.id)}">.obj</button>
+      <button class="btn secondary tiny" data-scene-stl="${esc(cell.id)}">.stl</button>
+    </div>
+    <p class="scene-hint meta">Drag to orbit · scroll to zoom. The file exports the same triangles you are looking at.</p>
+    ${v.notes ? `<p class="scene-notes">${inline(v.notes)}</p>` : ''}
+  </div>`;
+}
+
+function imageHTML(v, cell, st){
+  /* Nothing renders from a remote origin, ever — see the note on the image
+     adapters. A value that is not data: is a bug or an injection attempt, and
+     either way it is shown as text rather than fetched. */
+  if (!/^data:image\//.test(v.src))
+    return `<div class="error-box">That picture is not embedded bytes (${esc(String(v.src).slice(0, 40))}…), so it will not be loaded.</div>`;
+  return `<figure class="img-out">
+    <img src="${esc(v.src)}" alt="${esc(imageAlt(v))}" ${v.w ? `width="${esc(String(v.w))}" height="${esc(String(v.h))}"` : ''}>
+    <figcaption>
+      <span class="img-alt">${esc(imageAlt(v).slice(0, 220))}</span>
+      <span class="img-foot">
+        <span class="meta">${esc(v.via || (v.source === 'attached' ? 'Attached by you' : 'Guided demo — drawn by hand, not by a model'))}</span>
+        <span class="spacer"></span>
+        <button class="btn secondary tiny" data-img-save="${esc(cell?.id ?? '')}">Save picture</button>
+      </span>
+    </figcaption>
+  </figure>`;
+}
+
 function outputHTML(v, type, streaming, cell, st){
   const c = streaming ? '<span class="caret"></span>' : '';
+  if (type==='image')
+    return isImageVal(v)
+      ? imageHTML(v, cell, st) + c
+      : `<p class="meta">${esc(bagText(v) || 'No picture yet.')}</p>${c}`;
+  if (type==='scene')
+    return sceneHTML(isSceneVal(v) ? v : {units:'m', objects:[], notes:String(v ?? '')}, cell) + c;
+  if (type==='diagram')
+    return diagramSVG(isDiagramVal(v) ? v : {nodes:[], edges:[], note:''}) + c;
+  if (type==='chart')
+    return chartSVG(isChartVal(v) ? v : {kind:'bar', unit:'', labels:[], series:[], note:String(v ?? '')}) + c;
   if (type==='gate'){
     const back = v.verdict==='revise' && !st?.exhausted;
     return `<div class="gate ${back?'back':'through'}">
@@ -3893,6 +4883,10 @@ function outputHTML(v, type, streaming, cell, st){
 function varTypeLabel(v){
   if (Array.isArray(v)) return `list[${v.length}]`;
   if (v?.cols) return `table[${v.rows.length}]`;
+  if (isImageVal(v)) return 'image';
+  if (isSceneVal(v)) return `scene[${v.objects.length}]`;
+  if (isDiagramVal(v)) return `diagram[${v.nodes.length}]`;
+  if (isChartVal(v)) return `chart[${v.labels.length}]`;
   if (v && typeof v === 'object'){
     if ('verdict' in v) return 'gate';
     if ('value' in v && 'max' in v) return 'score';
@@ -3906,6 +4900,10 @@ function varTypeLabel(v){
 function varPreview(v){
   if (Array.isArray(v)) return v.join(' · ');
   if (v?.cols) return v.rows.map(r=>r[0]).join(' · ');
+  if (isImageVal(v)) return imageAlt(v);
+  if (isSceneVal(v)) return v.objects.map(o=>o.label).join(' · ');
+  if (isDiagramVal(v)) return v.nodes.map(n=>n.label).join(' · ');
+  if (isChartVal(v)) return v.labels.join(' · ');
   if (v && typeof v === 'object'){
     if ('verdict' in v) return `${v.verdict}: ${v.reason||''}`;
     if ('value' in v && 'max' in v) return `${v.value}/${v.max} (${v.band||''})`;
@@ -3931,7 +4929,7 @@ function varRows(nb, run){
    The file is the durable artifact; local storage is a cache in front of it. */
 /* One save path for every file the app hands over: mediated in the artifact
    host, a blob link when self-hosted. */
-async function saveFile(filename, text){
+async function saveFile(filename, text, mime = 'application/json'){
   let mediated = null;
   try { mediated = await window.claude?.use?.('downloads') ?? null; } catch { mediated = null; }
   if (mediated){
@@ -3939,10 +4937,55 @@ async function saveFile(filename, text){
     catch(e){ if (e?.code && e.code !== 'declined') exportFailed(e.message || e.code); }
     return;
   }
-  const url = URL.createObjectURL(new Blob([text], {type:'application/json'}));
+  const url = URL.createObjectURL(new Blob([text], {type:mime}));
   const a = document.createElement('a');
   a.href = url; a.download = filename; a.click();
   setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+
+/* A picture is bytes, not text, so it takes the blob path rather than
+   saveFile's string one. Same download affordance, different payload. */
+/* Photographs are enormous and models do not need the pixels. Scaling on the
+   way in keeps the prompt, the export and the browser's memory sane; it is
+   said out loud in the UI rather than done quietly. Vectors are left alone —
+   rasterising an SVG to "shrink" it would make it bigger and worse. */
+const ATTACH_MAX = 1280;
+function shrinkDataURL(src, max = ATTACH_MAX){
+  if (/^data:image\/svg/.test(src)) return Promise.resolve({src, w:0, h:0});
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+      if (scale === 1) return resolve({src, w:img.naturalWidth, h:img.naturalHeight});
+      const w = Math.round(img.naturalWidth * scale), h = Math.round(img.naturalHeight * scale);
+      const cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      cv.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve({src: cv.toDataURL('image/jpeg', 0.86), w, h});
+    };
+    img.onerror = () => resolve({src, w:0, h:0});
+    img.src = src;
+  });
+}
+async function fileToImageValue(file, note){
+  if (!file || !file.type.startsWith('image/'))
+    throw new Error('That is not a picture this browser can read.');
+  const raw = await blobToDataURL(file);
+  const {src, w, h} = await shrinkDataURL(raw);
+  return {kind:'image', src, alt:file.name || 'Attached picture', note: note ?? '',
+    source:'attached', w, h};
+}
+
+async function saveDataURL(filename, dataUrl){
+  const d = dataUrlParts(dataUrl);
+  if (!d){ exportFailed('That picture is not embedded bytes.'); return; }
+  const bin = atob(d.b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([bytes], {type:d.mime}));
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 async function exportNotebook(nb, run){
@@ -3960,13 +5003,16 @@ async function exportNotebook(nb, run){
   await saveFile(`${nb.id}.throughline.json`, JSON.stringify(doc, null, 2));
 }
 
-function exportFailed(msg){
+function toast(msg){
   const el = document.createElement('div');
   el.className = 'error-box';
   el.style.cssText = 'position:fixed;inset-block-end:var(--p-space-5);inset-inline-start:50%;transform:translateX(-50%);z-index:60';
-  el.textContent = `Export did not complete. ${msg}`;
+  el.textContent = msg;
   root.appendChild(el);
   setTimeout(()=>el.remove(), 5000);
+}
+function exportFailed(msg){
+  toast(`Export did not complete. ${msg}`);
 }
 
 /* ── Desktop upsell — honest about what a browser cannot fix ─────────── */
@@ -4375,6 +5421,20 @@ function connectDetail(id){
           </div>`
     ) : ''}
 
+    ${!needsKey && !built && id!=='localdl' && id!=='ollama' && id!=='lmstudio' && id!=='demo' ? `
+      <div class="step ${on?'done':''}">
+        <span class="step-n">1</span>
+        <div class="step-body">
+          <p><b>Nothing to set up.</b> No account, no key, no card. Check it works and it is ready for
+            every drawing cell in the library.</p>
+          <div class="row">
+            ${servesImage(id) ? imageModelPicker(id) : modelPicker(id)}
+            <button class="btn" data-test="${id}">Check it works</button>
+          </div>
+          <p class="fine">${esc(p.note)}</p>
+        </div>
+      </div>` : ''}
+
     ${needsKey && p.reach !== 'blocked' ? `
       <div class="step ${step>1?'done':''}">
         <span class="step-n">1</span>
@@ -4406,6 +5466,12 @@ function connectDetail(id){
         <div class="step-body">
           <p>Pick a model. The first one is a good default.</p>
           ${modelPicker(id)}
+          ${servesImage(id) ? `
+            <p style="margin-block-start:var(--p-space-3)">And one for the drawing cells — a
+              different catalogue at the same key, so picking a drawing model does not change
+              which model writes your prose.</p>
+            ${imageModelPicker(id)}` : ''}
+          ${p.classes.includes('vision') ? `<p class="fine">This one can also read pictures you attach.</p>` : ''}
         </div>
       </div>` : ''}
 
@@ -4423,6 +5489,17 @@ function connectDetail(id){
     ${p.note && !built && id!=='localdl' && p.reach !== 'blocked' && id!=='ollama' && id!=='lmstudio'
       ? `<p class="fine">${esc(p.note)}</p>` : ''}
   </div>`;
+}
+
+function imageModelPicker(id){
+  const p = PROVIDERS[id];
+  const cur = imageModelOf(id), list = p.imageModels ?? [];
+  if (!list.length) return `<input type="text" data-imagemodel="${id}" value="${esc(cur)}"
+    placeholder="image model" aria-label="Image model">`;
+  return `<select data-imagemodel="${id}" aria-label="Image model">
+    ${list.map(m=>`<option value="${esc(m)}" ${cur===m?'selected':''}>${esc(m)}</option>`).join('')}
+    ${list.includes(cur) ? '' : `<option value="${esc(cur)}" selected>${esc(cur)} (custom)</option>`}
+  </select>`;
 }
 
 function modelPicker(id){
@@ -4557,6 +5634,9 @@ function wireSheet(el){
   });
   el.querySelectorAll('[data-model]').forEach(inp => {
     inp.oninput = () => { S.models[inp.dataset.model] = inp.value; };
+  });
+  el.querySelectorAll('[data-imagemodel]').forEach(inp => {
+    inp.oninput = () => { S.imageModels[inp.dataset.imagemodel] = inp.value; };
   });
   el.querySelectorAll('[data-local-model]').forEach(b => b.onclick = () => {
     S.models.localdl = b.dataset.localModel;
@@ -4956,11 +6036,47 @@ async function copyShare(nb, btn){
 }
 
 /* ── Boot ───────────────────────────────────────────────────────────── */
+/* Canvas content does not survive innerHTML, and the app re-renders on every
+   state change. So scenes are repainted after each render from the camera in
+   S — the same reason the run's values live in S rather than in the DOM. */
+function paintScenes(){
+  for (const canvas of view.querySelectorAll('[data-scene-canvas]')){
+    const id = canvas.dataset.sceneCanvas;
+    const nb = NOTEBOOKS.find(n => n.id === S.nbId);
+    const value = nb && S.runs[nb.id]?.cells[id]?.value;
+    if (!isSceneVal(value)) continue;
+    const camera = S.scenes[id] ??= defaultView();
+    drawScene(canvas, value, camera);
+    let drag = null;
+    canvas.onpointerdown = e => {
+      drag = {x:e.clientX, y:e.clientY, yaw:camera.yaw, pitch:camera.pitch};
+      canvas.setPointerCapture(e.pointerId);
+    };
+    canvas.onpointermove = e => {
+      if (!drag) return;
+      camera.yaw = drag.yaw + (e.clientX - drag.x) * 0.01;
+      /* Clamp the pitch just short of the poles — past them the ground grid
+         flips and the scene reads as upside down. */
+      camera.pitch = Math.max(-1.45, Math.min(1.45, drag.pitch + (e.clientY - drag.y) * 0.01));
+      drawScene(canvas, value, camera);
+    };
+    const stop = e => { drag = null; canvas.releasePointerCapture?.(e.pointerId); };
+    canvas.onpointerup = stop; canvas.onpointercancel = stop;
+    canvas.onwheel = e => {
+      e.preventDefault();
+      camera.zoom = Math.max(0.3, Math.min(6, camera.zoom * (e.deltaY > 0 ? 0.92 : 1.08)));
+      drawScene(canvas, value, camera);
+    };
+  }
+}
+addEventListener('resize', () => { if (S.view === 'notebook') paintScenes(); });
+
 function render(){
   const focus = document.activeElement?.id;
   const scroll = workspace.scrollTop;
   S.view === 'library' ? renderLibrary() : renderNotebook();
   renderSwitcher(); renderRail(); renderStatusbar();
+  if (S.view !== 'library') paintScenes();
   if (focus === 'nb-input'){
     const ta = $('#nb-input');
     if (ta){ const end = ta.value.length; ta.focus(); ta.setSelectionRange(end,end); }

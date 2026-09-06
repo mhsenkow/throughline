@@ -29,3 +29,4 @@ src-tauri/target
 # Synced from repo root on each build
 src/index.html
 src/library.json
+src/icons/

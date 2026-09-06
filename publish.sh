@@ -27,9 +27,10 @@ print(base64.b64encode(hashlib.sha256(m.group(1).encode('utf-8')).digest()).deco
 ")
 echo "  sha256-${HASH}"
 
-mkdir -p "$PORT_REPO/public/notebook"
+mkdir -p "$PORT_REPO/public/notebook/icons"
 cp index.html "$PORT_REPO/public/notebook/index.html"
 cp library.json "$PORT_REPO/public/notebook/library.json"
+cp -R icons/. "$PORT_REPO/public/notebook/icons/"
 echo "→ copied to $PORT_REPO/public/notebook/"
 
 python3 - "$PORT_REPO/public/_headers" "$HASH" <<'PY'
@@ -55,7 +56,7 @@ block = f"""/notebook/*
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()
-  Content-Security-Policy: default-src 'self'; script-src 'sha256-{h}'{prev} 'wasm-unsafe-eval' https://static.cloudflareinsights.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' https://cloudflareinsights.com https://generativelanguage.googleapis.com https://api.groq.com https://openrouter.ai https://api.anthropic.com https://api.openai.com https://router.huggingface.co https://api.cerebras.ai https://api.mistral.ai https://api.deepseek.com https://api.together.xyz https://api.x.ai https://huggingface.co https://cdn.jsdelivr.net https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.huggingface.co https://us.aws.cdn.hf.co https://eu.aws.cdn.hf.co http://localhost:11434 http://127.0.0.1:11434 http://localhost:1234 http://127.0.0.1:1234; base-uri 'none'; object-src 'none'; form-action 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'sha256-{h}'{prev} 'wasm-unsafe-eval' https://static.cloudflareinsights.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; worker-src 'self' blob: https://cdn.jsdelivr.net; connect-src 'self' https://cloudflareinsights.com https://generativelanguage.googleapis.com https://api.groq.com https://openrouter.ai https://api.anthropic.com https://api.openai.com https://router.huggingface.co https://api.cerebras.ai https://api.mistral.ai https://api.deepseek.com https://api.together.xyz https://api.x.ai https://huggingface.co https://cdn.jsdelivr.net https://cdn-lfs.huggingface.co https://cdn-lfs-us-1.huggingface.co https://us.aws.cdn.hf.co https://eu.aws.cdn.hf.co https://image.pollinations.ai http://localhost:11434 http://127.0.0.1:11434 http://localhost:1234 http://127.0.0.1:1234; base-uri 'none'; object-src 'none'; form-action 'none'
 """
 if '/notebook/*' in s:
     s = re.sub(r'/notebook/\*\n(?:  .*\n)*', block, s)

@@ -287,7 +287,11 @@ def obj_keys(name):
 REALMS = obj_keys('REALMS')
 CONCEPTS = obj_keys('CONCEPTS')
 PERSONAS = obj_keys('PERSONAS')
-OUTPUT_TYPES = {'prose','markdown','list','table','gate','score','diff','ranking','timeline','choice'}
+OUTPUT_TYPES = {'prose','markdown','list','table','gate','score','diff','ranking','timeline','choice',
+                'image','scene','diagram','chart'}
+# Capability classes come from the runtime so the two cannot drift.
+m = re.search(r"const CLASSES = \[(.*?)\];", html)
+CLASSES = set(re.findall(r"'([a-z]+)'", m.group(1))) if m else {'fast','reasoning'}
 
 if len(lib) < 1:
     issues.append('library is empty')
@@ -314,6 +318,33 @@ def shape_ok(cell):
     if t == 'choice' and not (isinstance(d, dict) and 'options' in d): return 'choice demo'
     if t == 'gate' and not (isinstance(d, dict) and 'verdict' in d): return 'gate demo'
     if t in ('prose','markdown') and not isinstance(d, str): return 'prose demo'
+    # Media demos are hand-authored values, same as every other demo. The
+    # image one is checked hardest because a remote src would break the CSP
+    # and silently show nothing.
+    if t == 'image':
+        if not (isinstance(d, dict) and d.get('kind') == 'image'): return 'image demo'
+        if not str(d.get('src','')).startswith('data:image/'):
+            return 'image demo src must be an embedded data: URL'
+    if t == 'scene':
+        if not (isinstance(d, dict) and isinstance(d.get('objects'), list)): return 'scene demo'
+        for o in d['objects']:
+            if len(o.get('at') or []) != 3 or len(o.get('size') or []) != 3:
+                return f"scene object {o.get('label','?')} needs 3-number at/size"
+            if o.get('shape') not in ('box','sphere','cylinder','cone','plane'):
+                return f"scene object {o.get('label','?')} has unknown shape {o.get('shape')}"
+    if t == 'diagram':
+        if not (isinstance(d, dict) and isinstance(d.get('nodes'), list) and isinstance(d.get('edges'), list)):
+            return 'diagram demo'
+        ids = {n.get('id') for n in d['nodes']}
+        for e in d['edges']:
+            if e.get('from') not in ids or e.get('to') not in ids:
+                return f"diagram edge {e.get('from')}→{e.get('to')} names a node that does not exist"
+    if t == 'chart':
+        if not (isinstance(d, dict) and isinstance(d.get('labels'), list) and isinstance(d.get('series'), list)):
+            return 'chart demo'
+        for se in d['series']:
+            if len(se.get('values') or []) != len(d['labels']):
+                return f"chart series {se.get('name','?')} has {len(se.get('values') or [])} values for {len(d['labels'])} labels"
     return None
 
 for nb in lib:
@@ -333,6 +364,18 @@ for nb in lib:
         issues.append(f"{nb.get('id')}: input.id missing")
         continue
 
+    # A notebook that reads a picture must ship one, or its first run — the
+    # one R6 cares about — cannot happen without the user finding a file.
+    if inp.get('accepts') not in (None, 'text', 'image'):
+        issues.append(f"{nb['id']}: input.accepts {inp['accepts']} is not text or image")
+    if inp.get('accepts') == 'image':
+        if not str(inp.get('seedImage','')).startswith('data:image/'):
+            issues.append(f"{nb['id']}: image input needs a seedImage as an embedded data: URL")
+        if not any(c.get('requires') == 'vision' for c in nb.get('cells') or []):
+            issues.append(f"{nb['id']}: takes a picture but no cell declares requires: vision")
+    elif any(c.get('requires') == 'vision' for c in nb.get('cells') or []):
+        issues.append(f"{nb['id']}: has a vision cell but the input does not accept an image")
+
     cell_ids = [c.get('id') for c in nb.get('cells') or []]
     if len(cell_ids) != len(set(cell_ids)):
         issues.append(f"{nb['id']}: duplicate cell ids")
@@ -346,6 +389,15 @@ for nb in lib:
             issues.append(f"{nb['id']}/{cell.get('id')}: bad output type {out.get('type')}")
         if 'demo' not in cell and 'demoPass' not in cell:
             issues.append(f"{nb['id']}/{cell.get('id')}: missing demo")
+        if cell.get('requires') not in CLASSES:
+            issues.append(f"{nb['id']}/{cell.get('id')}: requires {cell.get('requires')} is not a capability class")
+        if out.get('type') == 'image' and cell.get('requires') != 'image':
+            issues.append(f"{nb['id']}/{cell.get('id')}: draws, so it must declare requires: image")
+        # A vision cell that never reads an image variable would silently run
+        # as an ordinary text cell — see visionInputs().
+        if cell.get('requires') == 'vision' and not any(
+                r == f"input.{inp['id']}" for r in cell.get('inputs') or []):
+            issues.append(f"{nb['id']}/{cell.get('id')}: requires vision but does not read the picture input")
         err = shape_ok(cell)
         if err:
             issues.append(f"{nb['id']}/{cell.get('id')}: {err}")

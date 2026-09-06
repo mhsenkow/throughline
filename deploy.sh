@@ -27,9 +27,16 @@ REMOTE="${2:-/home/${USER}/public_html/notebook}"
 echo "→ uploading to ${REMOTE}"
 sftp -b - -o BatchMode=yes "${USER}@${HOST}" <<EOF
 -mkdir ${REMOTE}
+-mkdir ${REMOTE}/icons
 put index.html ${REMOTE}/index.html
 put library.json ${REMOTE}/library.json
 put .htaccess ${REMOTE}/.htaccess
+put icons/icon.svg ${REMOTE}/icons/icon.svg
+put icons/favicon.ico ${REMOTE}/icons/favicon.ico
+put icons/favicon-32.png ${REMOTE}/icons/favicon-32.png
+put icons/apple-touch-icon.png ${REMOTE}/icons/apple-touch-icon.png
+put icons/icon-192.png ${REMOTE}/icons/icon-192.png
+put icons/icon-512.png ${REMOTE}/icons/icon-512.png
 EOF
 
 echo "→ verifying it is actually being served"

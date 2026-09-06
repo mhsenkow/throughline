@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <filter id="goo" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="22" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="
+        1 0 0 0 0
+        0 1 0 0 0
+        0 0 1 0 0
+        0 0 0 48 -18" result="goo"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" fill="#EDECE8"/>
+  <g filter="url(#goo)" fill="#1C1B19">
+    <rect x="282.0" y="288.0" width="96" height="448" rx="48"/>
+    <rect x="402.0" y="288.0" width="340" height="96" rx="48"/>
+    <rect x="402.0" y="464.0" width="340" height="96" rx="48"/>
+    <rect x="402.0" y="640.0" width="340" height="96" rx="48"/>
+    <circle cx="390.0" cy="336.0" r="28"/>
+    <circle cx="390.0" cy="318.0" r="20.2"/>
+    <circle cx="390.0" cy="354.0" r="20.2"/>
+    <circle cx="390.0" cy="512.0" r="28"/>
+    <circle cx="390.0" cy="494.0" r="20.2"/>
+    <circle cx="390.0" cy="530.0" r="20.2"/>
+    <circle cx="390.0" cy="688.0" r="28"/>
+    <circle cx="390.0" cy="670.0" r="20.2"/>
+    <circle cx="390.0" cy="706.0" r="20.2"/>
+  </g>
+  <circle cx="686.0" cy="512.0" r="26" fill="#D96B2B"/>
+</svg>

@@ -3,9 +3,10 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DEST="$ROOT/desktop/src"
-mkdir -p "$DEST"
+mkdir -p "$DEST/icons"
 cp "$ROOT/index.html" "$DEST/index.html"
 cp "$ROOT/library.json" "$DEST/library.json"
+cp -R "$ROOT/icons/." "$DEST/icons/"
 python3 - <<PY
 from pathlib import Path
 p = Path(r"$DEST") / "index.html"

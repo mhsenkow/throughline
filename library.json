@@ -12072,5 +12072,1342 @@
         ]
       }
     ]
+  },
+  {
+    "id": "read-a-screenshot",
+    "schemaVersion": "1.3.0",
+    "realm": "design",
+    "concept": "critique",
+    "persona": "designer",
+    "featured": true,
+    "title": "Read a Screenshot",
+    "blurb": "Show it a picture of a screen and it says what a first-time arrival actually does with it — in order, and where they stop.",
+    "teaches": "Vision — the notebook can see what you show it",
+    "tags": [
+      "vision",
+      "ux"
+    ],
+    "input": {
+      "id": "shot",
+      "label": "A screenshot of the screen you are worried about",
+      "placeholder": "Say what the screen is for, and who arrives at it.",
+      "seed": "A signup screen for a small team analytics tool. Most people arrive from a link in a colleague's message and have never heard of us.",
+      "accepts": "image",
+      "seedImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MjAgNTYwIiB3aWR0aD0iNDIwIiBoZWlnaHQ9IjU2MCI+IDxyZWN0IHdpZHRoPSI0MjAiIGhlaWdodD0iNTYwIiBmaWxsPSIjZjRmM2YwIi8+IDxyZWN0IHg9IjE2IiB5PSIxNiIgd2lkdGg9IjM4OCIgaGVpZ2h0PSI1MjgiIHJ4PSIxMCIgZmlsbD0iI2ZmZmZmZiIgc3Ryb2tlPSIjZTJkZWQ3Ii8+IDxyZWN0IHg9IjE2IiB5PSIxNiIgd2lkdGg9IjM4OCIgaGVpZ2h0PSI0NCIgcng9IjEwIiBmaWxsPSIjZmJmYWY4Ii8+IDxyZWN0IHg9IjMyIiB5PSIzMCIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiByeD0iNCIgZmlsbD0iIzViNGNlMCIvPiA8cmVjdCB4PSI1NiIgeT0iMzQiIHdpZHRoPSI1MiIgaGVpZ2h0PSI4IiByeD0iNCIgZmlsbD0iIzliOTY4ZSIvPiA8Y2lyY2xlIGN4PSIzODQiIGN5PSIzOCIgcj0iNyIgZmlsbD0iI2VjZWFlNiIvPiA8dGV4dCB4PSI0MCIgeT0iMTAyIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjIwIiBmb250LXdlaWdodD0iNjAwIiBmaWxsPSIjMjIyMDFlIj5DcmVhdGUgeW91ciB3b3Jrc3BhY2U8L3RleHQ+IDx0ZXh0IHg9IjQwIiB5PSIxMjQiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM4YTg1N2QiPkZyZWUgZm9yIDE0IGRheXMuIE5vIGNhcmQgbmVlZGVkLjwvdGV4dD4gPHRleHQgeD0iNDAiIHk9IjE2NCIgZm9udC1mYW1pbHk9IkhlbHZldGljYSxBcmlhbCIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzZiNjg2MiI+V29yayBlbWFpbDwvdGV4dD4gPHJlY3QgeD0iNDAiIHk9IjE3MiIgd2lkdGg9IjM0MCIgaGVpZ2h0PSIzNiIgcng9IjYiIGZpbGw9IiNmYmZhZjgiIHN0cm9rZT0iI2RlZGJkNSIvPiA8dGV4dCB4PSI0MCIgeT0iMjMwIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjExIiBmaWxsPSIjNmI2ODYyIj5Xb3Jrc3BhY2UgVVJMPC90ZXh0PiA8cmVjdCB4PSI0MCIgeT0iMjM4IiB3aWR0aD0iMjQwIiBoZWlnaHQ9IjM2IiByeD0iNiIgZmlsbD0iI2ZiZmFmOCIgc3Ryb2tlPSIjZGVkYmQ1Ii8+IDxyZWN0IHg9IjI4MCIgeT0iMjM4IiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjM2IiByeD0iNiIgZmlsbD0iI2VjZWFlNiIgc3Ryb2tlPSIjZGVkYmQ1Ii8+IDx0ZXh0IHg9IjI5MiIgeT0iMjYxIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSIjOGE4NTdkIj4uYWNtZS5hcHA8L3RleHQ+IDx0ZXh0IHg9IjQwIiB5PSIyOTYiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiM2YjY4NjIiPkNvbXBhbnkgc2l6ZTwvdGV4dD4gPHJlY3QgeD0iNDAiIHk9IjMwNCIgd2lkdGg9IjM0MCIgaGVpZ2h0PSIzNiIgcng9IjYiIGZpbGw9IiNmYmZhZjgiIHN0cm9rZT0iI2RlZGJkNSIvPiA8dGV4dCB4PSI1MiIgeT0iMzI3IiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSIjYjNhZWE2Ij5TZWxlY3TigKY8L3RleHQ+IDxwYXRoIGQ9Ik0zNjAgMzE4IGw2IDcgNi03IiBzdHJva2U9IiM4YTg1N2QiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIi8+IDxyZWN0IHg9IjQwIiB5PSIzNjIiIHdpZHRoPSIxNCIgaGVpZ2h0PSIxNCIgcng9IjMiIGZpbGw9IiNmZmZmZmYiIHN0cm9rZT0iI2MyYmViNiIvPiA8dGV4dCB4PSI2MiIgeT0iMzcwIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjOGE4NTdkIj5JIGFncmVlIHRvIHRoZSBUZXJtcyBvZiBTZXJ2aWNlLCB0aGUgRGF0YSBQcm9jZXNzaW5nPC90ZXh0PiA8dGV4dCB4PSI2MiIgeT0iMzgzIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjOGE4NTdkIj5BZGRlbmR1bSBhbmQgdGhlIEFjY2VwdGFibGUgVXNlIFBvbGljeSwgYW5kIGNvbnNlbnQgdG88L3RleHQ+IDx0ZXh0IHg9IjYyIiB5PSIzOTYiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiM4YTg1N2QiPnByb2R1Y3QgYW5kIG1hcmtldGluZyBlbWFpbC48L3RleHQ+IDxyZWN0IHg9IjQwIiB5PSI0MjAiIHdpZHRoPSIzNDAiIGhlaWdodD0iNDIiIHJ4PSI2IiBmaWxsPSIjNWI0Y2UwIi8+IDx0ZXh0IHg9IjIxMCIgeT0iNDQ2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iNjAwIiBmaWxsPSIjZmZmZmZmIj5Db250aW51ZTwvdGV4dD4gPHRleHQgeD0iMjEwIiB5PSI0ODYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiM4YTg1N2QiPkFscmVhZHkgaGF2ZSBhbiBhY2NvdW50PzwvdGV4dD4gPHRleHQgeD0iMjEwIiB5PSI1MTYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMTAiIGZpbGw9IiNiM2FlYTYiPlNpbmdsZSBzaWduLW9uPC90ZXh0PiA8L3N2Zz4=",
+      "seedAlt": "Sample signup screen: email, workspace URL, company size, consent, Continue"
+    },
+    "cells": [
+      {
+        "id": "seen",
+        "title": "Say what is on the screen",
+        "requires": "vision",
+        "intent": "Inventory before judgement. Most disagreements about a design are really disagreements about what is there.",
+        "inputs": [
+          "input.shot"
+        ],
+        "output": {
+          "name": "seen",
+          "type": "list"
+        },
+        "prompt": "Look at the attached picture of an interface. List every distinct element you can see — controls, labels, blocks of text, images — in reading order. Describe only what is there. Do not evaluate it, do not suggest anything. Respond in {{locale.outputLanguage}}.\n\nWhat the sender says this screen is: {{input.shot}}",
+        "demo": [
+          "A header bar with a small square mark and a wordmark, and one circular control at the far right.",
+          "A heading: “Create your workspace”.",
+          "A line under it: “Free for 14 days. No card needed.”",
+          "A field labelled “Work email”, empty.",
+          "A field labelled “Workspace URL”, empty, with a fixed grey block reading “.acme.app” attached to its right.",
+          "A field labelled “Company size”, showing “Select…” with a downward chevron.",
+          "An unchecked checkbox beside three lines of small print covering terms, a data processing addendum, an acceptable use policy, and consent to marketing email.",
+          "A full-width filled button: “Continue”.",
+          "Two lines of small text below: “Already have an account?” and “Single sign-on”, neither visibly a link."
+        ]
+      },
+      {
+        "id": "path",
+        "title": "Walk the first minute",
+        "requires": "reasoning",
+        "intent": "A screen is not read, it is worked through. Putting the order on a clock is what makes the stall visible.",
+        "inputs": [
+          "seen"
+        ],
+        "output": {
+          "name": "path",
+          "type": "timeline"
+        },
+        "prompt": "Here is an inventory of a screen. Walk through what a first-time visitor does, in order, from arrival to either finishing or giving up. Use elapsed time as the “when”. Be concrete about attention: what they look at, what they skip. Respond in {{locale.outputLanguage}}.\n\n{{seen}}",
+        "demo": {
+          "events": [
+            {
+              "when": "0:00",
+              "what": "Reads the heading, decides this is the right place",
+              "why": "“Create your workspace” matches the promise in the colleague's message."
+            },
+            {
+              "when": "0:04",
+              "what": "Types a work email without hesitating",
+              "why": "The only field on the screen whose answer they already have."
+            },
+            {
+              "when": "0:09",
+              "what": "Stops at Workspace URL",
+              "why": "Nothing says whether this is public, whether it can be changed later, or whether their colleague already made one."
+            },
+            {
+              "when": "0:26",
+              "what": "Types the company name, sees it is taken or is not sure",
+              "why": "There is no availability feedback in the picture, so the field gives nothing back."
+            },
+            {
+              "when": "0:38",
+              "what": "Opens Company size and picks the nearest bracket",
+              "why": "Fast, but they cannot tell why it is being asked or whether it changes the price."
+            },
+            {
+              "when": "0:44",
+              "what": "Skips the three lines of small print and ticks the box",
+              "why": "Consent to marketing is bundled with the terms, so the box is the only way forward."
+            },
+            {
+              "when": "0:49",
+              "what": "Presses Continue",
+              "why": "Or leaves — the two people most likely to leave never got past the URL field."
+            }
+          ]
+        }
+      },
+      {
+        "id": "stall",
+        "title": "Name where they stop, and what it costs",
+        "requires": "reasoning",
+        "intent": "The value is not a list of improvements. It is which single moment loses the most people, and what the cheapest true fix is.",
+        "inputs": [
+          "path"
+        ],
+        "output": {
+          "name": "stall",
+          "type": "table"
+        },
+        "prompt": "From this walkthrough, list the moments where a real person hesitates or leaves. For each: the moment, why it happens, roughly how many are lost there compared with the others (high / some / few), and the smallest change that would actually fix it — not a redesign. Respond in {{locale.outputLanguage}}.\n\n{{path}}",
+        "demo": {
+          "cols": [
+            "Moment",
+            "Why",
+            "Loss",
+            "Smallest fix"
+          ],
+          "rows": [
+            [
+              "Workspace URL",
+              "An irreversible-looking public name asked before any value has been shown",
+              "High",
+              "Fill it from the email domain and let it be changed later"
+            ],
+            [
+              "Company size",
+              "Reads as sales qualification, and its consequence is unstated",
+              "Some",
+              "Move it after signup, or say why it is asked"
+            ],
+            [
+              "Bundled consent",
+              "Marketing email is tied to the terms, so agreeing feels like a trick",
+              "Some",
+              "Split into two checkboxes; only the terms are required"
+            ],
+            [
+              "Single sign-on",
+              "Not styled as a link, so people arriving from a work account do not see the fast path",
+              "Few",
+              "Make it a button of equal weight to Continue"
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "moodboard",
+    "schemaVersion": "1.3.0",
+    "realm": "design",
+    "concept": "generate",
+    "persona": "marketer",
+    "featured": true,
+    "title": "Moodboard from a Brief",
+    "blurb": "Turns a written brief into a stated visual direction and then draws it — twice, in two honestly different directions, so you are choosing rather than accepting.",
+    "teaches": "Image generation — the notebook draws, and says what it was going for",
+    "tags": [
+      "image",
+      "brand"
+    ],
+    "input": {
+      "id": "brief",
+      "label": "The brief, in whatever state it is in",
+      "placeholder": "What is being made, for whom, and the feeling it should carry.",
+      "seed": "Launch page for a small-batch coffee roaster shipping direct. Buyers are people who already grind at home and are bored of subscription branding. It should feel like a workshop, not a start-up. Warm, unhurried, a bit imperfect."
+    },
+    "cells": [
+      {
+        "id": "direction",
+        "title": "State one visual direction",
+        "requires": "reasoning",
+        "intent": "A prompt written before a direction is stated is a wish. This is the sentence the pictures have to be judged against.",
+        "inputs": [
+          "input.brief"
+        ],
+        "output": {
+          "name": "direction",
+          "type": "prose"
+        },
+        "prompt": "Read this brief and state ONE visual direction in a single dense paragraph a drawing model can work from: subject, composition, medium, palette with named colours, lighting, and the feeling. No lists, no headings, no hedging. Respond in {{locale.outputLanguage}}.\n\n{{input.brief}}",
+        "demo": "A still life photographed on a worn workshop bench in late afternoon: an open kraft bag of beans spilling a little, a battered hand grinder, a single cup with a chipped rim, and a strip of masking tape with a hand-written roast date. Warm side light raking in from the left, long soft shadows, dust in the air. Palette of amber, scorched umber, deep pine green and unbleached paper. Shot slightly from above at an angle, generous empty space at the top right for a headline. Nothing new-looking, nothing symmetrical, nothing centred."
+      },
+      {
+        "id": "alt",
+        "title": "State a direction that disagrees with it",
+        "requires": "reasoning",
+        "intent": "Two options one degree apart is a formality. This one is required to disagree, so the choice is real.",
+        "inputs": [
+          "direction",
+          "input.brief"
+        ],
+        "output": {
+          "name": "alt",
+          "type": "prose"
+        },
+        "prompt": "Here is a brief and one visual direction already taken from it. Write a SECOND direction that is honestly different — different medium, different palette, different mood — and still defensible for this brief. One dense paragraph, same detail as the first. Respond in {{locale.outputLanguage}}.\n\nBrief: {{input.brief}}\n\nFirst direction: {{direction}}",
+        "demo": "A hard-edged graphic composition rather than a photograph: a cold dark ground, an exact grid, a single pale rectangle carrying the product name, one saturated aqua block for the roast marker, and a thin circle floating clear of the grid. Flat colour, no texture, no shadow, everything aligned to the grid except one deliberate break. Palette of near-black, bone white and one aqua. Precision as the message — this roaster measures things — which is the opposite argument to warmth and worth seeing before it is dismissed."
+      },
+      {
+        "id": "boardA",
+        "title": "Draw the first direction",
+        "requires": "image",
+        "intent": "Reading a direction and looking at it are different judgements. This is the one that settles it.",
+        "inputs": [
+          "direction"
+        ],
+        "output": {
+          "name": "boardA",
+          "type": "image"
+        },
+        "image": {
+          "aspect": "wide"
+        },
+        "prompt": "{{direction}}",
+        "demo": {
+          "kind": "image",
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgMzYwIiB3aWR0aD0iNjQwIiBoZWlnaHQ9IjM2MCI+IDxyZWN0IHdpZHRoPSI2NDAiIGhlaWdodD0iMzYwIiBmaWxsPSIjZWZlNmQ4Ii8+IDxjaXJjbGUgY3g9IjIyOCIgY3k9IjE1MCIgcj0iMTEyIiBmaWxsPSIjZDlhNDQxIi8+IDxwYXRoIGQ9Ik0wIDI1MCBxMTYwIC03MCAzMjAgMCB0MzIwIDAgdjExMCBIMCB6IiBmaWxsPSIjOGY1YjNkIi8+IDxyZWN0IHg9IjM5MiIgeT0iNDYiIHdpZHRoPSIxNCIgaGVpZ2h0PSIyMDgiIGZpbGw9IiMyZjNhMzQiLz4gPHJlY3QgeD0iNDMyIiB5PSI4NiIgd2lkdGg9IjE0IiBoZWlnaHQ9IjE2OCIgZmlsbD0iIzJmM2EzNCIgb3BhY2l0eT0iMC43Ii8+IDxyZWN0IHg9IjQ3MiIgeT0iMTI2IiB3aWR0aD0iMTQiIGhlaWdodD0iMTI4IiBmaWxsPSIjMmYzYTM0IiBvcGFjaXR5PSIwLjQ1Ii8+IDxnPiA8cmVjdCB4PSIzNCIgeT0iMzAwIiB3aWR0aD0iNDQiIGhlaWdodD0iMzAiIGZpbGw9IiNkOWE0NDEiLz4gPHJlY3QgeD0iODYiIHk9IjMwMCIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjMwIiBmaWxsPSIjOGY1YjNkIi8+IDxyZWN0IHg9IjEzOCIgeT0iMzAwIiB3aWR0aD0iNDQiIGhlaWdodD0iMzAiIGZpbGw9IiMyZjNhMzQiLz4gPHJlY3QgeD0iMTkwIiB5PSIzMDAiIHdpZHRoPSI0NCIgaGVpZ2h0PSIzMCIgZmlsbD0iI2VmZTZkOCIgc3Ryb2tlPSIjMmYzYTM0Ii8+IDwvZz4gPHRleHQgeD0iNjA2IiB5PSIzMzIiIHRleHQtYW5jaG9yPSJlbmQiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLHNlcmlmIiBmb250LXNpemU9IjE1IiBmaWxsPSIjMmYzYTM0IiBmb250LXN0eWxlPSJpdGFsaWMiPndhcm0gwrcgbGF0ZSBzdW4gwrcgaGFuZC1tYWRlPC90ZXh0PiA8L3N2Zz4=",
+          "alt": "Warm workshop moodboard: amber arc over a burnt-umber ground, dark uprights, palette swatches along the base"
+        }
+      },
+      {
+        "id": "boardB",
+        "title": "Draw the one that disagrees",
+        "requires": "image",
+        "intent": "Same brief, same care, opposite argument. Put them side by side and the brief usually turns out to have been two briefs.",
+        "inputs": [
+          "alt"
+        ],
+        "output": {
+          "name": "boardB",
+          "type": "image"
+        },
+        "image": {
+          "aspect": "wide"
+        },
+        "prompt": "{{alt}}",
+        "demo": {
+          "kind": "image",
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgMzYwIiB3aWR0aD0iNjQwIiBoZWlnaHQ9IjM2MCI+IDxyZWN0IHdpZHRoPSI2NDAiIGhlaWdodD0iMzYwIiBmaWxsPSIjMTAxNTFjIi8+IDxnIHN0cm9rZT0iIzFkMjkzNCIgc3Ryb2tlLXdpZHRoPSIxIj4gPHBhdGggZD0iTTgwIDAgVjM2MCBNMTYwIDAgVjM2MCBNMjQwIDAgVjM2MCBNMzIwIDAgVjM2MCBNNDAwIDAgVjM2MCBNNDgwIDAgVjM2MCBNNTYwIDAgVjM2MCIvPiA8cGF0aCBkPSJNMCA2MCBINjQwIE0wIDEyMCBINjQwIE0wIDE4MCBINjQwIE0wIDI0MCBINjQwIE0wIDMwMCBINjQwIi8+IDwvZz4gPHJlY3QgeD0iODAiIHk9IjYwIiB3aWR0aD0iMjQwIiBoZWlnaHQ9IjE4MCIgZmlsbD0iI2U4ZjFmNSIvPiA8cmVjdCB4PSIzMjAiIHk9IjEyMCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjEyMCIgZmlsbD0iIzNhZDBjOCIvPiA8cmVjdCB4PSI0MDAiIHk9IjE4MCIgd2lkdGg9IjE2MCIgaGVpZ2h0PSI2MCIgZmlsbD0iIzFkMjkzNCIvPiA8Y2lyY2xlIGN4PSI0ODAiIGN5PSIxMDAiIHI9IjM0IiBmaWxsPSJub25lIiBzdHJva2U9IiMzYWQwYzgiIHN0cm9rZS13aWR0aD0iMyIvPiA8Zz4gPHJlY3QgeD0iODAiIHk9IjMwMCIgd2lkdGg9IjQ0IiBoZWlnaHQ9IjI2IiBmaWxsPSIjZThmMWY1Ii8+IDxyZWN0IHg9IjEzMiIgeT0iMzAwIiB3aWR0aD0iNDQiIGhlaWdodD0iMjYiIGZpbGw9IiMzYWQwYzgiLz4gPHJlY3QgeD0iMTg0IiB5PSIzMDAiIHdpZHRoPSI0NCIgaGVpZ2h0PSIyNiIgZmlsbD0iIzFkMjkzNCIgc3Ryb2tlPSIjM2FkMGM4Ii8+IDxyZWN0IHg9IjIzNiIgeT0iMzAwIiB3aWR0aD0iNDQiIGhlaWdodD0iMjYiIGZpbGw9IiMxMDE1MWMiIHN0cm9rZT0iI2U4ZjFmNSIvPiA8L2c+IDx0ZXh0IHg9IjU2MCIgeT0iMzMyIiB0ZXh0LWFuY2hvcj0iZW5kIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjZThmMWY1IiBsZXR0ZXItc3BhY2luZz0iMiI+Q09MRCDCtyBFWEFDVCDCtyBCVUlMVDwvdGV4dD4gPC9zdmc+",
+          "alt": "Cold graphic moodboard: exact grid on near-black, pale block, aqua marker, thin circle off the grid"
+        }
+      },
+      {
+        "id": "choose",
+        "title": "What to look at when you choose",
+        "requires": "reasoning",
+        "intent": "Left alone, people pick the prettier picture. These are the questions that make it a decision about the brief instead.",
+        "inputs": [
+          "direction",
+          "alt"
+        ],
+        "output": {
+          "name": "choose",
+          "type": "list"
+        },
+        "prompt": "Two visual directions for the same brief are below. Write the questions someone should ask while looking at both — questions about the brief, not about which picture is nicer. Each one should be answerable by looking. Respond in {{locale.outputLanguage}}.\n\nA: {{direction}}\n\nB: {{alt}}",
+        "demo": [
+          "Which one still reads as this roaster if the logo is removed — and which becomes any brand in the category?",
+          "Which one survives being printed on a kraft bag at 3 cm, badly?",
+          "The brief said workshop, not start-up. Which one would a start-up have chosen?",
+          "Which one can carry a headline without the headline fighting the image?",
+          "Which one will still be true in a year, when the range has doubled and half of it is not warm?"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "redraw-it",
+    "schemaVersion": "1.3.0",
+    "realm": "craft",
+    "concept": "translate",
+    "persona": "maker",
+    "title": "Redraw It",
+    "blurb": "Attaches a sketch, reads it back to you in words, then draws the version you asked for — so you can see exactly which words did the work.",
+    "teaches": "A picture in, a picture out, and the sentence in between",
+    "tags": [
+      "vision",
+      "image"
+    ],
+    "input": {
+      "id": "piece",
+      "label": "A sketch or photo, and what you want changed",
+      "placeholder": "Attach the drawing. In the note, say what should be different.",
+      "seed": "Make it a clean straight-on drawing with the dimensions decided rather than questioned. Keep the three legs and the oak. Seat at 320 across, 450 high.",
+      "accepts": "image",
+      "seedImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0ODAgMzYwIiB3aWR0aD0iNDgwIiBoZWlnaHQ9IjM2MCI+IDxyZWN0IHdpZHRoPSI0ODAiIGhlaWdodD0iMzYwIiBmaWxsPSIjZjdmNWYwIi8+IDxnIHN0cm9rZT0iIzNmM2IzNiIgZmlsbD0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIyLjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCI+IDxlbGxpcHNlIGN4PSIyNDAiIGN5PSIxMjYiIHJ4PSI5NiIgcnk9IjMwIi8+IDxwYXRoIGQ9Ik0xNDQgMTI2IHE5NiA0NCAxOTIgMCIvPiA8cGF0aCBkPSJNMTQ0IDEzMiBxOTYgNDQgMTkyIDAiLz4gPHBhdGggZD0iTTE2OCAxNDYgbC0zNCAxNTAiLz4gPHBhdGggZD0iTTE4NiAxNTIgbC0yOCAxNDYiLz4gPHBhdGggZD0iTTMxMiAxNDYgbDM0IDE1MCIvPiA8cGF0aCBkPSJNMjk0IDE1MiBsMjggMTQ2Ii8+IDxwYXRoIGQ9Ik0yNDAgMTU4IGwwIDE0NiIvPiA8cGF0aCBkPSJNMjU2IDE1NiBsNCAxNDgiLz4gPHBhdGggZD0iTTE2MCAyMzIgcTgwIDI2IDE2OCAwIi8+IDxwYXRoIGQ9Ik0xNjAgMjM4IHE4MCAyNiAxNjggMCIvPiA8L2c+IDxnIHN0cm9rZT0iI2E4NDMzYSIgZmlsbD0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIxLjIiPiA8cGF0aCBkPSJNMzkyIDEyNiBsMCAxNzIiLz4gPHBhdGggZD0iTTM4NiAxMjYgbDEyIDAiLz4gPHBhdGggZD0iTTM4NiAyOTggbDEyIDAiLz4gPC9nPiA8dGV4dCB4PSI0MDQiIHk9IjIxNiIgZm9udC1mYW1pbHk9IkhlbHZldGljYSxBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iI2E4NDMzYSI+NDU/IDQ4PzwvdGV4dD4gPGcgc3Ryb2tlPSIjYTg0MzNhIiBmaWxsPSJub25lIiBzdHJva2Utd2lkdGg9IjEuMiI+IDxwYXRoIGQ9Ik0xNDQgMzMwIGwxOTIgMCIvPiA8cGF0aCBkPSJNMTQ0IDMyNCBsMCAxMiIvPiA8cGF0aCBkPSJNMzM2IDMyNCBsMCAxMiIvPiA8L2c+IDx0ZXh0IHg9IjI0MCIgeT0iMzUyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iSGVsdmV0aWNhLEFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjYTg0MzNhIj5hYm91dCAzMiBhY3Jvc3M8L3RleHQ+IDx0ZXh0IHg9IjM2IiB5PSI0OCIgZm9udC1mYW1pbHk9IkhlbHZldGljYSxBcmlhbCIgZm9udC1zaXplPSIxNyIgZmlsbD0iIzNmM2IzNiI+dGhyZWUtbGVnIHN0b29sPC90ZXh0PiA8dGV4dCB4PSIzNiIgeT0iNzAiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMTMiIGZpbGw9IiM3YTc0NmMiPm9hayBvZmZjdXRzIMK3IG5vIHNjcmV3cyBzaG93aW5nPC90ZXh0PiA8L3N2Zz4=",
+      "seedAlt": "Rough pencil sketch of a three-legged stool with unresolved dimensions"
+    },
+    "cells": [
+      {
+        "id": "reading",
+        "title": "Read the drawing back",
+        "requires": "vision",
+        "intent": "Everything downstream is built on this sentence. If the reading is wrong you will see it here, in words, before anything is redrawn.",
+        "inputs": [
+          "input.piece"
+        ],
+        "output": {
+          "name": "reading",
+          "type": "prose"
+        },
+        "prompt": "Describe the attached drawing exactly as it is: what the object is, its parts, proportions, the marks and annotations on it, and anything left undecided. Plain prose, no judgement, no suggestions. Respond in {{locale.outputLanguage}}.\n\nWhat the person wants changed, for context only — do not apply it yet: {{input.piece}}",
+        "demo": "A quick pencil sketch of a three-legged stool, drawn in loose double lines so every edge is two strokes. A round seat seen slightly from above, with a rim suggested underneath. Three tapered legs splaying outward, and a curved stretcher joining them roughly two thirds of the way down. Two dimension lines are pencilled in red: the height is marked “45? 48?” and the seat width “about 32 across” — both unresolved. A note at the top left reads “three-leg stool”, and under it “oak offcuts · no screws showing”. Nothing is squared up and the leg angles are not consistent between the two sides."
+      },
+      {
+        "id": "brief",
+        "title": "Write the drawing brief",
+        "requires": "reasoning",
+        "intent": "The change is made here, in a sentence you can argue with — not inside the drawing model where you cannot see it.",
+        "inputs": [
+          "reading",
+          "input.piece"
+        ],
+        "output": {
+          "name": "brief",
+          "type": "prose"
+        },
+        "prompt": "You have a description of an existing drawing and a request for what should change. Write a single dense paragraph instructing a drawing model to produce the new version: keep what must be kept, apply the change, and resolve anything the original left undecided. Say the medium and viewpoint explicitly. Respond in {{locale.outputLanguage}}.\n\nExisting drawing: {{reading}}\n\nWhat should change: {{input.piece}}",
+        "demo": "A clean straight-on product drawing of a three-legged oak stool on a plain warm ground, flat even light, no perspective drama and no sketchy line work. Round seat 320 mm across with a softened edge and a visible underside rim; three tapered legs splaying gently outward to 450 mm overall height; a curved stretcher joining all three legs about two thirds down. Oak throughout, warm mid-brown with the grain visible, joints clean and no fixings showing. Dimension lines in a quiet grey along the right edge and the base, labelled 450 and 320 seat. Resolved, calm and buildable — the drawing a maker would pin to the wall, not the one they scribbled."
+      },
+      {
+        "id": "redraw",
+        "title": "Draw it",
+        "requires": "image",
+        "intent": "Same object, decisions made. If it comes back wrong, the brief above is the thing to edit — which is the whole point of writing it down.",
+        "inputs": [
+          "brief"
+        ],
+        "output": {
+          "name": "redraw",
+          "type": "image"
+        },
+        "prompt": "{{brief}}",
+        "demo": {
+          "kind": "image",
+          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0ODAgMzYwIiB3aWR0aD0iNDgwIiBoZWlnaHQ9IjM2MCI+IDxyZWN0IHdpZHRoPSI0ODAiIGhlaWdodD0iMzYwIiBmaWxsPSIjZjJlZGU0Ii8+IDxlbGxpcHNlIGN4PSIyNDAiIGN5PSIzMDAiIHJ4PSIxMzAiIHJ5PSIyNiIgZmlsbD0iI2RlZDVjNiIvPiA8ZWxsaXBzZSBjeD0iMjQwIiBjeT0iMTIwIiByeD0iMTA0IiByeT0iMzIiIGZpbGw9IiNiOThhNTUiLz4gPHBhdGggZD0iTTEzNiAxMjAgdjE0IGExMDQgMzIgMCAwIDAgMjA4IDAgdi0xNCB6IiBmaWxsPSIjOWM3MDQzIi8+IDxwYXRoIGQ9Ik0xNjggMTQwIGwtMzAgMTQ4IDE4IDQgMzQtMTQ2IHoiIGZpbGw9IiNhOTc5M2YiLz4gPHBhdGggZD0iTTMxMiAxNDAgbDMwIDE0OCAtMTggNCAtMzQtMTQ2IHoiIGZpbGw9IiM4ZTY0MzUiLz4gPHBhdGggZD0iTTIzMiAxNTAgbC02IDE1MiAyMCAwIC02LTE1MiB6IiBmaWxsPSIjYTk3OTNmIi8+IDxwYXRoIGQ9Ik0xNTggMjI2IHE4MiAzMCAxNjQgMCBsMCAxMiBxLTgyIDMwIC0xNjQgMCB6IiBmaWxsPSIjOGU2NDM1Ii8+IDxnIHN0cm9rZT0iIzZjNjY1ZSIgc3Ryb2tlLXdpZHRoPSIxIiBmaWxsPSJub25lIj4gPHBhdGggZD0iTTM5MiAxMjAgdjE4MCIvPjxwYXRoIGQ9Ik0zODYgMTIwIGgxMiIvPjxwYXRoIGQ9Ik0zODYgMzAwIGgxMiIvPiA8cGF0aCBkPSJNMTM2IDMzNiBoMjA4Ii8+PHBhdGggZD0iTTEzNiAzMzAgdjEyIi8+PHBhdGggZD0iTTM0NCAzMzAgdjEyIi8+IDwvZz4gPHRleHQgeD0iNDA0IiB5PSIyMTYiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMTMiIGZpbGw9IiM2YzY2NWUiPjQ1MDwvdGV4dD4gPHRleHQgeD0iMjQwIiB5PSIzNTQiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwiIGZvbnQtc2l6ZT0iMTMiIGZpbGw9IiM2YzY2NWUiPjMyMCBzZWF0PC90ZXh0PiA8L3N2Zz4=",
+          "alt": "Clean straight-on drawing of a three-legged oak stool with 450 height and 320 seat dimensions marked"
+        }
+      }
+    ]
+  },
+  {
+    "id": "room-layout",
+    "schemaVersion": "1.3.0",
+    "realm": "life",
+    "concept": "plan",
+    "persona": "householder",
+    "featured": true,
+    "title": "Lay Out a Room",
+    "blurb": "Takes the measurements you actually have and puts the furniture somewhere — as geometry you can spin, and a file you can open in anything.",
+    "teaches": "3D — the output is real geometry, not a picture of it",
+    "tags": [
+      "3d",
+      "space"
+    ],
+    "input": {
+      "id": "room",
+      "label": "The room, and what has to go in it",
+      "placeholder": "Dimensions if you have them, and where the doors and windows are.",
+      "seed": "Living room 4.6 m by 3.4 m, 2.5 m ceiling. Door in the middle of one short wall, window filling most of the opposite short wall. Needs: three-seat sofa, two armchairs, a low table, a floor lamp, and shelves for about 60 books. Two adults, one cat, no television."
+    },
+    "cells": [
+      {
+        "id": "pieces",
+        "title": "Give everything a real size",
+        "requires": "reasoning",
+        "intent": "Layouts fail on dimensions, not taste. This forces a number onto every object before anything is placed.",
+        "inputs": [
+          "input.room"
+        ],
+        "output": {
+          "name": "pieces",
+          "type": "table"
+        },
+        "prompt": "List every piece that has to go in this room with realistic dimensions in metres (width × depth × height), and what it needs around it to work — clearance to sit down, to open, to walk past. If a size was not given, choose a normal one and say so. Respond in {{locale.outputLanguage}}.\n\n{{input.room}}",
+        "demo": {
+          "cols": [
+            "Piece",
+            "W × D × H (m)",
+            "Needs around it"
+          ],
+          "rows": [
+            [
+              "Three-seat sofa",
+              "2.10 × 0.90 × 0.80",
+              "0.45 m in front for legs; back can touch a wall"
+            ],
+            [
+              "Armchair (×2)",
+              "0.80 × 0.85 × 0.80",
+              "0.40 m to turn into; angled, not squared to a wall"
+            ],
+            [
+              "Low table",
+              "1.10 × 0.55 × 0.40",
+              "0.40–0.45 m from the sofa — nearer and it blocks, further and it is useless"
+            ],
+            [
+              "Bookshelf, 60 books",
+              "0.90 × 0.30 × 1.80",
+              "0.75 m standing room; not across the window wall"
+            ],
+            [
+              "Floor lamp",
+              "0.35 × 0.35 × 1.55",
+              "Beside a seat, on the side away from the window"
+            ],
+            [
+              "Walkway, door to window",
+              "0.85 wide",
+              "Must stay clear end to end — assumed, not stated"
+            ]
+          ]
+        }
+      },
+      {
+        "id": "layout",
+        "title": "Put it in the room",
+        "requires": "reasoning",
+        "intent": "Positions as numbers, not adjectives. You can turn it, measure it, and take the file to someone else.",
+        "inputs": [
+          "pieces",
+          "input.room"
+        ],
+        "output": {
+          "name": "layout",
+          "type": "scene"
+        },
+        "prompt": "Place these pieces in the room as a 3D scene. The floor is y=0 and the room's near-left inside corner is the origin, so every position is inside the room's footprint. Keep the walkway clear, respect the clearances, and leave the window unblocked. Respond in {{locale.outputLanguage}} for the notes.\n\nRoom: {{input.room}}\n\nPieces: {{pieces}}",
+        "demo": {
+          "units": "m",
+          "objects": [
+            {
+              "shape": "plane",
+              "label": "Floor",
+              "at": [
+                2.3,
+                0,
+                1.7
+              ],
+              "size": [
+                4.6,
+                0.02,
+                3.4
+              ],
+              "color": "#d8cfc0"
+            },
+            {
+              "shape": "box",
+              "label": "Rug",
+              "at": [
+                2.3,
+                0.01,
+                1.6
+              ],
+              "size": [
+                2.6,
+                0.02,
+                1.8
+              ],
+              "color": "#b9a98f"
+            },
+            {
+              "shape": "box",
+              "label": "Sofa",
+              "at": [
+                2.3,
+                0.4,
+                0.55
+              ],
+              "size": [
+                2.1,
+                0.8,
+                0.9
+              ],
+              "color": "#7d8a86"
+            },
+            {
+              "shape": "box",
+              "label": "Armchair",
+              "at": [
+                0.85,
+                0.4,
+                2.15
+              ],
+              "size": [
+                0.8,
+                0.8,
+                0.85
+              ],
+              "color": "#8d7f6e"
+            },
+            {
+              "shape": "box",
+              "label": "Armchair",
+              "at": [
+                3.75,
+                0.4,
+                2.15
+              ],
+              "size": [
+                0.8,
+                0.8,
+                0.85
+              ],
+              "color": "#8d7f6e"
+            },
+            {
+              "shape": "box",
+              "label": "Low table",
+              "at": [
+                2.3,
+                0.2,
+                1.55
+              ],
+              "size": [
+                1.1,
+                0.4,
+                0.55
+              ],
+              "color": "#a07f56"
+            },
+            {
+              "shape": "box",
+              "label": "Bookshelf",
+              "at": [
+                0.5,
+                0.9,
+                0.9
+              ],
+              "size": [
+                0.3,
+                1.8,
+                0.9
+              ],
+              "color": "#8a6d4a"
+            },
+            {
+              "shape": "cylinder",
+              "label": "Floor lamp",
+              "at": [
+                4.3,
+                0.78,
+                2.6
+              ],
+              "size": [
+                0.32,
+                1.55,
+                0.32
+              ],
+              "color": "#c9c3b6"
+            }
+          ],
+          "notes": "Sofa against the door wall facing the window, so the view is the thing you look at and the door opens behind the seating rather than into it. Armchairs angled at the far corners keep the 0.85 m walkway from door to window clear down the middle. The shelf takes the long solid wall because it is the only wall it fits on at 1.8 m without covering glass. The window wall is the open edge at the far side — it is not modelled, because a wall you cannot move is not part of the layout."
+        }
+      },
+      {
+        "id": "tradeoff",
+        "title": "Say what this arrangement gives up",
+        "requires": "reasoning",
+        "intent": "Every layout sacrifices something. A plan that does not name its sacrifice is hiding it until you have moved the sofa.",
+        "inputs": [
+          "layout"
+        ],
+        "output": {
+          "name": "tradeoff",
+          "type": "prose"
+        },
+        "prompt": "This is an arrangement of a room. Say plainly what it optimises for and what it gives up — the thing the household will notice in week three. One or two short paragraphs. Respond in {{locale.outputLanguage}}.\n\n{{layout}}",
+        "demo": "It optimises for the window. Everything faces it, the walkway runs clear from the door to it, and no tall piece stands between a seat and the light. In a room with one good aspect and no television that is almost certainly the right trade.\n\nWhat it gives up is conversation. Three seats arranged along a view are three people talking to a window, and the armchairs are far enough apart at the corners that anything said across the room is said loudly. It also puts the shelf on the darkest wall, which is fine for storing books and poor for choosing one. If the room turns out to be used for talking rather than sitting, pull both chairs a metre inward and accept a narrower walkway."
+      }
+    ]
+  },
+  {
+    "id": "cut-list",
+    "schemaVersion": "1.3.0",
+    "realm": "craft",
+    "concept": "plan",
+    "persona": "maker",
+    "title": "From Idea to Cut List",
+    "blurb": "Turns “a shelf about this big” into decisions, a solid you can spin, and a cut list you can take to the timber yard.",
+    "teaches": "Geometry out — the same triangles become the view and the file",
+    "tags": [
+      "3d",
+      "build"
+    ],
+    "input": {
+      "id": "thing",
+      "label": "What you want to build, in the words you would use out loud",
+      "placeholder": "Rough sizes are fine. Say where it goes and what it holds.",
+      "seed": "A shelf for the alcove beside the chimney breast. The alcove is about 900 wide and 380 deep. Four shelves, maybe five. It holds records, so it has to take real weight. Painted, so the timber does not need to be pretty, but no visible fixings."
+    },
+    "cells": [
+      {
+        "id": "spec",
+        "title": "Turn the vagueness into decisions",
+        "requires": "reasoning",
+        "intent": "Every “about” in the description is a decision someone has to make. Better here than halfway through a cut.",
+        "inputs": [
+          "input.thing"
+        ],
+        "output": {
+          "name": "spec",
+          "type": "list"
+        },
+        "prompt": "Read this build description and list the decisions it leaves open, each one RESOLVED with a specific choice and a one-line reason. Include material and thickness, spans, spacing, fixing method, and the load. Use millimetres. Respond in {{locale.outputLanguage}}.\n\n{{input.thing}}",
+        "demo": [
+          "Carcass in 18 mm birch ply rather than pine board — it will be painted, and ply does not cup across a 900 mm span.",
+          "Shelf spacing 340 mm clear — a 12 inch record is 315 mm, so this clears with a finger's room and no more.",
+          "Four shelves, not five: five would put the top shelf above 1.7 m in a 380 mm deep alcove, where records are lifted out blind.",
+          "Span reduced to 880 mm by scribing the uprights to the alcove walls, which are never parallel.",
+          "Shelves housed 6 mm into the uprights, glued — records are roughly 60 kg per running metre and a pinned butt joint will sag inside a year.",
+          "No visible fixings: uprights held by a rear cleat screwed into the masonry, painted with the carcass."
+        ]
+      },
+      {
+        "id": "solid",
+        "title": "Build it as a solid",
+        "requires": "reasoning",
+        "intent": "Spin it before you cut it. Wrong proportions are obvious in three seconds here and expensive later.",
+        "inputs": [
+          "spec",
+          "input.thing"
+        ],
+        "output": {
+          "name": "solid",
+          "type": "scene"
+        },
+        "prompt": "Turn these decisions into a 3D scene, in metres, standing on the floor at y=0. One object per physical part, labelled the way a maker would label it. Respond in {{locale.outputLanguage}} for the notes.\n\nDecisions: {{spec}}\n\nOriginal description: {{input.thing}}",
+        "demo": {
+          "units": "m",
+          "objects": [
+            {
+              "shape": "box",
+              "label": "Left upright",
+              "at": [
+                0.009,
+                0.75,
+                0.19
+              ],
+              "size": [
+                0.018,
+                1.5,
+                0.38
+              ],
+              "color": "#c8b89c"
+            },
+            {
+              "shape": "box",
+              "label": "Right upright",
+              "at": [
+                0.871,
+                0.75,
+                0.19
+              ],
+              "size": [
+                0.018,
+                1.5,
+                0.38
+              ],
+              "color": "#c8b89c"
+            },
+            {
+              "shape": "box",
+              "label": "Shelf 1",
+              "at": [
+                0.44,
+                0.161,
+                0.19
+              ],
+              "size": [
+                0.844,
+                0.018,
+                0.38
+              ],
+              "color": "#b9a67f"
+            },
+            {
+              "shape": "box",
+              "label": "Shelf 2",
+              "at": [
+                0.44,
+                0.519,
+                0.19
+              ],
+              "size": [
+                0.844,
+                0.018,
+                0.38
+              ],
+              "color": "#b9a67f"
+            },
+            {
+              "shape": "box",
+              "label": "Shelf 3",
+              "at": [
+                0.44,
+                0.877,
+                0.19
+              ],
+              "size": [
+                0.844,
+                0.018,
+                0.38
+              ],
+              "color": "#b9a67f"
+            },
+            {
+              "shape": "box",
+              "label": "Shelf 4",
+              "at": [
+                0.44,
+                1.235,
+                0.19
+              ],
+              "size": [
+                0.844,
+                0.018,
+                0.38
+              ],
+              "color": "#b9a67f"
+            },
+            {
+              "shape": "box",
+              "label": "Top",
+              "at": [
+                0.44,
+                1.491,
+                0.19
+              ],
+              "size": [
+                0.844,
+                0.018,
+                0.38
+              ],
+              "color": "#c8b89c"
+            },
+            {
+              "shape": "box",
+              "label": "Rear cleat",
+              "at": [
+                0.44,
+                1.44,
+                0.372
+              ],
+              "size": [
+                0.844,
+                0.045,
+                0.016
+              ],
+              "color": "#9c8560"
+            }
+          ],
+          "notes": "Uprights run full height and the shelves sit between them, so the load path is shelf → housing → upright → floor rather than through any fixing. The cleat is the only part touching masonry."
+        }
+      },
+      {
+        "id": "cuts",
+        "title": "Cut list",
+        "requires": "reasoning",
+        "intent": "The thing you actually take to the yard. Parts, sizes, quantity, and what it is cut from.",
+        "inputs": [
+          "solid",
+          "spec"
+        ],
+        "output": {
+          "name": "cuts",
+          "type": "table"
+        },
+        "prompt": "Write the cut list for this build: part, quantity, finished size in millimetres, material, and a note where the cut is not obvious. Add a final row for sheet or timber to buy. Respond in {{locale.outputLanguage}}.\n\nParts: {{solid}}\n\nDecisions: {{spec}}",
+        "demo": {
+          "cols": [
+            "Part",
+            "Qty",
+            "Finished size (mm)",
+            "Material",
+            "Note"
+          ],
+          "rows": [
+            [
+              "Upright",
+              "2",
+              "1500 × 380 × 18",
+              "Birch ply",
+              "Scribe the wall edge on site; cut 5 mm oversize"
+            ],
+            [
+              "Shelf",
+              "4",
+              "844 × 380 × 18",
+              "Birch ply",
+              "6 mm housing each end — length includes both tongues"
+            ],
+            [
+              "Top",
+              "1",
+              "844 × 380 × 18",
+              "Birch ply",
+              "Housed, same as a shelf"
+            ],
+            [
+              "Rear cleat",
+              "1",
+              "844 × 45 × 16",
+              "Softwood",
+              "Drilled for three masonry fixings"
+            ],
+            [
+              "To buy",
+              "1",
+              "2440 × 1220 × 18",
+              "Birch ply sheet",
+              "One sheet covers all of it with about 0.6 m² spare"
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "map-the-workflow",
+    "schemaVersion": "1.3.0",
+    "realm": "business",
+    "concept": "extract",
+    "persona": "operator",
+    "featured": true,
+    "title": "Map the Workflow",
+    "blurb": "Takes how a process gets described out loud and draws it — including the branch nobody mentioned and the loop everyone complains about.",
+    "teaches": "Diagram — structure drawn out of prose",
+    "tags": [
+      "diagram",
+      "process"
+    ],
+    "input": {
+      "id": "process",
+      "label": "How the process gets described, in the words people use",
+      "placeholder": "Write it as someone would say it in a meeting, digressions included.",
+      "seed": "A refund request comes into the shared inbox. Support checks the order, and if it is under £50 they just do it. Over that it goes to a team lead, except at weekends when nobody is on, so it sits. If the item has been used the lead asks for photos, and half the time the customer never sends them, so it sits again. Finance runs the actual refund on Tuesdays and Thursdays. Occasionally support does it themselves anyway because the customer is shouting."
+    },
+    "cells": [
+      {
+        "id": "steps",
+        "title": "Pull the steps out",
+        "requires": "reasoning",
+        "intent": "Spoken process descriptions bury the branches inside asides. This separates them before anything is drawn.",
+        "inputs": [
+          "input.process"
+        ],
+        "output": {
+          "name": "steps",
+          "type": "list"
+        },
+        "prompt": "Read this description of a process and list each distinct step, decision or wait as its own line, in the order it happens. Include the exceptions and the informal shortcuts — they are part of the process. Do not fix anything. Respond in {{locale.outputLanguage}}.\n\n{{input.process}}",
+        "demo": [
+          "Refund request arrives in the shared inbox",
+          "Support checks the order",
+          "Decision: is the amount under £50?",
+          "Under £50 — support refunds it directly",
+          "Over £50 — passed to a team lead",
+          "Wait: no team lead at weekends, so it sits",
+          "Decision: has the item been used?",
+          "Used — lead asks the customer for photos",
+          "Wait: photos often never arrive, so it sits again",
+          "Approved requests queue for Finance",
+          "Finance runs refunds on Tuesdays and Thursdays only",
+          "Shortcut: support sometimes refunds over £50 anyway when a customer escalates"
+        ]
+      },
+      {
+        "id": "flow",
+        "title": "Draw it",
+        "requires": "reasoning",
+        "intent": "A drawn process is arguable in a way a described one is not. The shortcut everyone uses becomes a line on the page.",
+        "inputs": [
+          "steps",
+          "input.process"
+        ],
+        "output": {
+          "name": "flow",
+          "type": "diagram"
+        },
+        "prompt": "Turn these steps into a flow diagram. Use kind “start” for the trigger, “decision” for branches, “end” for terminal states, “step” otherwise. Label every edge with the condition that takes you along it. Include the informal shortcut as its own edge. Respond in {{locale.outputLanguage}}.\n\nSteps: {{steps}}\n\nOriginal description: {{input.process}}",
+        "demo": {
+          "nodes": [
+            {
+              "id": "in",
+              "label": "Refund request arrives",
+              "kind": "start",
+              "note": "Shared inbox"
+            },
+            {
+              "id": "check",
+              "label": "Support checks the order",
+              "kind": "step",
+              "note": ""
+            },
+            {
+              "id": "amount",
+              "label": "Under £50?",
+              "kind": "decision",
+              "note": ""
+            },
+            {
+              "id": "selfserve",
+              "label": "Support refunds it",
+              "kind": "step",
+              "note": ""
+            },
+            {
+              "id": "lead",
+              "label": "Team lead reviews",
+              "kind": "step",
+              "note": "Nobody on at weekends"
+            },
+            {
+              "id": "used",
+              "label": "Item used?",
+              "kind": "decision",
+              "note": ""
+            },
+            {
+              "id": "photos",
+              "label": "Ask customer for photos",
+              "kind": "step",
+              "note": "Half never arrive"
+            },
+            {
+              "id": "queue",
+              "label": "Queued for Finance",
+              "kind": "step",
+              "note": ""
+            },
+            {
+              "id": "pay",
+              "label": "Refund paid",
+              "kind": "end",
+              "note": "Tuesdays and Thursdays"
+            },
+            {
+              "id": "stall",
+              "label": "Sits, unanswered",
+              "kind": "end",
+              "note": ""
+            }
+          ],
+          "edges": [
+            {
+              "from": "in",
+              "to": "check",
+              "label": ""
+            },
+            {
+              "from": "check",
+              "to": "amount",
+              "label": ""
+            },
+            {
+              "from": "amount",
+              "to": "selfserve",
+              "label": "under £50"
+            },
+            {
+              "from": "amount",
+              "to": "lead",
+              "label": "£50 or more"
+            },
+            {
+              "from": "selfserve",
+              "to": "queue",
+              "label": ""
+            },
+            {
+              "from": "lead",
+              "to": "used",
+              "label": "weekday"
+            },
+            {
+              "from": "lead",
+              "to": "stall",
+              "label": "weekend"
+            },
+            {
+              "from": "used",
+              "to": "photos",
+              "label": "used"
+            },
+            {
+              "from": "used",
+              "to": "queue",
+              "label": "unused"
+            },
+            {
+              "from": "photos",
+              "to": "queue",
+              "label": "photos arrive"
+            },
+            {
+              "from": "photos",
+              "to": "stall",
+              "label": "no reply"
+            },
+            {
+              "from": "queue",
+              "to": "pay",
+              "label": "Tue / Thu run"
+            },
+            {
+              "from": "amount",
+              "to": "queue",
+              "label": "escalation shortcut"
+            }
+          ],
+          "note": "The escalation shortcut skips the lead entirely."
+        }
+      },
+      {
+        "id": "holes",
+        "title": "Where it leaks",
+        "requires": "reasoning",
+        "intent": "A map is only worth drawing if it shows where work disappears. Each leak gets a cost and a fix.",
+        "inputs": [
+          "flow"
+        ],
+        "output": {
+          "name": "holes",
+          "type": "table"
+        },
+        "prompt": "From this flow, list where work stalls, disappears or bypasses the process. For each: what goes wrong, who notices, and the smallest change that would fix it. Respond in {{locale.outputLanguage}}.\n\n{{flow}}",
+        "demo": {
+          "cols": [
+            "Leak",
+            "What goes wrong",
+            "Who notices",
+            "Smallest fix"
+          ],
+          "rows": [
+            [
+              "Weekend with no lead",
+              "Anything over £50 waits until Monday with no acknowledgement",
+              "The customer, before anyone internal",
+              "Auto-reply naming the day it will be looked at"
+            ],
+            [
+              "Photos never arrive",
+              "The request sits in a state nobody owns and quietly ages out",
+              "Nobody — that is the problem",
+              "Close it after 7 days with a message saying it can be reopened"
+            ],
+            [
+              "Escalation shortcut",
+              "Refunds over the limit go out unreviewed whenever a customer shouts",
+              "Finance, weeks later",
+              "Keep the shortcut, log it, review the log monthly"
+            ],
+            [
+              "Twice-weekly payment run",
+              "A Wednesday approval waits until the following Tuesday",
+              "The customer",
+              "Move the run to daily, or say the date at approval"
+            ]
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "show-the-shape",
+    "schemaVersion": "1.3.0",
+    "realm": "money",
+    "concept": "compare",
+    "persona": "analyst",
+    "title": "Show Me the Shape",
+    "blurb": "Reads numbers pasted out of a spreadsheet, draws the one chart that answers the question, and states the single claim that chart actually supports.",
+    "teaches": "Chart — a typed value, not a picture of one",
+    "tags": [
+      "chart",
+      "data"
+    ],
+    "input": {
+      "id": "numbers",
+      "label": "The numbers, pasted however they came out",
+      "placeholder": "Rows, columns, tabs, commas — paste it as it is, and say what you are trying to work out.",
+      "seed": "Trying to work out whether support cost is actually falling.\nMonth\tTickets\tCost per ticket\nApr\t1820\t6.40\nMay\t1910\t6.10\nJun\t2040\t5.80\nJul\t2260\t5.55\nAug\t2510\t5.30"
+    },
+    "cells": [
+      {
+        "id": "clean",
+        "title": "Read the paste",
+        "requires": "reasoning",
+        "intent": "Pasted data is never clean. Making the parse visible means an error shows up here rather than inside a chart that looks fine.",
+        "inputs": [
+          "input.numbers"
+        ],
+        "output": {
+          "name": "clean",
+          "type": "table"
+        },
+        "prompt": "Parse the pasted data into a clean table. Keep every row, name the columns properly, and if a value is ambiguous or missing say so in the cell rather than guessing. Respond in {{locale.outputLanguage}}.\n\n{{input.numbers}}",
+        "demo": {
+          "cols": [
+            "Month",
+            "Tickets",
+            "Cost per ticket (£)",
+            "Total cost (£)"
+          ],
+          "rows": [
+            [
+              "Apr",
+              "1820",
+              "6.40",
+              "11,648"
+            ],
+            [
+              "May",
+              "1910",
+              "6.10",
+              "11,651"
+            ],
+            [
+              "Jun",
+              "2040",
+              "5.80",
+              "11,832"
+            ],
+            [
+              "Jul",
+              "2260",
+              "5.55",
+              "12,543"
+            ],
+            [
+              "Aug",
+              "2510",
+              "5.30",
+              "13,303"
+            ]
+          ]
+        }
+      },
+      {
+        "id": "plot",
+        "title": "Draw the one chart that answers it",
+        "requires": "reasoning",
+        "intent": "Not every column deserves a chart. Choosing one, and choosing its form, is most of the analysis.",
+        "inputs": [
+          "clean",
+          "input.numbers"
+        ],
+        "output": {
+          "name": "plot",
+          "type": "chart"
+        },
+        "prompt": "Choose the ONE chart that answers the question being asked, and return it. Pick bar or line on the basis of what is being compared. Include only the series that carry the answer. Respond in {{locale.outputLanguage}} for names and the note.\n\nQuestion and raw data: {{input.numbers}}\n\nClean table: {{clean}}",
+        "demo": {
+          "kind": "line",
+          "unit": "£ thousand",
+          "labels": [
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug"
+          ],
+          "series": [
+            {
+              "name": "Total support cost",
+              "values": [
+                11.65,
+                11.65,
+                11.83,
+                12.54,
+                13.3
+              ]
+            },
+            {
+              "name": "Cost per ticket × 2",
+              "values": [
+                12.8,
+                12.2,
+                11.6,
+                11.1,
+                10.6
+              ]
+            }
+          ],
+          "note": "Unit cost is scaled ×2 so both lines fit one axis — the crossing point is real, the gap is not."
+        }
+      },
+      {
+        "id": "claim",
+        "title": "State the one claim it supports",
+        "requires": "reasoning",
+        "intent": "A chart does not have an opinion. This makes you commit to the sentence you would defend, and to the one you cannot.",
+        "inputs": [
+          "plot",
+          "clean"
+        ],
+        "output": {
+          "name": "claim",
+          "type": "prose"
+        },
+        "prompt": "State in two short paragraphs: first, the single claim this chart genuinely supports, worded so it could be defended in a review. Second, the claim someone will try to make from it that the data does NOT support, and why. Respond in {{locale.outputLanguage}}.\n\nChart: {{plot}}\n\nTable: {{clean}}",
+        "demo": "Cost per ticket has fallen every month since April, from £6.40 to £5.30 — a 17% improvement in unit efficiency over five months, and consistent enough that it is unlikely to be noise.\n\nWhat it does not support is “support is getting cheaper”. Total spend rose from £11.6k to £13.3k over the same period, because ticket volume grew 38% while unit cost fell 17%. Anyone presenting the falling line without the rising one is showing a real efficiency gain and hiding a growing bill; the honest version is that efficiency is improving and is not improving fast enough to keep up with volume."
+      }
+    ]
+  },
+  {
+    "id": "read-a-label",
+    "schemaVersion": "1.3.0",
+    "realm": "money",
+    "concept": "extract",
+    "persona": "analyst",
+    "title": "Read What Is Printed On It",
+    "blurb": "Photograph a receipt, label or invoice and get the fields out as a table — with a straight list of what could not be read, rather than a guess.",
+    "teaches": "Vision for extraction, and the honesty to say what was illegible",
+    "tags": [
+      "vision",
+      "extract"
+    ],
+    "input": {
+      "id": "doc",
+      "label": "A photo of the thing, and what you need off it",
+      "placeholder": "Attach the picture. Say which fields matter to you.",
+      "seed": "I need the line items and the total for an expense claim. Anything that cannot be read should be flagged, not estimated.",
+      "accepts": "image",
+      "seedImage": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzNjAgNTIwIiB3aWR0aD0iMzYwIiBoZWlnaHQ9IjUyMCI+IDxyZWN0IHdpZHRoPSIzNjAiIGhlaWdodD0iNTIwIiBmaWxsPSIjZTllNmUwIi8+IDxwYXRoIGQ9Ik00MCAyMCBoMjgwIHY0NzAgbC0xNCAxMCAtMTQtMTAgLTE0IDEwIC0xNC0xMCAtMTQgMTAgLTE0LTEwIC0xNCAxMCAtMTQtMTAgLTE0IDEwIC0xNC0xMCAtMTQgMTAgLTE0LTEwIC0xNCAxMCAtMTQtMTAgLTE0IDEwIC0xNC0xMCAtMTQgMTAgLTE0LTEwIC0xNCAxMCAtMTQtMTAgeiIgZmlsbD0iI2ZkZmNmYSIgc3Ryb2tlPSIjZDhkM2NhIi8+IDx0ZXh0IHg9IjE4MCIgeT0iNjAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJDb3VyaWVyLG1vbm9zcGFjZSIgZm9udC1zaXplPSIxNSIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzJiMjkyNiI+Tk9SVEggTEFORSBTVVBQTFk8L3RleHQ+IDx0ZXh0IHg9IjE4MCIgeT0iNzgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJDb3VyaWVyLG1vbm9zcGFjZSIgZm9udC1zaXplPSIxMCIgZmlsbD0iIzZiNjg2MiI+MTQgTWlsbCBTdHJlZXQgwrcgMDE2MSA1NTUgMDE0MjwvdGV4dD4gPGxpbmUgeDE9IjYwIiB5MT0iOTQiIHgyPSIzMDAiIHkyPSI5NCIgc3Ryb2tlPSIjZDhkM2NhIiBzdHJva2UtZGFzaGFycmF5PSIzIDMiLz4gPHRleHQgeD0iNjAiIHk9IjExNiIgZm9udC1mYW1pbHk9IkNvdXJpZXIsbW9ub3NwYWNlIiBmb250LXNpemU9IjEwIiBmaWxsPSIjNGE0ODQ0Ij4wNC8wOS8yMDI2IDE0OjIyIFRJTEwgMyBPUDogREFOSTwvdGV4dD4gPHRleHQgeD0iNjAiIHk9IjEzMiIgZm9udC1mYW1pbHk9IkNvdXJpZXIsbW9ub3NwYWNlIiBmb250LXNpemU9IjEwIiBmaWxsPSIjNGE0ODQ0Ij5JTlZPSUNFIDIyLTcwNDE4PC90ZXh0PiA8bGluZSB4MT0iNjAiIHkxPSIxNDYiIHgyPSIzMDAiIHkyPSIxNDYiIHN0cm9rZT0iI2Q4ZDNjYSIgc3Ryb2tlLWRhc2hhcnJheT0iMyAzIi8+IDx0ZXh0IHg9IjYwIiB5PSIxNzIiIGZvbnQtZmFtaWx5PSJDb3VyaWVyLG1vbm9zcGFjZSIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzJiMjkyNiI+MnggUElORSBCQVRURU4gNDR4MTg8L3RleHQ+IDx0ZXh0IHg9IjMwMCIgeT0iMTcyIiB0ZXh0LWFuY2hvcj0iZW5kIiBmb250LWZhbWlseT0iQ291cmllcixtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMyYjI5MjYiPjE4LjQwPC90ZXh0PiA8dGV4dCB4PSI2MCIgeT0iMTkyIiBmb250LWZhbWlseT0iQ291cmllcixtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMyYjI5MjYiPjF4IEJJUkNIIFBMWSAxMm1tIDI0NDA8L3RleHQ+IDx0ZXh0IHg9IjMwMCIgeT0iMTkyIiB0ZXh0LWFuY2hvcj0iZW5kIiBmb250LWZhbWlseT0iQ291cmllcixtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMyYjI5MjYiPjU0LjAwPC90ZXh0PiA8dGV4dCB4PSI2MCIgeT0iMjEyIiBmb250LWZhbWlseT0iQ291cmllcixtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMyYjI5MjYiPjR4IE04IENPQUNIIEJPTFQgOTA8L3RleHQ+IDx0ZXh0IHg9IjMwMCIgeT0iMjEyIiB0ZXh0LWFuY2hvcj0iZW5kIiBmb250LWZhbWlseT0iQ291cmllcixtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMyYjI5MjYiPjYuMTY8L3RleHQ+IDxnIG9wYWNpdHk9IjAuMjgiPiA8dGV4dCB4PSI2MCIgeT0iMjMyIiBmb250LWZhbWlseT0iQ291cmllcixtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMyYjI5MjYiPjF4IERBTklTSCBPSUwgNTAwbWw8L3RleHQ+IDx0ZXh0IHg9IjMwMCIgeT0iMjMyIiB0ZXh0LWFuY2hvcj0iZW5kIiBmb250LWZhbWlseT0iQ291cmllcixtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiMyYjI5MjYiPjE/Ljk1PC90ZXh0PiA8L2c+IDx0ZXh0IHg9IjYwIiB5PSIyNTIiIGZvbnQtZmFtaWx5PSJDb3VyaWVyLG1vbm9zcGFjZSIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzJiMjkyNiI+MXggQUJSQVNJVkUgUEFDSyAxMjBnPC90ZXh0PiA8dGV4dCB4PSIzMDAiIHk9IjI1MiIgdGV4dC1hbmNob3I9ImVuZCIgZm9udC1mYW1pbHk9IkNvdXJpZXIsbW9ub3NwYWNlIiBmb250LXNpemU9IjExIiBmaWxsPSIjMmIyOTI2Ij40LjI1PC90ZXh0PiA8bGluZSB4MT0iNjAiIHkxPSIyNjgiIHgyPSIzMDAiIHkyPSIyNjgiIHN0cm9rZT0iI2Q4ZDNjYSIgc3Ryb2tlLWRhc2hhcnJheT0iMyAzIi8+IDx0ZXh0IHg9IjYwIiB5PSIyOTIiIGZvbnQtZmFtaWx5PSJDb3VyaWVyLG1vbm9zcGFjZSIgZm9udC1zaXplPSIxMSIgZmlsbD0iIzRhNDg0NCI+U1VCVE9UQUw8L3RleHQ+IDx0ZXh0IHg9IjMwMCIgeT0iMjkyIiB0ZXh0LWFuY2hvcj0iZW5kIiBmb250LWZhbWlseT0iQ291cmllcixtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiM0YTQ4NDQiPjk4Ljc2PC90ZXh0PiA8dGV4dCB4PSI2MCIgeT0iMzEwIiBmb250LWZhbWlseT0iQ291cmllcixtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiM0YTQ4NDQiPlZBVCAyMCU8L3RleHQ+IDx0ZXh0IHg9IjMwMCIgeT0iMzEwIiB0ZXh0LWFuY2hvcj0iZW5kIiBmb250LWZhbWlseT0iQ291cmllcixtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTEiIGZpbGw9IiM0YTQ4NDQiPjE5Ljc1PC90ZXh0PiA8dGV4dCB4PSI2MCIgeT0iMzM2IiBmb250LWZhbWlseT0iQ291cmllcixtb25vc3BhY2UiIGZvbnQtc2l6ZT0iMTQiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiMyYjI5MjYiPlRPVEFMPC90ZXh0PiA8dGV4dCB4PSIzMDAiIHk9IjMzNiIgdGV4dC1hbmNob3I9ImVuZCIgZm9udC1mYW1pbHk9IkNvdXJpZXIsbW9ub3NwYWNlIiBmb250LXNpemU9IjE0IiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMmIyOTI2Ij4xMTguNTE8L3RleHQ+IDx0ZXh0IHg9IjYwIiB5PSIzNjIiIGZvbnQtZmFtaWx5PSJDb3VyaWVyLG1vbm9zcGFjZSIgZm9udC1zaXplPSIxMCIgZmlsbD0iIzZiNjg2MiI+Q0FSRCAqKioqNDQxNyBDT05UQUNUTEVTUzwvdGV4dD4gPHJlY3QgeD0iOTAiIHk9IjM5MiIgd2lkdGg9IjE4MCIgaGVpZ2h0PSI0NiIgZmlsbD0iIzJiMjkyNiIvPiA8cmVjdCB4PSI5NCIgeT0iMzkyIiB3aWR0aD0iMyIgaGVpZ2h0PSI0NiIgZmlsbD0iI2ZkZmNmYSIvPiA8cmVjdCB4PSIxMDQiIHk9IjM5MiIgd2lkdGg9IjIiIGhlaWdodD0iNDYiIGZpbGw9IiNmZGZjZmEiLz4gPHJlY3QgeD0iMTE4IiB5PSIzOTIiIHdpZHRoPSI0IiBoZWlnaHQ9IjQ2IiBmaWxsPSIjZmRmY2ZhIi8+IDxyZWN0IHg9IjEzNiIgeT0iMzkyIiB3aWR0aD0iMiIgaGVpZ2h0PSI0NiIgZmlsbD0iI2ZkZmNmYSIvPiA8cmVjdCB4PSIxNTAiIHk9IjM5MiIgd2lkdGg9IjUiIGhlaWdodD0iNDYiIGZpbGw9IiNmZGZjZmEiLz4gPHJlY3QgeD0iMTcyIiB5PSIzOTIiIHdpZHRoPSIyIiBoZWlnaHQ9IjQ2IiBmaWxsPSIjZmRmY2ZhIi8+IDxyZWN0IHg9IjE4OCIgeT0iMzkyIiB3aWR0aD0iNCIgaGVpZ2h0PSI0NiIgZmlsbD0iI2ZkZmNmYSIvPiA8cmVjdCB4PSIyMTAiIHk9IjM5MiIgd2lkdGg9IjIiIGhlaWdodD0iNDYiIGZpbGw9IiNmZGZjZmEiLz4gPHJlY3QgeD0iMjMwIiB5PSIzOTIiIHdpZHRoPSI1IiBoZWlnaHQ9IjQ2IiBmaWxsPSIjZmRmY2ZhIi8+IDxyZWN0IHg9IjI1MCIgeT0iMzkyIiB3aWR0aD0iMiIgaGVpZ2h0PSI0NiIgZmlsbD0iI2ZkZmNmYSIvPiA8dGV4dCB4PSIxODAiIHk9IjQ2MiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkNvdXJpZXIsbW9ub3NwYWNlIiBmb250LXNpemU9IjkiIGZpbGw9IiM4YTg1N2QiPlJFVFVSTlMgV0lUSElOIDI4IERBWVMgV0lUSCBSRUNFSVBUPC90ZXh0PiA8L3N2Zz4=",
+      "seedAlt": "Sample till receipt from a timber supplier with one faded line"
+    },
+    "cells": [
+      {
+        "id": "fields",
+        "title": "Pull the fields out",
+        "requires": "vision",
+        "intent": "Structure straight off the picture. A table you can check line by line against the thing in your hand.",
+        "inputs": [
+          "input.doc"
+        ],
+        "output": {
+          "name": "fields",
+          "type": "table"
+        },
+        "prompt": "Read the attached document and extract its line items as a table. Include quantity, description and amount. Transcribe exactly what is printed; where a character is unreadable, write it as a question mark rather than inferring it. Respond in {{locale.outputLanguage}}.\n\nWhat is needed from it: {{input.doc}}",
+        "demo": {
+          "cols": [
+            "Qty",
+            "Description",
+            "Amount (£)"
+          ],
+          "rows": [
+            [
+              "2",
+              "PINE BATTEN 44x18",
+              "18.40"
+            ],
+            [
+              "1",
+              "BIRCH PLY 12mm 2440",
+              "54.00"
+            ],
+            [
+              "4",
+              "M8 COACH BOLT 90",
+              "6.16"
+            ],
+            [
+              "1",
+              "DANISH OIL 500ml",
+              "1?.95"
+            ],
+            [
+              "1",
+              "ABRASIVE PACK 120g",
+              "4.25"
+            ],
+            [
+              "",
+              "SUBTOTAL",
+              "98.76"
+            ],
+            [
+              "",
+              "VAT 20%",
+              "19.75"
+            ],
+            [
+              "",
+              "TOTAL",
+              "118.51"
+            ]
+          ]
+        }
+      },
+      {
+        "id": "unsure",
+        "title": "Say what could not be read",
+        "requires": "vision",
+        "intent": "The failure mode of extraction is a confident wrong number. Naming the illegible parts is the difference between a tool and a liability.",
+        "inputs": [
+          "input.doc",
+          "fields"
+        ],
+        "output": {
+          "name": "unsure",
+          "type": "list"
+        },
+        "prompt": "Looking at the same document, list everything you could not read with confidence, and anything you left out. Say where on the document it is. Do not guess the values. If everything was legible, say that in one line. Respond in {{locale.outputLanguage}}.\n\nWhat was needed: {{input.doc}}\n\nWhat was extracted: {{fields}}",
+        "demo": [
+          "Line 4, DANISH OIL 500ml — the amount is faded; the first digit of the pounds column is unreadable. It is between £10.95 and £19.95.",
+          "The operator initials beside the till number are legible as “DANI” but could be a truncated longer name.",
+          "The barcode at the foot has not been decoded — reading it from a photograph is not reliable and the invoice number above it says the same thing.",
+          "Everything else on the receipt was legible, including the date, invoice number and card last four."
+        ]
+      },
+      {
+        "id": "check",
+        "title": "Check the arithmetic",
+        "requires": "reasoning",
+        "intent": "The cheapest test of a bad read is whether the numbers add up. It catches the misread digit that nothing else would.",
+        "inputs": [
+          "fields",
+          "unsure"
+        ],
+        "output": {
+          "name": "check",
+          "type": "prose"
+        },
+        "prompt": "Check whether these extracted figures are internally consistent: do the line items sum to the subtotal, does the tax rate match, does the total follow? Show the arithmetic briefly. If a flagged unreadable value can be pinned down by the arithmetic, say what it must be and how you know. Respond in {{locale.outputLanguage}}.\n\nExtracted: {{fields}}\n\nFlagged as unreadable: {{unsure}}",
+        "demo": "The legible lines come to 18.40 + 54.00 + 6.16 + 4.25 = £82.81. The stated subtotal is £98.76, leaving £15.95 for the faded line — which fits the visible pattern “1?.95” exactly, so the Danish oil was £15.95. The gap decides the digit; it was not necessary to guess it.\n\nThe rest holds: VAT at 20% of £98.76 is £19.752, printed as £19.75, and 98.76 + 19.75 = £118.51, which matches the total. The extraction is arithmetically sound and the one unreadable figure is now determined rather than estimated."
+      }
+    ]
   }
 ]
