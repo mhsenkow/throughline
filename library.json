@@ -13222,7 +13222,7 @@
         "id": "plot",
         "title": "Draw the one chart that answers it",
         "requires": "reasoning",
-        "intent": "Not every column deserves a chart. Choosing one, and choosing its form, is most of the analysis.",
+        "intent": "Not every column deserves a chart. Choosing one — and refusing to put two incompatible scales on one axis — is most of the analysis.",
         "inputs": [
           "clean",
           "input.numbers"
@@ -13234,7 +13234,7 @@
         "prompt": "Choose the ONE chart that answers the question being asked, and return it. Pick bar or line on the basis of what is being compared. Include only the series that carry the answer. Respond in {{locale.outputLanguage}} for names and the note.\n\nQuestion and raw data: {{input.numbers}}\n\nClean table: {{clean}}",
         "demo": {
           "kind": "line",
-          "unit": "£ thousand",
+          "unit": "index, April = 100",
           "labels": [
             "Apr",
             "May",
@@ -13246,25 +13246,25 @@
             {
               "name": "Total support cost",
               "values": [
-                11.65,
-                11.65,
-                11.83,
-                12.54,
-                13.3
+                100.0,
+                100.0,
+                101.6,
+                107.7,
+                114.2
               ]
             },
             {
-              "name": "Cost per ticket × 2",
+              "name": "Cost per ticket",
               "values": [
-                12.8,
-                12.2,
-                11.6,
-                11.1,
-                10.6
+                100.0,
+                95.3,
+                90.6,
+                86.7,
+                82.8
               ]
             }
           ],
-          "note": "Unit cost is scaled ×2 so both lines fit one axis — the crossing point is real, the gap is not."
+          "note": "Both series are indexed to April rather than plotted in their own units — pounds per ticket and pounds per month do not share a scale, and rescaling one to fit the other would invent a crossing point."
         }
       },
       {
@@ -13281,7 +13281,7 @@
           "type": "prose"
         },
         "prompt": "State in two short paragraphs: first, the single claim this chart genuinely supports, worded so it could be defended in a review. Second, the claim someone will try to make from it that the data does NOT support, and why. Respond in {{locale.outputLanguage}}.\n\nChart: {{plot}}\n\nTable: {{clean}}",
-        "demo": "Cost per ticket has fallen every month since April, from £6.40 to £5.30 — a 17% improvement in unit efficiency over five months, and consistent enough that it is unlikely to be noise.\n\nWhat it does not support is “support is getting cheaper”. Total spend rose from £11.6k to £13.3k over the same period, because ticket volume grew 38% while unit cost fell 17%. Anyone presenting the falling line without the rising one is showing a real efficiency gain and hiding a growing bill; the honest version is that efficiency is improving and is not improving fast enough to keep up with volume."
+        "demo": "Cost per ticket has fallen every month since April, from £6.40 to £5.30 — 17% off the unit cost in five months, and steady enough month to month that it is unlikely to be noise.\n\nWhat it does not support is “support is getting cheaper”. On the same index, total spend rose 14%, because volume grew 38% while unit cost fell 17%. Anyone showing the falling line without the rising one is presenting a real efficiency gain and hiding a growing bill. The honest sentence is that efficiency is improving and is not improving fast enough to keep up with volume."
       }
     ]
   },

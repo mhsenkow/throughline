@@ -234,6 +234,53 @@ Never silently re-execute something the user paid for.
 perceived-speed difference is large and this is a product whose whole job is making
 capability feel tangible.
 
+### 5.4 Modalities — added after the text engine shipped
+
+Four output types (`image`, `scene`, `diagram`, `chart`) and one input kind
+(`accepts: "image"`) were added without touching the state machine, the bag or
+the staleness closure. That is the check on §5.1: they are values with
+renderers, not a second execution model.
+
+Three things did change, and each was a deliberate seam rather than a special
+case:
+
+1. **A second wire, not a second adapter shape.** Image generation is not
+   streaming text with a different content type — different endpoints, a
+   different model catalogue, and nothing to show until the whole picture
+   exists. `runImage()` sits beside `runLive()`; forcing it through the text
+   adapter would have meant a fake stream and a fake typed value. A provider
+   declares a `imageModel` separately from its `model` for the same reason:
+   one key, two catalogues.
+2. **Capability classes gained modalities.** `CLASSES` is now
+   `fast · reasoning · vision · image`. Vision and image are not tiers above
+   reasoning — a provider can be excellent at reasoning and blind — but they
+   belong in the same list because one rule then routes every cell: *the best
+   connected provider that serves this class*. The existing capability-ceiling
+   notice needed no changes to say "this provider cannot see".
+3. **Bytes are values, never links.** Every image adapter converts to a `data:`
+   URL before returning. This keeps `img-src` at `'self' data:`, makes exports
+   self-contained, and means no third-party CDN observes a reader. The renderer
+   refuses anything that is not `data:image/`.
+
+`requires: "vision"` gates whether a cell actually receives the bytes. Any other
+cell reading an image variable gets `bagText()`'s description, so the run
+degrades onto a text-only model instead of dead-ending — the same principle as
+stale-not-rerun, one dimension out.
+
+**No library was used for the renderers**, and not from asceticism: `script-src`
+is pinned to a hash of the single inline script, so a 3D or charting library
+could not execute in this build. The consequence is better than the constraint —
+scenes, diagrams and charts are drawn from Tier-2 tokens and re-theme with
+everything else, and `.obj`/`.stl` export the same triangles the canvas drew.
+
+### 5.5 Chains
+
+`Send on` writes one run's value into another notebook's input and records one
+hop of provenance. It is not a pipeline: P1 keeps the unit a linear notebook,
+and a saved multi-notebook graph would need a server to be worth anything (P3).
+The target's existing results go **stale** — the state the engine already had
+for "this answers an older question".
+
 ---
 
 ## 6. The two engineering problems that will actually bite
@@ -361,7 +408,8 @@ document.
 - **No sync.** (Product brief §6.5.) The file is the sync mechanism.
 - **No accounts** until something genuinely requires identity. Optional accounts
   become required accounts.
-- **No node-graph canvas.** (P1.)
+- **No node-graph canvas.** (P1.) This survived the modality work: `Send on`
+  chains notebooks one hop at a time and draws nothing.
 - **No Rust in v1.** (§1.1.)
 - **No bespoke design system.** Unstyled primitives + tokens. Every component you
   style opinionatedly is a component that fights P5.

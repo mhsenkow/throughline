@@ -30,6 +30,7 @@ echo "  sha256-${HASH}"
 mkdir -p "$PORT_REPO/public/notebook/icons"
 cp index.html "$PORT_REPO/public/notebook/index.html"
 cp library.json "$PORT_REPO/public/notebook/library.json"
+cp privacy.html "$PORT_REPO/public/notebook/privacy.html"
 cp -R icons/. "$PORT_REPO/public/notebook/icons/"
 echo "→ copied to $PORT_REPO/public/notebook/"
 

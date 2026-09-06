@@ -87,3 +87,53 @@ notarization, delete this workaround from your muscle memory. Until then:
 ```bash
 xattr -cr /Applications/Throughline.app && open /Applications/Throughline.app
 ```
+
+## Mac App Store
+
+Direct DMG distribution (Developer ID + notarization) stays the default. The
+Mac App Store path is a **second** signed artifact with App Sandbox.
+
+| | GitHub DMG | Mac App Store |
+|---|---|---|
+| Certificate | Developer ID Application | **Apple Distribution** |
+| Installer cert | — (DMG) | **Mac Installer Distribution** |
+| Entitlements | `entitlements/developer-id.plist` | `entitlements/mac-app-store.plist` (sandbox) |
+| Config | `tauri.conf.json` | merge `tauri.mas.conf.json` |
+| Output | `.dmg` | `.pkg` via `scripts/build-mas.sh` |
+
+### One-time Apple setup
+
+1. [Certificates](https://developer.apple.com/account/resources/certificates/list) → create **Apple Distribution** and **Mac Installer Distribution** (or “3rd Party Mac Developer Installer”); install both in Keychain Access.
+2. [Identifiers](https://developer.apple.com/account/resources/identifiers/list) → App ID `org.throughline.desktop` (Mac), capabilities matching entitlements (App Sandbox).
+3. [Profiles](https://developer.apple.com/account/resources/profiles/list) → **Mac App Store Connect** profile for that App ID → save as:
+   `src-tauri/macos/Throughline_Mac_App_Store.provisionprofile`
+4. [App Store Connect](https://appstoreconnect.apple.com) → New macOS app, bundle id `org.throughline.desktop`.
+5. Users and Access → Integrations → App Store Connect API key → download `.p8` once to `~/.appstoreconnect/private_keys/AuthKey_<KEY_ID>.p8`.
+
+Listing copy, privacy answers, and screenshot notes:
+[`macos/APP_STORE_CONNECT.md`](macos/APP_STORE_CONNECT.md)
+
+### Build / validate / upload
+
+```bash
+# from desktop/
+./scripts/build-mas.sh                 # universal .app → signed .pkg
+APPLE_API_KEY_ID=… APPLE_API_ISSUER=… \
+  ./scripts/build-mas.sh --validate    # App Store Connect validation
+APPLE_API_KEY_ID=… APPLE_API_ISSUER=… \
+  ./scripts/build-mas.sh --upload      # submit build for processing
+```
+
+Artifact: `src-tauri/target/mas/Throughline.pkg`
+
+CI: [`.github/workflows/mac-app-store.yml`](../.github/workflows/mac-app-store.yml)
+(workflow_dispatch). Needs secrets `APPLE_DISTRIBUTION_P12`,
+`APPLE_INSTALLER_P12`, `MAS_PROVISION_PROFILE_BASE64`, and for upload
+`APPLE_API_KEY_ID` / `APPLE_API_ISSUER` / `APPLE_API_KEY_P8`.
+
+### Sandbox behavior
+
+Under App Sandbox, `NSDocumentDirectory` is the **container** Documents folder
+(not the user’s real `~/Documents`). Reveal / Choose library folder buttons in
+the desktop strip handle discovery; optional custom roots use the user-selected
+file entitlement. Direct DMG builds keep writing to `~/Documents/Throughline/`.

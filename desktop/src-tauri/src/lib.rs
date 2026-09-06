@@ -24,6 +24,27 @@ struct FetchRequest {
   method: Option<String>,
   headers: Option<HashMap<String, String>>,
   body: Option<String>,
+  /// Ask for the response as bytes rather than text. The streaming path below
+  /// decodes with `from_utf8_lossy`, which is right for SSE and NDJSON and
+  /// destroys a PNG. Image endpoints set this and get back one `done` chunk
+  /// carrying a `data:` URL.
+  binary: Option<bool>,
+}
+
+/// Base64 by hand rather than a dependency — it is eleven lines and this is
+/// the only place in the app that needs it.
+fn base64(bytes: &[u8]) -> String {
+  const A: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  let mut out = String::with_capacity((bytes.len() + 2) / 3 * 4);
+  for c in bytes.chunks(3) {
+    let b = [c[0], *c.get(1).unwrap_or(&0), *c.get(2).unwrap_or(&0)];
+    let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+    out.push(A[(n >> 18 & 63) as usize] as char);
+    out.push(A[(n >> 12 & 63) as usize] as char);
+    out.push(if c.len() > 1 { A[(n >> 6 & 63) as usize] as char } else { '=' });
+    out.push(if c.len() > 2 { A[(n & 63) as usize] as char } else { '=' });
+  }
+  out
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -42,7 +63,54 @@ struct Caps {
   cors: bool,
   disk: bool,
   keychain: bool,
+  /// True when running inside the Mac App Store App Sandbox container.
+  sandboxed: bool,
+  /// Human-readable library root hint for UI copy.
+  library_hint: String,
   version: String,
+}
+
+/// App Sandbox sets this when the process is contained (Mac App Store builds).
+fn is_sandboxed() -> bool {
+  std::env::var_os("APP_SANDBOX_CONTAINER_ID").is_some()
+}
+
+fn library_config_path() -> Result<PathBuf, String> {
+  let dir = dirs::data_dir()
+    .ok_or_else(|| "no data dir".to_string())?
+    .join("throughline");
+  fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+  Ok(dir.join("library-root.json"))
+}
+
+fn load_library_root_override() -> Option<PathBuf> {
+  let path = library_config_path().ok()?;
+  let raw = fs::read_to_string(path).ok()?;
+  let value: serde_json::Value = serde_json::from_str(&raw).ok()?;
+  value
+    .get("path")
+    .and_then(|v| v.as_str())
+    .map(PathBuf::from)
+    .filter(|p| p.is_absolute())
+}
+
+fn save_library_root_override(path: &Path) -> Result<(), String> {
+  let cfg = library_config_path()?;
+  let body = serde_json::json!({ "path": path.to_string_lossy() });
+  fs::write(cfg, serde_json::to_string_pretty(&body).unwrap()).map_err(|e| e.to_string())
+}
+
+fn resolve_library_root() -> Result<PathBuf, String> {
+  if let Some(override_path) = load_library_root_override() {
+    return Ok(override_path);
+  }
+  // Sandboxed MAS builds: NSDocumentDirectory is the container Documents
+  // (writable). Direct-distribution builds: real ~/Documents.
+  let dir = dirs::document_dir()
+    .or_else(dirs::home_dir)
+    .ok_or_else(|| "could not resolve Documents".to_string())?
+    .join("Throughline");
+  Ok(dir)
 }
 
 fn key_entry(provider: &str) -> Result<Entry, String> {
@@ -51,11 +119,23 @@ fn key_entry(provider: &str) -> Result<Entry, String> {
 
 #[tauri::command]
 fn desktop_caps() -> Caps {
+  let sandboxed = is_sandboxed();
+  let library_hint = resolve_library_root()
+    .map(|p| p.to_string_lossy().into_owned())
+    .unwrap_or_else(|_| {
+      if sandboxed {
+        "App Library (sandboxed)".into()
+      } else {
+        "~/Documents/Throughline".into()
+      }
+    });
   Caps {
     shell: "desktop".into(),
     cors: true,
     disk: true,
     keychain: true,
+    sandboxed,
+    library_hint,
     version: env!("CARGO_PKG_VERSION").into(),
   }
 }
@@ -194,6 +274,26 @@ async fn native_fetch(req: FetchRequest, on_chunk: Channel<FetchChunk>) -> Resul
     return Err(format!("HTTP {status}"));
   }
 
+  if req.binary.unwrap_or(false) {
+    let mime = res
+      .headers()
+      .get(reqwest::header::CONTENT_TYPE)
+      .and_then(|v| v.to_str().ok())
+      .unwrap_or("application/octet-stream")
+      .split(';')
+      .next()
+      .unwrap_or("application/octet-stream")
+      .to_string();
+    let bytes = res.bytes().await.map_err(|e| e.to_string())?;
+    let _ = on_chunk.send(FetchChunk {
+      kind: "done".into(),
+      status: Some(status),
+      text: Some(format!("data:{};base64,{}", mime, base64(&bytes))),
+      error: None,
+    });
+    return Ok(());
+  }
+
   let mut stream = res.bytes_stream();
   let mut buf = String::new();
   while let Some(item) = stream.next().await {
@@ -218,28 +318,46 @@ async fn native_fetch(req: FetchRequest, on_chunk: Channel<FetchChunk>) -> Resul
   Ok(())
 }
 
-#[tauri::command]
-fn default_library_dir() -> Result<String, String> {
-  let dir = dirs::document_dir()
-    .or_else(dirs::home_dir)
-    .ok_or_else(|| "could not resolve Documents".to_string())?
-    .join("Throughline");
-  fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-  let notebooks = dir.join("notebooks");
-  fs::create_dir_all(&notebooks).map_err(|e| e.to_string())?;
-  let runs = dir.join("runs");
-  fs::create_dir_all(&runs).map_err(|e| e.to_string())?;
-  // Seed a README once
+fn ensure_library_layout(dir: &Path) -> Result<(), String> {
+  fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+  fs::create_dir_all(dir.join("notebooks")).map_err(|e| e.to_string())?;
+  fs::create_dir_all(dir.join("runs")).map_err(|e| e.to_string())?;
   let readme = dir.join("README.txt");
   if !readme.exists() {
-    let _ = fs::write(
-      &readme,
+    let note = if is_sandboxed() {
+      "Throughline library folder (Mac App Store / sandboxed build)\n\n\
+notebooks/  — your notebooks as JSON files\n\
+runs/       — exported run transcripts\n\n\
+This folder lives inside the app sandbox container. Use “Open library folder”\n\
+in Throughline to reveal it in Finder. The website never sees these files.\n"
+    } else {
       "Throughline library folder\n\n\
 notebooks/  — your notebooks as JSON files (git-able, yours)\n\
 runs/       — exported run transcripts\n\n\
-The desktop app reads and writes here. The website never sees these files.\n",
-    );
+The desktop app reads and writes here. The website never sees these files.\n"
+    };
+    let _ = fs::write(&readme, note);
   }
+  Ok(())
+}
+
+#[tauri::command]
+fn default_library_dir() -> Result<String, String> {
+  let dir = resolve_library_root()?;
+  ensure_library_layout(&dir)?;
+  Ok(dir.to_string_lossy().into_owned())
+}
+
+/// Persist a user-chosen library root (requires user-selected file entitlement
+/// under App Sandbox; pick the folder via the system dialog first).
+#[tauri::command]
+fn set_library_dir(path: String) -> Result<String, String> {
+  let dir = PathBuf::from(path.trim());
+  if !dir.is_absolute() {
+    return Err("library path must be absolute".into());
+  }
+  ensure_library_layout(&dir)?;
+  save_library_root_override(&dir)?;
   Ok(dir.to_string_lossy().into_owned())
 }
 
@@ -291,6 +409,7 @@ pub fn run() {
       list_secrets,
       native_fetch,
       default_library_dir,
+      set_library_dir,
       ensure_dir,
       write_text_file,
       read_text_file,

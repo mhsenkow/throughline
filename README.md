@@ -170,6 +170,10 @@ together.
 | Gate cells — the run can loop back, capped and visible | **Real** |
 | Choice / map / ask cells — pick a path, map over a list, mid-run human input | **Real** |
 | Typed outputs: prose, markdown, list, table, gate, score, diff, ranking, timeline, choice | **Real** |
+| Media outputs: image, scene (3D), diagram, chart — same typed contract | **Real** |
+| 3D scenes render and export to `.obj` / `.stl` from the same triangles | **Real**, no library |
+| Image inputs: drop, paste or choose a picture; vision cells read it | **Real** |
+| Chains — send a finished value into another notebook, with provenance | **Real** |
 | Three-tier tokens, **13 brands**, light/dark, zero component edits | **Real** |
 | Faceted browse: persona × realm × concept, search, sort, windowed grid | **Real** |
 | Editing a template forks it: skip cells, change output type, rewrite prompts | **Real** |
@@ -183,13 +187,15 @@ together.
 | Reachability test per provider (operationalises spike #1) | **Real** |
 | Chrome built-in model (Gemini Nano) — three-state availability + download | **Real**, download path unrun |
 | Ollama / Google / Groq / OpenRouter / Anthropic / OpenAI adapters | **Written and streaming**, none verified against a live key |
+| Vision adapters (Google, Anthropic, OpenAI-compatible, Ollama) | **Written**, not verified against a live key |
+| Image adapters (Pollinations, Google, OpenAI, Together, Hugging Face) | **Written**, not verified against a live key |
 | Guided demo provider | Scripted — deliberately, it is the R6 fix |
 | T2 File System Access backend | Detected, not implemented |
 | Tauri desktop build | **Shipped** (macOS DMG; Windows/Linux via CI) |
 
 ## The library
 
-**103 notebooks across 13 personas, 9 realms, and 8 concepts.** The home page
+**111 notebooks across 13 personas, 9 realms, and 8 concepts.** The home page
 filters on three axes, because they answer different questions:
 
 - **Persona** — whose job: manager, product, engineer, designer, marketer,
@@ -215,9 +221,11 @@ job*. Facet counts come from the current result set, so a chip never offers a
 filter that returns nothing, and a selected chip stays visible even at zero so
 there is always a step back rather than only a full reset.
 
-The shelf is content-as-data in `library.json` (`schemaVersion` up to **1.2.0**).
+The shelf is content-as-data in `library.json` (`schemaVersion` up to **1.3.0**).
 `1.2.0` adds choice / map / ask behavioural cells and the score / diff /
-ranking / timeline / choice output types. Every notebook still ships with
+ranking / timeline / choice output types. `1.3.0` adds the media types —
+`image`, `scene`, `diagram`, `chart` — plus `input.accepts: "image"` with a
+`seedImage`, the `vision` and `image` capability classes, and `cell.image.aspect`. Every notebook still ships with
 hand-written `demo` output so it can be run before you connect anything (R6).
 Thin filler would violate the thing the brief cares most about — the library
 *is* the product. Editorial tooling lives in `scripts/editorial_pass.py`,
@@ -251,11 +259,12 @@ the fork staying local and file-shaped (P4).
 
 ## Connecting a model
 
-**Sixteen providers**, grouped by what they cost you rather than by vendor:
+**Seventeen providers**, grouped by what they cost you rather than by vendor.
+Nothing in the "ready now" column generates images — see Known gaps:
 
 | Ready now, or nearly | Free, with a key | Paid |
 |---|---|---|
-| Guided demo · Your browser (Gemini Nano) · Ollama · LM Studio | Google AI Studio · OpenRouter · Groq · Hugging Face · Cerebras · Mistral | DeepSeek · Together · xAI · Anthropic · OpenAI |
+| Guided demo · Your browser (Gemini Nano) · Ollama · LM Studio | Google AI Studio · OpenRouter · Groq · Hugging Face · Cerebras · Mistral · **Pollinations** | DeepSeek · Together · xAI · Anthropic · OpenAI |
 
 The panel is master-detail: pick one on the left, follow numbered steps on the
 right — open the key page, paste, pick a model. **The key is tested
@@ -270,6 +279,74 @@ one key and anything ending `:free` costs nothing; **Hugging Face** opens the
 open-model world with a free token. Both speak the OpenAI wire format, which is
 the reason this list could grow at all.
 
+## Pictures, geometry, diagrams and charts
+
+The cell contract said typed outputs from the start. Four more types finish the
+sentence: **image**, **scene**, **diagram**, **chart**. None of them is a new
+mechanism — each is a value in the bag with a renderer, exactly like `table`.
+
+**A picture is bytes, never a link.** Every image adapter ends the same way:
+fetch the bytes, turn them into a `data:` URL, put that in the bag. No adapter
+may return a remote `src`. That one rule is why `img-src` stays `'self' data:`,
+why an exported run still has its pictures in it when the provider is gone, and
+why nobody's CDN learns who is looking at what. The cost is a fatter export,
+paid deliberately. A value that is not `data:image/` is refused at render and
+shown as text — a model that returns a URL is a bug, not a picture.
+
+**A 3D result is geometry, not a picture of geometry.** `scene` is a list of
+typed primitives — shape, label, position, size, colour, in real units, with
+y=0 as the floor. The canvas draws it with an ~80-line painter's-algorithm
+rasteriser (no library: `script-src` is pinned to a hash of this one inline
+script, so a 3D library could not execute here even if it were bundled). `.obj`
+and `.stl` export the **same triangles the canvas drew**, so the view and the
+file cannot disagree, and a downstream text cell reads the same objects.
+
+**Charts obey one rule that had to be enforced in the prompt.** All series share
+one vertical scale. The shape instruction forbids rescaling a series to make it
+fit alongside another — if two measures have different magnitudes, the model
+must return one of them or index both to a common base and say so in the unit.
+Bars are anchored at zero because a bar's length *is* its value; lines may start
+where the data does, and the chart then prints "the vertical axis starts at X,
+not zero" underneath. Series colours are a fixed, never-cycled categorical
+order (Okabe–Ito, stepped separately for light and dark) checked with a palette
+validator for adjacent-pair separation under protanopia, deuteranopia and
+tritanopia — not by eye. They live in tokens (`--series-1` … `--series-5`), so
+they re-theme with everything else. Do not nudge one without re-running that check.
+
+**Attaching a picture.** A notebook whose `input.accepts` is `image` shows a
+drop zone that also takes a paste or a file, and ships a hand-authored
+`seedImage` so the first run needs no file at all (R6). Attachments are scaled
+to 1280px on the way in and held in the tab:
+
+- **A picture never travels in a share link.** The note goes; the image does not.
+  A screenshot is the last thing that should land in a chat by accident, and a
+  data URL would make an unusable URL anyway.
+- **A mark never stores the bytes.** Marks persist to IndexedDB, and the UI
+  promises the picture stays in the tab, so a mark keeps the note and the fact
+  that there was a picture.
+- **An export does embed it**, because an export is a file you deliberately
+  asked for and a run without its pictures is not the run.
+
+**Only a cell that declares `requires: vision` receives the bytes.** Any other
+cell reading an image variable gets its description through `bagText()` — so a
+reasoning cell downstream of a photograph still runs on a text-only model
+instead of dead-ending. `check.sh` enforces both halves: a vision cell must read
+the picture input, and a notebook that takes a picture must have a vision cell.
+
+## Chains — sending a result onward
+
+**Send on** takes any value this run produced and makes it the input of another
+notebook. The target says where it came from, and everything it had already
+produced goes **stale** — the state the engine already had for "this answers an
+older question".
+
+That is deliberately one hop and not a graph. P1 says the unit is a linear
+notebook read top to bottom; a saved pipeline that drew itself as a canvas would
+be the same mistake one level up, and a scheduler for it would need a server
+(P3). What people actually want after a good run is to keep going, and this is
+the smallest honest version of that. A picture crosses as a picture when the
+next notebook takes one, and as its description when it does not.
+
 ## Model options
 
 Every cell resolves **Auto** against what you have connected, matching the cell's
@@ -281,11 +358,22 @@ the question; pin a cell only if you want to.
 | Guided demo | None | everything | Scripted. No network request at all. |
 | Chrome built-in (Gemini Nano) | Download once | `fast` | Free forever, offline, no key. Chrome 138+ on supported hardware. |
 | Ollama | Run it locally | `fast` | Needs `OLLAMA_ORIGINS` set for this origin. An https page cannot call `http://localhost` — self-host over http, or use desktop. |
-| Google AI Studio | Free key | `fast`, `reasoning` | Best free starting point. |
-| Groq | Free key | `fast`, `reasoning` | Very fast, open weights. |
-| OpenRouter | Free key | `fast`, `reasoning` | Model ids ending `:free` cost nothing. |
-| Anthropic / OpenAI | Paid key | `fast`, `reasoning` | |
+| Pollinations | Free token | `image` | **Tested, and it failed keyless:** anonymous requests are refused with `403 {"error":"Missing Turnstile token"}` — a bot check, not a rate limit. Shipped as a token provider; the token path is unverified. |
+| Google AI Studio | Free key | `fast`, `reasoning`, `vision`, `image` | Best free starting point, and the only free key that both sees and draws. |
+| Groq | Free key | `fast`, `reasoning`, `vision` | Very fast, open weights. |
+| OpenRouter | Free key | `fast`, `reasoning`, `vision` | Model ids ending `:free` cost nothing. |
+| Hugging Face | Free token | `fast`, `reasoning`, `vision`, `image` | FLUX and the open image world behind one token. |
+| Together | Paid key | `fast`, `reasoning`, `image` | FLUX.1-schnell has a free tier. |
+| Anthropic | Paid key | `fast`, `reasoning`, `vision` | Sees, does not draw. |
+| OpenAI | Paid key | `fast`, `reasoning`, `vision`, `image` | |
 | Enterprise gateway | — | — | CORS-blocked from any browser. Desktop or self-hosted only. |
+
+`vision` and `image` are **modalities, not tiers**. A provider can be excellent
+at reasoning and unable to see a picture at all, so they sit in the same
+`requires` list and the same one rule routes every cell: pick the best connected
+provider that serves this class. A drawing model is a **separate choice from a
+text model at the same provider** — one key, two catalogues — because picking a
+drawing model should not quietly change which model writes your prose.
 
 Classes describe the **default model** listed, not the vendor. Point Ollama at a
 70B and it serves more than `fast`; the field is editable for exactly that reason.
@@ -299,7 +387,8 @@ Classes describe the **default model** listed, not the vendor. Point Ollama at a
 - **None of the hosted adapters have been verified against a live key.** They are
   written to each vendor's documented streaming format. Press **Test** in Connect —
   it makes one tiny call and reports exactly what came back. That is spike #1 from
-  ENGINEERING-BRIEF §8, wired into the product.
+  ENGINEERING-BRIEF §8, wired into the product. An image-only provider is tested
+  the only way that means anything: by asking it for the smallest real picture.
 
 Keys live in the tab, in memory. Never written to storage, never sent to this page's
 own origin.
@@ -336,6 +425,19 @@ own origin.
 7. Paste any free key, then **pin** a cell to a model whose class is below what the
    cell declares. The cell says so, in place, and offers the upgrade there — the only
    moment the ceiling is actually felt.
+8. **Lay Out a Room** → run it, then drag the result. It is geometry, not a
+   picture: orbit it, switch to wireframe, and export `.obj` or `.stl` — the same
+   triangles you are looking at. Then open **Variables in this run** and watch the
+   scene sit in the bag beside the text, as `scene[8]`.
+9. **Read a Screenshot** → drop or paste a picture of your own over the sample.
+   Cell 01 declares `requires: vision`, so it is the only one that receives the
+   bytes; everything downstream works from its inventory and still runs on a
+   text-only model.
+10. **Moodboard from a Brief** → two directions, drawn. On the guided demo the
+   pictures are hand-authored and say so under each one; connect a provider that
+   draws — Google AI Studio is the cheapest route — and the same cells draw for real.
+11. Finish any run and press **Send on**. Pick a value, pick another notebook — it
+   arrives as that notebook's input, with a line saying where it came from.
 
 ## The desktop build
 
@@ -357,6 +459,13 @@ on tag push. Local Mac builds sign with Developer ID; notarization needs
 `APPLE_ID` / app-specific password / `APPLE_TEAM_ID=WC44W2QVE4` — see
 [`desktop/README.md`](desktop/README.md).
 
+**Mac App Store (in progress):** sandboxed entitlements, Info.plist export
+compliance, MAS config merge, and `desktop/scripts/build-mas.sh` are in the
+repo. You still need Apple Distribution + Mac Installer certificates, a Mac App
+Store Connect provisioning profile, and an App Store Connect listing — walkthrough
+in [`desktop/README.md`](desktop/README.md#mac-app-store) and
+[`desktop/macos/APP_STORE_CONNECT.md`](desktop/macos/APP_STORE_CONNECT.md).
+
 **First open on macOS (if not yet notarized):** Gatekeeper may say the app is
 “damaged.” It isn’t — quarantine on the download. Fix once:
 
@@ -364,6 +473,12 @@ on tag push. Local Mac builds sign with Developer ID; notarization needs
 xattr -cr /Applications/Throughline.app
 open /Applications/Throughline.app
 ```
+
+The desktop bridge also carries **raw image bytes** now: `native_fetch` takes a
+`binary` flag and returns a `data:` URL, because the streaming path decodes as
+text (right for SSE, fatal for a PNG). Providers that answer with bytes rather
+than JSON — Pollinations, Hugging Face — need a rebuilt binary to work on
+desktop; they already work in the browser.
 
 Develop / rebuild:
 
@@ -402,6 +517,25 @@ Mitigations shipping in the viewer:
 
 ## Known gaps
 
+- **The image and vision adapters are unrun, with one exception that was run and
+  failed.** They are written to each vendor's documented request shape, and the
+  image endpoints differ more between vendors than the chat ones do (`gpt-image-1`
+  rejects `response_format`; FLUX wants pixels and a step count; Hugging Face
+  returns raw bytes). Press **Test**. Anything that returns a link rather than
+  bytes is refused on purpose.
+- **Pollinations no longer works without a token, and this was found by testing
+  it rather than by reading the docs.** An anonymous request from this build
+  returns `403 {"error":"Missing Turnstile token"}`. A bot check is not something
+  a key or a retry fixes, and solving one is not something this app will ever do,
+  so the provider moved out of the no-setup group and the copy that called it
+  "the only keyless way to draw for real" is gone. **There is currently no
+  keyless way to generate an image here** — the guided demo's pictures are
+  hand-authored and say so. That test also caught a second bug: `humanError()`
+  mapped the 403 to "That key was not accepted", which for a provider that takes
+  no key is an answer pointing at nothing. It now names the bot check.
+- The 3D renderer is a painter's algorithm over convex primitives. Interpenetrating
+  or concave shapes can sort wrongly; a depth buffer is the fix if scenes ever get
+  more ambitious than a room or a shelf.
 - Runs are held in memory only; the IndexedDB adapter is wired and reporting but
   not yet persisting runs. Export works, which is the load-bearing half (§4.3).
 - Live-provider structured output is coerced with a regex fallback. In the monorepo

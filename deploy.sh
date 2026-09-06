@@ -37,6 +37,7 @@ put icons/favicon-32.png ${REMOTE}/icons/favicon-32.png
 put icons/apple-touch-icon.png ${REMOTE}/icons/apple-touch-icon.png
 put icons/icon-192.png ${REMOTE}/icons/icon-192.png
 put icons/icon-512.png ${REMOTE}/icons/icon-512.png
+put privacy.html ${REMOTE}/privacy.html
 EOF
 
 echo "→ verifying it is actually being served"

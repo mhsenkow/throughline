@@ -103,6 +103,22 @@ If cell output is freeform prose, chaining is a coin flip and the product feels
 broken the third time someone uses it. Text is *one* type among several. Chaining
 happens by explicit variable reference, never implicitly by "the previous cell."
 
+> **Amendment — the modalities landed, and the contract held.** `vision` in
+> `requires` and `image` in `render` were written into this table before either
+> existed. Both now ship, along with `scene` (3D geometry), `diagram` and
+> `chart`, and adding them changed nothing about the run model, the variable bag
+> or staleness — they are values with renderers. The claim above is what made
+> that cheap, and it is worth stating in its strongest form: a 3D result is
+> **geometry, not a picture of geometry**, which is why `.obj` and `.stl` are a
+> formatting step rather than a second feature, and why a text cell downstream
+> can read a room layout as a parts list. The same argument as tables-not-prose,
+> one dimension further out.
+>
+> One thing the table did not anticipate: modality is not a *tier*. A provider
+> can be excellent at reasoning and unable to see a picture, so `requires` now
+> carries `vision` and `image` alongside `fast` and `reasoning` — same field,
+> same auto-resolution rule (§5.4), no second mechanism.
+
 ### 5.2 Variables and state
 
 Runtime state is a flat, inspectable variable bag scoped to the session. The user

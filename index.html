@@ -1475,6 +1475,42 @@ table.out-table{min-inline-size:32rem}
 .img-alt{font-size:var(--p-size-2); color:var(--ink-secondary); line-height:1.5}
 .img-foot{display:flex; align-items:center; gap:var(--p-space-3); flex-wrap:wrap}
 
+/* Chains */
+.chain-note{
+  display:flex; align-items:baseline; flex-wrap:wrap; gap:var(--p-space-2);
+  margin:var(--p-space-3) 0 0; font-size:var(--p-size-2); color:var(--ink-secondary);
+}
+.chain-arrow{color:var(--accent-base)}
+.chain-note code{font-family:var(--font-mono); font-size:var(--p-size-1); color:var(--ink-primary)}
+.send{display:flex; flex-direction:column; gap:var(--p-space-5)}
+.send-vars{display:flex; flex-direction:column; gap:var(--p-space-2); margin-block-start:var(--p-space-3)}
+.send-var{
+  display:grid; grid-template-columns:minmax(6rem,auto) 5.5rem 1fr; gap:var(--p-space-3);
+  align-items:baseline; text-align:start; padding:var(--p-space-3);
+  border:1px solid var(--border-subtle); border-radius:var(--radius-md);
+  background:var(--surface-sunken); transition:border-color var(--motion-fast), background var(--motion-fast);
+}
+.send-var:hover{border-color:var(--border-strong)}
+.send-var.sel{border-color:var(--accent-base); background:var(--accent-wash)}
+.send-var .k{font-family:var(--font-mono); font-size:var(--p-size-2); color:var(--ink-primary)}
+.send-var .t{font-family:var(--font-mono); font-size:var(--p-size-1); color:var(--ink-muted)}
+.send-var .v{font-size:var(--p-size-2); color:var(--ink-secondary); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.send-list{
+  display:flex; flex-direction:column; gap:var(--p-space-1);
+  max-block-size:22rem; overflow-y:auto; margin-block-start:var(--p-space-3);
+}
+.send-row{
+  display:flex; align-items:center; gap:var(--p-space-3); text-align:start;
+  padding:var(--p-space-3); border-radius:var(--radius-md); border:1px solid transparent;
+}
+.send-row:hover{border-color:var(--border-subtle); background:var(--surface-sunken)}
+.send-row .grow{flex:1}
+.send-row strong{display:block; font-size:var(--p-size-3)}
+.send-row .sub{display:block; font-size:var(--p-size-1); color:var(--ink-muted)}
+@media (max-width:640px){
+  .send-var{grid-template-columns:1fr; gap:var(--p-space-1)}
+}
+
 .attach{display:flex; flex-direction:column; gap:var(--p-space-2); margin-block-end:var(--p-space-3)}
 .dropzone{
   display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -2023,11 +2059,31 @@ const tauriCore = () => window.__TAURI__?.core ?? null;
 
 async function desktopCaps(){
   const core = tauriCore();
-  if (!core) return isDesktopShell()
-    ? { shell:'desktop', cors:true, disk:true, keychain:true, version:'?' }
-    : null;
+  const fallback = {
+    shell:'desktop', cors:true, disk:true, keychain:true,
+    sandboxed:false, libraryHint:'~/Documents/Throughline', version:'?'
+  };
+  if (!core) return isDesktopShell() ? fallback : null;
   try { return await core.invoke('desktop_caps'); }
-  catch { return { shell:'desktop', cors:true, disk:true, keychain:true, version:'?' }; }
+  catch { return fallback; }
+}
+
+/** Optional: pick a custom library folder (App Sandbox user-selected entitlement). */
+async function desktopPickLibraryFolder(){
+  const core = tauriCore();
+  if (!core) return null;
+  const dialog = window.__TAURI__?.dialog;
+  if (!dialog?.open) return null;
+  const selected = await dialog.open({
+    directory: true,
+    multiple: false,
+    title: 'Choose Throughline library folder'
+  });
+  if (!selected || typeof selected !== 'string') return null;
+  const root = await core.invoke('set_library_dir', { path: selected });
+  S.storage = DiskAdapter(root);
+  if (S.desktop) S.desktop.libraryHint = root;
+  return root;
 }
 
 /** Native fetch that bypasses CORS — Response with a live body stream. */
@@ -2315,14 +2371,20 @@ const PROVIDERS = {
     plain:'Paid.', note:'' },
 
   pollinations: {
-    label:'Pollinations', vendor:'Open image generation', tier:'free', group:'nosetup',
-    key:'none', reach:'unverified', classes:['image'],
+    label:'Pollinations', vendor:'Open image generation', tier:'free', group:'free',
+    key:'free', reach:'unverified', classes:['image'],
     model:'flux', models:['flux','turbo'],
     imageModel:'flux', imageModels:['flux','turbo'],
     base:'https://image.pollinations.ai',
-    plain:'Makes pictures with no account and no key at all. The only keyless way to run the image notebooks for real.',
-    signup:'https://pollinations.ai',
-    note:'Free and anonymous, which also means rate-limited and occasionally slow. The picture is fetched as bytes and kept in the page, so nothing renders from someone else\u2019s server.' },
+    plain:'Free image generation from open models. It used to need no account at all; it now wants a token.',
+    signup:'https://auth.pollinations.ai',
+    /* Tested from this build on 2026-09-05: an anonymous request is refused
+       with 403 {"error":"Missing Turnstile token"} — a bot check, not a rate
+       limit. So this is no longer a keyless provider, and the app must not
+       advertise it as one. The token path is written to their documented
+       Bearer scheme and is NOT verified here, because verifying it would mean
+       creating an account. */
+    note:'Anonymous requests are now refused by a bot check, so this needs a free token from their auth page. That token path is unverified here — press Check it works and it will tell you exactly what came back.' },
 
   gateway: {
     label:'Work account', vendor:'OpenAI-compatible gateway',
@@ -2799,7 +2861,7 @@ const SHAPE = {
   choice:'Respond with JSON of the form {"options":[{"id":"...","label":"...","cost":"...","note":"..."}],"selected":null} and nothing else. Offer 2–4 real options with honest costs. Leave selected null.',
   scene:'Respond with JSON of the form {"units":"m","objects":[{"shape":"box"|"sphere"|"cylinder"|"cone"|"plane","label":"...","at":[x,y,z],"size":[w,h,d],"color":"#rrggbb"}],"notes":"..."} and nothing else. Y is up and y=0 is the floor, so `at` is the CENTRE of the object and a 2 m tall thing standing on the floor has y=1. Use real measurements in the stated units. Twenty objects at most.',
   diagram:'Respond with JSON of the form {"nodes":[{"id":"...","label":"...","kind":"start"|"step"|"decision"|"end","note":"..."}],"edges":[{"from":"...","to":"...","label":"..."}]} and nothing else. ids are short slugs; every edge must join two ids that exist. Fourteen nodes at most.',
-  chart:'Respond with JSON of the form {"kind":"bar"|"line","unit":"...","labels":["..."],"series":[{"name":"...","values":[number]}],"note":"..."} and nothing else. Every series must have exactly one value per label. Numbers only — no units inside the numbers.',
+  chart:'Respond with JSON of the form {"kind":"bar"|"line","unit":"...","labels":["..."],"series":[{"name":"...","values":[number]}],"note":"..."} and nothing else. Every series must have exactly one value per label. Numbers only — no units inside the numbers. All series share ONE vertical scale: never multiply or divide a series to make it fit alongside another. If two measures have different magnitudes, either return only the one that answers the question, or index every series to a common base (first period = 100) and say so in "unit". Five series at most.',
   image:'Describe the picture to be drawn in one dense paragraph: subject, composition, medium, palette, lighting. No preamble.'
 };
 
@@ -3135,14 +3197,43 @@ const ASPECTS = {
 };
 const aspectOf = cell => ASPECTS[cell?.image?.aspect] ?? ASPECTS.square;
 
-async function imageBlob(res, label){
-  if (!res.ok) await fail(res, label);
-  const blob = await res.blob();
-  if (!blob.type.startsWith('image/')){
-    const text = await blob.text().catch(()=> '');
-    throw new Error(`${label} replied with ${blob.type || 'no content type'} instead of a picture. ${text.slice(0,160)}`);
+/* Some image endpoints answer with raw bytes rather than JSON. Those cannot go
+   through netFetch(): the desktop bridge decodes the stream as text, which is
+   right for SSE and would quietly destroy a PNG. So binary has its own path on
+   both surfaces — plain fetch in the browser, the bridge's binary mode on
+   desktop — and both hand back a data URL, which is the only shape the rest of
+   the app accepts. */
+async function netBytes(url, init, label){
+  const core = tauriCore();
+  if (!isDesktopShell() || !core?.invoke || !core.Channel){
+    const res = await fetch(url, init);
+    if (!res.ok) await fail(res, label);
+    const blob = await res.blob();
+    if (!blob.type.startsWith('image/')){
+      const text = await blob.text().catch(()=> '');
+      throw new Error(`${label} replied with ${blob.type || 'no content type'} instead of a picture. ${text.slice(0,160)}`);
+    }
+    return blobToDataURL(blob);
   }
-  return blobToDataURL(blob);
+  const headers = {};
+  if (init?.headers) new Headers(init.headers).forEach((v, k) => { headers[k] = v; });
+  return new Promise((resolve, reject) => {
+    const onChunk = new core.Channel();
+    onChunk.onmessage = (msg) => {
+      if (msg.kind === 'error')
+        reject(new Error(`${label} returned ${msg.status ?? ''}. ${String(msg.text ?? msg.error ?? '').slice(0, 200)}`));
+      else if (msg.kind === 'done'){
+        const src = String(msg.text ?? '');
+        if (/^data:image\//.test(src)) resolve(src);
+        else reject(new Error(`${label} answered without a picture.`));
+      }
+    };
+    core.invoke('native_fetch', {
+      req: { url, method: init?.method || 'GET', headers,
+             body: init?.body == null ? null : String(init.body), binary: true },
+      onChunk
+    }).catch(reject);
+  });
 }
 
 const IMAGE_ADAPTERS = {
@@ -3187,21 +3278,21 @@ const IMAGE_ADAPTERS = {
   },
 
   async hfImage({prompt, signal, cfg, key, aspect}){
-    const res = await netFetch(`https://router.huggingface.co/hf-inference/models/${cfg._imageModel}`,
+    return netBytes(`https://router.huggingface.co/hf-inference/models/${cfg._imageModel}`,
       { method:'POST', signal,
         headers:{ 'content-type':'application/json', 'authorization':`Bearer ${key}` },
         body: JSON.stringify({ inputs: prompt,
-          parameters:{ width:aspect.w, height:aspect.h } }) });
-    return imageBlob(res, 'Hugging Face');
+          parameters:{ width:aspect.w, height:aspect.h } }) },
+      'Hugging Face');
   },
 
   /* No key, no account, no request body — the whole prompt is the path. */
-  async pollinations({prompt, signal, cfg, aspect}){
+  async pollinations({prompt, signal, cfg, aspect, key}){
     const q = new URLSearchParams({ width:String(aspect.w), height:String(aspect.h),
       model: cfg._imageModel || 'flux', nologo:'true', referrer:'throughline' });
-    const res = await netFetch(`${cfg.base}/prompt/${encodeURIComponent(prompt)}?${q}`,
-      { method:'GET', signal });
-    return imageBlob(res, 'Pollinations');
+    return netBytes(`${cfg.base}/prompt/${encodeURIComponent(prompt)}?${q}`,
+      { method:'GET', signal,
+        headers: key ? { authorization:`Bearer ${key}` } : {} }, 'Pollinations');
   }
 };
 
@@ -3230,8 +3321,15 @@ async function runImage(providerId, prompt, cell, onNote, signal){
    actually happen, said the way a person would say them. */
 function humanError(msg, id){
   const m = String(msg);
+  /* A bot check is not a credential problem and there is nothing the user can
+     paste to fix it. Saying "that key was not accepted" here sent one real
+     test down completely the wrong path. */
+  if (/turnstile|captcha|challenge|cf-chl|are you human/i.test(m))
+    return `${PROVIDERS[id]?.label ?? 'That service'} answered with a bot check rather than a result. That is not something a key or a retry fixes from a web page — use a provider that offers a plain API token.`;
   if (/401|403|invalid.*key|unauthor/i.test(m))
-    return 'That key was not accepted. Check you copied all of it, with no spaces.';
+    return PROVIDERS[id]?.key === 'none'
+      ? `${PROVIDERS[id]?.label ?? 'That service'} refused the request. It takes no key here, so this is the service declining anonymous traffic rather than anything you can paste.`
+      : 'That key was not accepted. Check you copied all of it, with no spaces.';
   if (/429|rate.?limit|quota/i.test(m))
     return 'The key works, but you have hit the free limit for now. Try again shortly.';
   if (/404|model|not found/i.test(m))
@@ -3589,7 +3687,12 @@ const S = {
   sheet:null, runs:{}, storage:null, marks:{}, libShown: 30,
   /* Camera per scene cell. Kept out of the run so orbiting a model is not a
      change to the run's result — it is how you are looking at it. */
-  scenes:{}
+  scenes:{},
+  /* One hop of provenance: which notebook this run was continued from, and
+     which of its variables came across. Deliberately one hop and not a graph
+     — P1 says the unit is a linear notebook, and a chain of notebooks that
+     drew itself as a canvas would be the same mistake one level up. */
+  chain:null, sendVar:null, sendQ:''
 };
 
 /* Keys live here and nowhere else — never written to storage, never sent to
@@ -3850,7 +3953,7 @@ function renderLibrary(){
         <h2>${mobile ? 'Phone-friendly picks' : 'Curated shelf'}</h2>
         <p>${mobile
           ? 'Short notebooks that explore cleanly on Android and iPhone — including with a downloaded model.'
-          : 'Hand-picked for distinct capabilities — critique, choice, ask, map, money, teaching, and authorship.'}</p>
+          : 'Hand-picked for distinct capabilities — critique, choice, ask, map, pictures in, pictures out, geometry, diagrams, and authorship.'}</p>
       </div>
       <div class="shelf">${rest.map((n,i) => cardHTML(n, i)).join('')}</div>
     </section>` : ''}`;
@@ -4010,6 +4113,7 @@ function renderNotebook(){
     <div class="doc-rail" aria-hidden="false">
       <div class="doc-tools" role="group" aria-label="Notebook actions">
         <button class="tool" id="share"><span class="lbl">Share</span>${ICONS.share}</button>
+        <button class="tool" id="send"><span class="lbl">Send on</span>${ICONS.send}</button>
         <button class="tool" id="export"><span class="lbl">${esc(t('exportNb'))}</span>${ICONS.save}</button>
         <button class="tool" id="clear"><span class="lbl">${esc(t('clearRun'))}</span>${ICONS.clear}</button>
         <button class="tool ${S.editing?'on':''}" id="edit" aria-pressed="${!!S.editing}">
@@ -4022,6 +4126,11 @@ function renderNotebook(){
         <p class="eyebrow">${esc(nb.teaches)}</p>
         <h1 style="margin-block-start:var(--p-space-2)">${esc(nb.title)}</h1>
         <p class="lede">${esc(nb.blurb)}</p>
+        ${S.chain?.toId === nb.id ? `<p class="chain-note">
+          <span class="chain-arrow">↳</span> Continued from
+          <button class="linkbtn" id="chain-back">${esc(S.chain.fromTitle)}</button> —
+          its <code>${esc(S.chain.varName)}</code> is the input below.
+        </p>` : ''}
         ${isEdited(nb.id) ? `<p class="forked">
           <span class="verdict v-mixed"></span>Your copy — ${
             Object.keys(editsFor(nb.id)).length} cell${Object.keys(editsFor(nb.id)).length===1?'':'s'} changed.
@@ -4152,11 +4261,14 @@ function renderNotebook(){
     const m = markOf(nb.id); if (m && m.note !== note.value) saveMark(nb, m.verdict, note.value);
   };
   $('#share').onclick = e => copyShare(nb, e.currentTarget);
+  $('#send').onclick = () => { S.sheet = 'send'; renderSheet(); };
   $('#export').onclick = () => exportNotebook(nb, run);
   $('#clear').onclick = () => { delete S.runs[nb.id]; render(); };
   $('#edit').onclick = () => { S.editing = !S.editing; render(); };
   const rst = $('#reset-edits');
   if (rst) rst.onclick = () => resetEdits(nb.id);
+  const cb = $('#chain-back');
+  if (cb) cb.onclick = () => { S.nbId = S.chain.fromId; render(); scrollTop(); };
   view.querySelectorAll('[data-toggle]').forEach(b => b.onclick = () => {
     const id = b.dataset.toggle;
     const turningOff = !isOff(nb.id, {id});
@@ -4496,61 +4608,100 @@ function diagramSVG(d){
 }
 
 /* ── Chart ───────────────────────────────────────────────────────────── */
+const NICE = [1, 1.25, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
 function niceCeil(x){
   if (!(x > 0)) return 1;
   const e = Math.pow(10, Math.floor(Math.log10(x)));
-  const f = x / e;
-  return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * e;
+  return (NICE.find(f => x / e <= f) ?? 10) * e;
 }
 function chartSVG(c){
   if (!c.labels.length || !c.series.length) return `<p class="meta">${esc(c.note || 'No data came back.')}</p>`;
-  const W = 720, H = 300, L = 52, R = 14, T = 16, B = 46;
+  const bars = c.kind === 'bar';
+  const many = c.series.length > 1;
+  /* Room on the right for direct labels — identity should not depend on
+     matching a colour to a legend, and the legend stays as well. */
+  const W = 720, H = 300, L = 52, T = 16, B = 46;
+  const R = (!bars && many) ? 124 : 16;
   const all = c.series.flatMap(se => se.values).filter(v => v != null);
-  const lo = Math.min(0, ...all), hiRaw = Math.max(0, ...all);
-  const hi = niceCeil(hiRaw) || 1;
+  const dLo = Math.min(...all), dHi = Math.max(...all);
+  /* A bar's length IS its value, so a bar axis always contains zero. A line
+     encodes position, so it may start where the data does — and says so under
+     the chart, rather than letting a cropped axis flatter a small change. */
+  let lo, hi, step;
+  if (bars){
+    lo = Math.min(0, dLo); hi = niceCeil(Math.max(0, dHi)) || 1;
+    step = (hi - lo) / 4;
+  } else {
+    step = niceCeil((dHi - dLo || Math.abs(dHi) || 1) / 4);
+    lo = Math.floor((dLo - step * 0.3) / step) * step;
+    hi = Math.ceil((dHi + step * 0.3) / step) * step;
+  }
   const span = (hi - lo) || 1;
   const px = i => L + (c.labels.length === 1 ? (W - L - R)/2
-    : (i * (W - L - R)) / (c.labels.length - (c.kind === 'bar' ? 0 : 1)) + (c.kind === 'bar' ? 0 : 0));
+    : (i * (W - L - R)) / (c.labels.length - (bars ? 0 : 1)));
   const py = v => T + (H - T - B) * (1 - ((v - lo) / span));
-  const ticks = [0, 0.25, 0.5, 0.75, 1].map(f => lo + f * span);
+  const ticks = [];
+  for (let v = lo; v <= hi + 1e-9 && ticks.length < 9; v += step) ticks.push(Math.round(v * 1e6) / 1e6);
   const grid = ticks.map(v => `<g><line class="ch-grid" x1="${L}" y1="${py(v)}" x2="${W - R}" y2="${py(v)}"/>
     <text class="ch-tick" x="${L - 8}" y="${py(v) + 4}" text-anchor="end">${esc(String(Math.round(v * 100) / 100))}</text></g>`).join('');
   const band = (W - L - R) / c.labels.length;
   const xLabels = c.labels.map((l, i) => {
-    const x = c.kind === 'bar' ? L + band * (i + 0.5) : px(i);
+    const x = bars ? L + band * (i + 0.5) : px(i);
     return `<text class="ch-xlabel" x="${x}" y="${H - B + 18}" text-anchor="middle">${esc(wrapLabel(l, 12, 1)[0])}</text>`;
   }).join('');
-  let marks = '';
-  if (c.kind === 'bar'){
+  const tip = (se, i, v) => esc(`${se.name} · ${c.labels[i]}: ${v}${c.unit ? ' ' + c.unit : ''}`);
+  let marks = '', tags = '';
+  if (bars){
     const n = c.series.length;
-    const bw = Math.max(3, (band * 0.72) / n);
+    /* A 2px surface gap between neighbouring bars — touching fills read as
+       one wide bar of a colour that is not in the data. */
+    const bw = Math.max(3, (band * 0.72) / n - (n > 1 ? 2 : 0));
+    const pitch = bw + (n > 1 ? 2 : 0);
     marks = c.series.map((se, si) => se.values.map((v, i) => {
       if (v == null) return '';
-      const x = L + band * (i + 0.5) - (bw * n)/2 + bw * si;
+      const x = L + band * (i + 0.5) - (pitch * n)/2 + pitch * si;
       const y0 = py(0), y1 = py(v);
-      return `<rect class="ch-bar s${si % 5}" x="${x}" y="${Math.min(y0, y1)}" width="${bw}"
-        height="${Math.max(1, Math.abs(y1 - y0))}"><title>${esc(`${se.name} · ${c.labels[i]}: ${v}${c.unit ? ' ' + c.unit : ''}`)}</title></rect>`;
+      return `<rect class="ch-bar s${si % 5}" rx="3" x="${x}" y="${Math.min(y0, y1)}" width="${bw}"
+        height="${Math.max(1, Math.abs(y1 - y0))}"><title>${tip(se, i, v)}</title></rect>`;
     }).join('')).join('');
   } else {
     marks = c.series.map((se, si) => {
       const pts = se.values.map((v, i) => v == null ? null : `${px(i)},${py(v)}`).filter(Boolean).join(' ');
       const dots = se.values.map((v, i) => v == null ? '' :
-        `<circle class="ch-dot s${si % 5}" cx="${px(i)}" cy="${py(v)}" r="3.2"><title>${esc(`${se.name} · ${c.labels[i]}: ${v}${c.unit ? ' ' + c.unit : ''}`)}</title></circle>`).join('');
+        `<circle class="ch-dot s${si % 5}" cx="${px(i)}" cy="${py(v)}" r="4"><title>${tip(se, i, v)}</title></circle>`).join('');
       return `<polyline class="ch-line s${si % 5}" points="${pts}"/>${dots}`;
     }).join('');
+    if (many){
+      /* Direct labels, in text ink beside the coloured mark that already
+         carries identity. Four or fewer, or the right margin becomes a second
+         legend that overlaps itself. */
+      const placed = [];
+      tags = c.series.slice(0, 4).map(se => {
+        const i = se.values.map((v, k) => v == null ? -1 : k).filter(k => k >= 0).pop();
+        if (i == null || i < 0) return '';
+        let y = py(se.values[i]) + 4;
+        while (placed.some(q => Math.abs(q - y) < 13)) y += 13;
+        placed.push(y);
+        return `<text class="ch-tag" x="${px(i) + 9}" y="${y}">${esc(wrapLabel(se.name, 18, 1)[0])}</text>`;
+      }).join('');
+    }
   }
-  const legend = c.series.length > 1
+  const legend = many
     ? `<div class="ch-legend">${c.series.map((se, i) =>
         `<span class="ch-key"><i class="s${i % 5}"></i>${esc(se.name)}</span>`).join('')}</div>` : '';
+  const zeroed = bars || lo === 0;
+  const foot = [c.unit && `Measured in ${c.unit}.`, c.note,
+    zeroed ? '' : `The vertical axis starts at ${Math.round(lo * 100) / 100}, not zero.`]
+    .filter(Boolean).join(' ');
   return `<div class="chart-wrap">
     <svg class="chart" viewBox="0 0 ${W} ${H}" role="img"
       aria-label="${esc(`${c.kind} chart of ${c.series.map(se=>se.name).join(', ')}`)}">
       ${grid}
-      <line class="ch-axis" x1="${L}" y1="${py(Math.max(lo, 0))}" x2="${W - R}" y2="${py(Math.max(lo, 0))}"/>
-      ${marks}${xLabels}
+      <line class="ch-axis" x1="${L}" y1="${py(Math.min(Math.max(lo, 0), hi))}" x2="${W - R}" y2="${py(Math.min(Math.max(lo, 0), hi))}"/>
+      ${marks}${tags}${xLabels}
     </svg>
     ${legend}
-    ${c.unit || c.note ? `<p class="ch-note">${esc([c.unit && `Measured in ${c.unit}.`, c.note].filter(Boolean).join(' '))}</p>` : ''}
+    ${foot ? `<p class="ch-note">${esc(foot)}</p>` : ''}
   </div>`;
 }
 
@@ -4628,7 +4779,9 @@ const defaultView = () => ({yaw: -0.62, pitch: 0.42, zoom: 1, solid: true});
 function drawScene(canvas, scene, view){
   const dpr = Math.min(2, window.devicePixelRatio || 1);
   const w = Math.max(240, canvas.clientWidth || 480);
-  const h = Math.max(200, Math.round(w * 0.58));
+  /* Taller on a phone. A 16:9 slot 300px wide leaves a model the size of a
+     postage stamp once the labels are on it. */
+  const h = Math.max(200, Math.round(w * (w < 520 ? 0.8 : 0.58)));
   canvas.width = w * dpr; canvas.height = h * dpr;
   canvas.style.height = h + 'px';
   const g = canvas.getContext('2d');
@@ -5018,14 +5171,17 @@ function exportFailed(msg){
 /* ── Desktop upsell — honest about what a browser cannot fix ─────────── */
 function desktopStrip(){
   if (isDesktopShell()){
-    const root = S.storage?.rootPath || 'Documents/Throughline';
+    const root = S.storage?.rootPath || S.desktop?.libraryHint || 'Documents/Throughline';
+    const sandboxed = !!S.desktop?.sandboxed;
     return `
     <div class="desktop-strip on">
       <div class="grow">
         <h3>You are on Throughline Desktop — free forever</h3>
         <p>This build lifts the three ceilings the website cannot: every provider
         (no CORS), notebooks as real files, keys in the macOS keychain. Nothing
-        we host ever sees your prompts or credentials.</p>
+        we host ever sees your prompts or credentials.${sandboxed
+          ? ' This Mac App Store build runs in the App Sandbox — your library lives in the app container unless you choose another folder.'
+          : ''}</p>
         <div class="cap-list">
           <div><span class="y">●</span><span>Native HTTP — company gateways and every API work</span></div>
           <div><span class="y">●</span><span>Library folder · ${esc(root)}</span></div>
@@ -5033,7 +5189,10 @@ function desktopStrip(){
           <div><span class="y">●</span><span>Same notebooks as the web — bring your own model</span></div>
         </div>
       </div>
-      <button class="btn" id="open-library-folder" type="button">Reveal library folder</button>
+      <div style="display:flex;flex-direction:column;gap:0.5rem">
+        <button class="btn" id="open-library-folder" type="button">Reveal library folder</button>
+        <button class="btn" id="pick-library-folder" type="button">Choose library folder…</button>
+      </div>
     </div>`;
   }
   return `
@@ -5159,8 +5318,8 @@ function spy(nb){
 function renderSheet(){
   const old = $('.sheet-backdrop'); if (old) old.remove();
   if (!S.sheet) return;
-  const body = { look:brandSheet, settings:settingsSheet }[S.sheet]();
-  const title = { look:'Appearance', settings:t('connect') }[S.sheet];
+  const body = { look:brandSheet, settings:settingsSheet, send:sendSheet }[S.sheet]();
+  const title = { look:'Appearance', settings:t('connect'), send:'Send a result onward' }[S.sheet];
   const el = document.createElement('div');
   el.className='sheet-backdrop';
   el.innerHTML = `<div class="sheet ${S.sheet==='settings'?'wide':''}" role="dialog" aria-modal="true">
@@ -5171,6 +5330,83 @@ function renderSheet(){
   el.onclick = e => { if (e.target===el) { S.sheet=null; renderSheet(); } };
   el.querySelector('#sheet-x').onclick = () => { S.sheet=null; renderSheet(); };
   wireSheet(el);
+}
+
+/* ── Chains ──────────────────────────────────────────────────────────────
+   The smallest honest version of a workflow: one finished value becomes the
+   next notebook's input, and the next notebook says where it came from. No
+   scheduler, no graph, no saved pipeline — those would need a server to be
+   worth anything (P3), and the thing people actually want after a good run
+   is to keep going. */
+function sendSheet(){
+  const nb = NOTEBOOKS.find(n => n.id === S.nbId);
+  if (!nb) return '<p class="meta">Open a notebook first.</p>';
+  const run = getRun(nb);
+  const vars = Object.entries(run.bag).filter(([, v]) => bagPresent(v));
+  if (!vars.length)
+    return `<p class="meta">Nothing has been produced in this run yet. Run a cell, then send its result on.</p>`;
+  const pick = S.sendVar && run.bag[S.sendVar] != null ? S.sendVar : vars[vars.length - 1][0];
+  const value = run.bag[pick];
+  const q = S.sendQ.trim().toLowerCase();
+  const scored = NOTEBOOKS.filter(n => n.id !== nb.id)
+    .filter(n => !q || (n.title + ' ' + n.blurb + ' ' + n.teaches).toLowerCase().includes(q))
+    .map(n => ({n, near: (n.realm === nb.realm ? 2 : 0) + (n.concept === nb.concept ? 1 : 0)}))
+    .sort((a, b) => b.near - a.near || a.n.title.localeCompare(b.n.title))
+    .slice(0, 40);
+  return `
+  <div class="send">
+    <div class="sheet-sec">
+      <h3>What to send</h3>
+      <p class="hint">Every value this run has produced. A picture goes across as a picture if the
+        next notebook takes one; otherwise the notebook receives its description.</p>
+      <div class="send-vars">
+        ${vars.map(([k, v]) => `
+          <button class="send-var ${k === pick ? 'sel' : ''}" data-sendvar="${esc(k)}">
+            <span class="k">${esc(k)}</span>
+            <span class="t">${esc(varTypeLabel(v))}</span>
+            <span class="v">${esc(varPreview(v).slice(0, 90))}</span>
+          </button>`).join('')}
+      </div>
+    </div>
+    <div class="sheet-sec">
+      <h3>Where to send it</h3>
+      <input type="search" id="send-q" placeholder="Search the library" value="${esc(S.sendQ)}"
+        autocomplete="off" aria-label="Search notebooks">
+      <div class="send-list">
+        ${scored.map(({n, near}) => `
+          <button class="send-row" data-sendto="${esc(n.id)}">
+            <span class="grow"><strong>${esc(n.title)}</strong>
+              <span class="sub">${esc(n.input.label)}</span></span>
+            ${n.input.accepts === 'image' && isImageVal(value) ? '<span class="rec">Takes the picture</span>'
+              : near ? '<span class="rec" style="opacity:.7">Related</span>' : ''}
+          </button>`).join('')}
+        ${scored.length ? '' : '<p class="meta">Nothing matches that.</p>'}
+      </div>
+    </div>
+  </div>`;
+}
+
+function sendTo(fromNb, varName, targetId){
+  const target = NOTEBOOKS.find(n => n.id === targetId);
+  if (!target) return;
+  const value = getRun(fromNb).bag[varName];
+  const trun = getRun(target);
+  const key = 'input.' + target.input.id;
+  trun.bag[key] = target.input.accepts === 'image'
+    ? (isImageVal(value)
+        ? {...value, note: target.input.seed ?? ''}
+        : {...seedValue(target), note: bagText(value)})
+    : bagText(value);
+  /* Anything the target had already produced is now answering an older
+     question — stale, in the exact sense the engine already means. */
+  for (const c of target.cells){
+    const st = trun.cells[c.id];
+    if (st && (st.state === 'done' || st.state === 'streaming')) st.state = 'stale';
+  }
+  S.chain = {fromId: fromNb.id, fromTitle: fromNb.title, varName, toId: target.id};
+  S.sheet = null; S.sendVar = null; S.sendQ = '';
+  S.view = 'notebook'; S.nbId = target.id;
+  renderSheet(); render(); scrollTop();
 }
 
 const brandGroup = (g) => Object.entries(BRANDS).filter(([,b])=>b.group===g).map(([k,b])=>`
@@ -5421,20 +5657,6 @@ function connectDetail(id){
           </div>`
     ) : ''}
 
-    ${!needsKey && !built && id!=='localdl' && id!=='ollama' && id!=='lmstudio' && id!=='demo' ? `
-      <div class="step ${on?'done':''}">
-        <span class="step-n">1</span>
-        <div class="step-body">
-          <p><b>Nothing to set up.</b> No account, no key, no card. Check it works and it is ready for
-            every drawing cell in the library.</p>
-          <div class="row">
-            ${servesImage(id) ? imageModelPicker(id) : modelPicker(id)}
-            <button class="btn" data-test="${id}">Check it works</button>
-          </div>
-          <p class="fine">${esc(p.note)}</p>
-        </div>
-      </div>` : ''}
-
     ${needsKey && p.reach !== 'blocked' ? `
       <div class="step ${step>1?'done':''}">
         <span class="step-n">1</span>
@@ -5466,11 +5688,15 @@ function connectDetail(id){
         <div class="step-body">
           <p>Pick a model. The first one is a good default.</p>
           ${modelPicker(id)}
-          ${servesImage(id) ? `
-            <p style="margin-block-start:var(--p-space-3)">And one for the drawing cells — a
-              different catalogue at the same key, so picking a drawing model does not change
-              which model writes your prose.</p>
-            ${imageModelPicker(id)}` : ''}
+          ${servesImage(id) ? (p.classes.length === 1
+            ? `${imageModelPicker(id)}
+               <div class="row" style="margin-block-start:var(--p-space-3)">
+                 <button class="btn secondary" data-test="${id}">Check it works</button>
+               </div>`
+            : `<p style="margin-block-start:var(--p-space-3)">And one for the drawing cells — a
+                 different catalogue at the same key, so picking a drawing model does not change
+                 which model writes your prose.</p>
+               ${imageModelPicker(id)}`) : ''}
           ${p.classes.includes('vision') ? `<p class="fine">This one can also read pictures you attach.</p>` : ''}
         </div>
       </div>` : ''}
@@ -5570,6 +5796,24 @@ function wireSheet(el){
     S.lookTab = Number(b.dataset.tab); renderSheet(); });
   const pick = (attr, apply) => el.querySelectorAll(`[data-${attr}]`).forEach(b =>
     b.onclick = () => { apply(b.dataset[attr]); applyTheme(); renderSheet(); render(); });
+  el.querySelectorAll('[data-sendvar]').forEach(b => b.onclick = () => {
+    S.sendVar = b.dataset.sendvar; renderSheet();
+  });
+  el.querySelectorAll('[data-sendto]').forEach(b => b.onclick = () => {
+    const nb = NOTEBOOKS.find(n => n.id === S.nbId);
+    const run = nb && getRun(nb);
+    const pick = S.sendVar && run.bag[S.sendVar] != null
+      ? S.sendVar
+      : Object.keys(run.bag).filter(k => bagPresent(run.bag[k])).pop();
+    if (nb && pick) sendTo(nb, pick, b.dataset.sendto);
+  });
+  const sq = el.querySelector('#send-q');
+  if (sq) sq.oninput = () => {
+    S.sendQ = sq.value;
+    renderSheet();
+    const again = $('#send-q');
+    if (again){ again.focus(); again.setSelectionRange(again.value.length, again.value.length); }
+  };
   pick('brand',   v => S.brand = v);
   pick('typeset', v => S.typeset = v);
   pick('density', v => S.density = v);
@@ -5700,7 +5944,8 @@ const ICONS = {
   clear:  I('<path d="M13 8a5 5 0 1 1-1.6-3.7"/><path d="M13.2 2.6v3h-3"/>'),
   look:   I('<circle cx="8" cy="8" r="5.4"/><path d="M8 2.6a5.4 5.4 0 0 1 0 10.8Z" fill="currentColor" stroke="none"/>'),
   plug:   I('<path d="M6 2.4v3.2M10 2.4v3.2"/><path d="M4.4 5.6h7.2v2.2a3.6 3.6 0 0 1-7.2 0Z"/><path d="M8 11.4v2.2"/>'),
-  back:   I('<path d="M9.6 3.6 5.2 8l4.4 4.4"/>')
+  back:   I('<path d="M9.6 3.6 5.2 8l4.4 4.4"/>'),
+  send:   I('<path d="M2.6 8h9.4"/><path d="M8.8 4.8 12 8l-3.2 3.2"/><path d="M13.4 3.2v9.6"/>')
 };
 
 /* ── Universal model switcher ───────────────────────────────────────────
@@ -5899,8 +6144,15 @@ async function saveMark(nb, verdict, note){
   if (verdict === null) delete S.marks[nb.id];
   else S.marks[nb.id] = {
     verdict, note: note ?? '', at: Date.now(),
-    setup: { brand:S.brand, locale:S.locale, provider:S.provider,
-             input: run.bag['input.'+nb.input.id] ?? '' }
+    /* Marks persist to IndexedDB, and the UI promises an attached picture
+       stays in the tab. So a mark stores the note and remembers that there
+       was a picture — never the bytes. */
+    setup: (() => {
+      const raw = run.bag['input.'+nb.input.id] ?? '';
+      return { brand:S.brand, locale:S.locale, provider:S.provider,
+               input: isImageVal(raw) ? (raw.note ?? '') : raw,
+               hadImage: isImageVal(raw) && raw.source === 'attached' || undefined };
+    })()
   };
   try { await S.storage?.write(MARK_DOC, {title:'Marks', items:S.marks}); }
   catch(e){ console.warn('mark not persisted', e); }
@@ -5915,7 +6167,11 @@ function restoreMark(nb){
   if (BRANDS[m.setup.brand]) S.brand = m.setup.brand;
   if (LOCALES[m.setup.locale]) S.locale = m.setup.locale;
   if (m.setup.provider === 'auto' || PROVIDERS[m.setup.provider]) S.provider = m.setup.provider;
-  if (m.setup.input) getRun(nb).bag['input.'+nb.input.id] = m.setup.input;
+  if (m.setup.input){
+    const key = 'input.' + nb.input.id;
+    getRun(nb).bag[key] = nb.input.accepts === 'image'
+      ? {...seedValue(nb), note: m.setup.input} : m.setup.input;
+  }
   applyTheme();
 }
 
@@ -5973,8 +6229,14 @@ function shareURL(nb){
   if (S.brand !== 'rams')  p.set('b', S.brand);
   if (S.locale !== 'en')   p.set('l', S.locale);
   if (S.provider !== 'auto') p.set('m', S.provider);
-  const input = run.bag['input.'+nb.input.id] ?? '';
-  const frag = (input && input !== nb.input.seed) ? `#i=${b64.enc(input)}` : '';
+  const raw = run.bag['input.'+nb.input.id] ?? '';
+  /* A picture never travels in a link. Partly because a data URL would make
+     an unusable URL, and mostly because a screenshot is the last thing that
+     should be pasted into a chat by accident — the note goes, the image does
+     not, and the popover says so. */
+  const input = isImageVal(raw) ? (raw.note ?? '') : raw;
+  const seedText = nb.input.accepts === 'image' ? (nb.input.seed ?? '') : nb.input.seed;
+  const frag = (input && input !== seedText) ? `#i=${b64.enc(input)}` : '';
   return `${location.origin}${location.pathname}?${p}${frag}`;
 }
 
@@ -5996,7 +6258,11 @@ function applyShareState(){
     const legacy = p.get('i');
     const frag = new URLSearchParams(location.hash.slice(1)).get('i');
     const text = b64.dec(frag ?? legacy ?? '');
-    if (text) getRun(nb).bag['input.'+nb.input.id] = text;
+    if (text){
+      const key = 'input.' + nb.input.id;
+      getRun(nb).bag[key] = nb.input.accepts === 'image'
+        ? {...seedValue(nb), note: text} : text;
+    }
     if (legacy){
       p.delete('i');
       history.replaceState(null, '', `${location.pathname}?${p}${text?`#i=${b64.enc(text)}`:''}`);
@@ -6010,7 +6276,7 @@ function applyShareState(){
    version injected an input into the button group, which pushed the last
    button onto a second line — feedback should never move the thing you
    just clicked. */
-function sharePopover(anchor, url, copied){
+function sharePopover(anchor, url, copied, img){
   document.querySelector('.share-pop')?.remove();
   const has = url.includes('#i=');
   const el = document.createElement('div');
@@ -6020,7 +6286,8 @@ function sharePopover(anchor, url, copied){
     <input class="share-url" readonly value="${esc(url)}">
     <p class="share-hint">${has
       ? 'Carries your input in the fragment — kept out of server logs, but anyone with the link can read it.'
-      : 'Setup only. Your input is not included.'}</p>`;
+      : 'Setup only. Your input is not included.'}${
+      img ? ' A picture you attached never travels in a link; the recipient gets the sample.' : ''}</p>`;
   anchor.closest('.doc-tools').appendChild(el);
   if (!copied) el.querySelector('.share-url').select();
   const close = e => { if (!el.contains(e.target)){ el.remove(); removeEventListener('click', close); } };
@@ -6032,7 +6299,7 @@ async function copyShare(nb, btn){
   let copied = false;
   try { await navigator.clipboard.writeText(url); copied = true; }
   catch { /* refused in plenty of contexts — show the link instead */ }
-  sharePopover(btn, url, copied);
+  sharePopover(btn, url, copied, nb.input.accepts === 'image');
 }
 
 /* ── Boot ───────────────────────────────────────────────────────────── */
@@ -6153,6 +6420,16 @@ addEventListener('keydown', e => { if (e.key==='Escape' && S.sheet){ S.sheet=nul
   loadLibrary(); /* async; re-renders when the full shelf arrives */
   /* Bind desktop-only actions that live outside the view root. */
   document.addEventListener('click', async (e) => {
+    const pick = e.target.closest?.('#pick-library-folder');
+    if (pick && tauriCore()){
+      try {
+        const root = await desktopPickLibraryFolder();
+        if (root){ render(); toast(`Library folder set to ${root}`); }
+      } catch (err) {
+        toast(err?.message || String(err));
+      }
+      return;
+    }
     const btn = e.target.closest?.('#open-library-folder');
     if (!btn || !tauriCore()) return;
     try {
@@ -6164,7 +6441,7 @@ addEventListener('keydown', e => { if (e.key==='Escape' && S.sheet){ S.sheet=nul
         else alert(`Library folder:\n${root}`);
       });
     } catch {
-      alert(`Library folder:\n${S.storage?.rootPath || '~/Documents/Throughline'}`);
+      alert(`Library folder:\n${S.storage?.rootPath || S.desktop?.libraryHint || '~/Documents/Throughline'}`);
     }
   });
 })();
