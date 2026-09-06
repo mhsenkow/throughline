@@ -376,8 +376,8 @@ for nb in lib:
 
     # A notebook that reads a picture must ship one, or its first run — the
     # one R6 cares about — cannot happen without the user finding a file.
-    if inp.get('accepts') not in (None, 'text', 'image', 'file'):
-        issues.append(f"{nb['id']}: input.accepts {inp['accepts']} is not text, image or file")
+    if inp.get('accepts') not in (None, 'text', 'image', 'file', 'audio'):
+        issues.append(f"{nb['id']}: input.accepts {inp['accepts']} is not text, image, file or audio")
     if inp.get('accepts') == 'image':
         if not str(inp.get('seedImage','')).startswith('data:image/'):
             issues.append(f"{nb['id']}: image input needs a seedImage as an embedded data: URL")

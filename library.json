@@ -6279,9 +6279,10 @@
     ],
     "input": {
       "id": "context",
-      "label": "Meeting notes and the decision you need",
+      "label": "The recording or the notes, and the decision you need",
       "placeholder": "Paste the meeting context and the yes/no decision that is stalling progress.",
-      "seed": "An AE says discovery is going well because prospects keep saying yes, but no one commits to change.\nconstraint: Be specific enough that two colleagues would disagree about the next step — that disagreement is the point of this notebook (Meeting notes and the decision you need)."
+      "seed": "An AE says discovery is going well because prospects keep saying yes, but no one commits to change.\nconstraint: Be specific enough that two colleagues would disagree about the next step — that disagreement is the point of this notebook (Meeting notes and the decision you need).",
+      "accepts": "audio"
     },
     "cells": [
       {
@@ -13714,6 +13715,121 @@
             ]
           ]
         }
+      }
+    ]
+  },
+  {
+    "id": "what-was-agreed",
+    "schemaVersion": "1.3.0",
+    "realm": "business",
+    "concept": "extract",
+    "persona": "manager",
+    "featured": true,
+    "title": "What Was Actually Agreed",
+    "blurb": "Drop the recording of the meeting. It transcribes on your own machine, then separates what was decided from what was merely said warmly.",
+    "teaches": "Speech in — a recording becomes text before anything reads it",
+    "tags": [
+      "audio",
+      "meetings"
+    ],
+    "input": {
+      "id": "meeting",
+      "label": "The recording, or paste the transcript",
+      "placeholder": "Drop the audio, or paste what was said.",
+      "accepts": "audio",
+      "seed": "ALEX: So on the pricing change — I think we're aligned that we're not doing it this quarter.\nPRIYA: I wouldn't say aligned. I'd say I haven't heard a reason to rush.\nALEX: Fine, not this quarter. Dan, can you get the modelling done before the board thing?\nDAN: I can look at it. The board pack is due the fourteenth so realistically it'd be tight.\nALEX: Let's say the fourteenth then.\nPRIYA: The other thing is the enterprise tier. We keep saying we'll define it.\nALEX: Yeah. We should really define that.\nDAN: Also the churn dashboard is still wrong, the one finance uses.\nALEX: Right. Okay, good meeting everyone."
+    },
+    "cells": [
+      {
+        "id": "said",
+        "title": "Who committed to what, in their own words",
+        "requires": "reasoning",
+        "intent": "Quote first. Paraphrase is where a hedge quietly becomes a commitment, and the difference is the entire value of reading a transcript.",
+        "inputs": [
+          "input.meeting"
+        ],
+        "output": {
+          "name": "said",
+          "type": "list"
+        },
+        "prompt": "Read this meeting transcript. List every point where a person committed to something, or appeared to, quoting their actual words. Attribute each one. Do not clean up hedges — if someone said “I can look at it”, that is what they said. Respond in {{locale.outputLanguage}}.\n\n{{input.meeting}}",
+        "demo": [
+          "ALEX: “we're not doing it this quarter” — stated as a shared position before anyone agreed to it.",
+          "PRIYA: “I wouldn't say aligned. I'd say I haven't heard a reason to rush.” — an explicit refusal of the word aligned.",
+          "DAN: “I can look at it.” — offered when asked to get modelling done. Not the same verb.",
+          "DAN: “the board pack is due the fourteenth so realistically it'd be tight.” — a warning, immediately converted by someone else into a date.",
+          "ALEX: “Let's say the fourteenth then.” — a deadline set by the person not doing the work.",
+          "ALEX: “We should really define that.” — no owner, no date, no verb belonging to anybody."
+        ]
+      },
+      {
+        "id": "agreed",
+        "title": "Decisions, owners, and how solid each one is",
+        "requires": "reasoning",
+        "intent": "The table people think they are getting from notes. The last column is the one that matters — most rows in most meetings are not actually agreed.",
+        "inputs": [
+          "said"
+        ],
+        "output": {
+          "name": "agreed",
+          "type": "table"
+        },
+        "prompt": "From these quotes, build the decision table: what was decided, who owns it, by when, and how solid it actually is — Agreed, Assumed, or Not agreed — with one line saying why you graded it that way. Respond in {{locale.outputLanguage}}.\n\n{{said}}",
+        "demo": {
+          "cols": [
+            "Decision",
+            "Owner",
+            "By when",
+            "How solid"
+          ],
+          "rows": [
+            [
+              "No pricing change this quarter",
+              "Alex",
+              "This quarter",
+              "Agreed — nobody objected, and Priya's objection was to the word, not the decision"
+            ],
+            [
+              "Pricing modelling done",
+              "Dan",
+              "14th",
+              "Assumed — Dan said he could look at it and warned it was tight; the date was set by Alex, not accepted by Dan"
+            ],
+            [
+              "Define the enterprise tier",
+              "—",
+              "—",
+              "Not agreed — “we should really define that” has no owner and no date, and this is at least the second meeting it has survived"
+            ],
+            [
+              "Fix the churn dashboard",
+              "—",
+              "—",
+              "Not agreed — raised by Dan, acknowledged with “Right”, and never picked up"
+            ]
+          ]
+        }
+      },
+      {
+        "id": "open",
+        "title": "What was raised and left open",
+        "requires": "reasoning",
+        "intent": "The things that get dropped are rarely the unimportant ones — they are the ones nobody wanted to own in the room.",
+        "inputs": [
+          "agreed",
+          "input.meeting"
+        ],
+        "output": {
+          "name": "open",
+          "type": "list"
+        },
+        "prompt": "List what was raised in this meeting and left without an owner or a date, and for each one say the smallest thing that would close it — a name, a date, or a decision that it does not matter. Respond in {{locale.outputLanguage}}.\n\nDecisions: {{agreed}}\n\nTranscript: {{input.meeting}}",
+        "demo": [
+          "The enterprise tier definition — closed by one name against it before the meeting ends, or by an explicit decision that it waits until Q3.",
+          "The churn dashboard finance relies on — closed by finding out whether anyone owns that dashboard at all, which is the real question underneath.",
+          "Whether Dan actually accepted the 14th — closed by asking him, in writing, today.",
+          "Whether “not this quarter” means the decision is revisited next quarter or is settled — nobody said, and the two readings lead to different work."
+        ]
       }
     ]
   }

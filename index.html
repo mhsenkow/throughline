@@ -1570,6 +1570,9 @@ table.out-table{min-inline-size:32rem}
 }
 .dz-hint{font-size:var(--p-size-2); color:var(--ink-secondary)}
 .dropzone.file{min-block-size:4.5rem}
+.dropzone.busy{border-style:solid; border-color:var(--accent-base); cursor:progress}
+.asr-row{display:flex; flex-wrap:wrap; gap:var(--p-space-3); align-items:center}
+.asr-row select{max-inline-size:100%}
 
 .scene{display:flex; flex-direction:column; gap:var(--p-space-2)}
 .scene-canvas{
@@ -2263,15 +2266,15 @@ const FREE_NOTE = 'Free tier. Key is free to obtain and stays in this tab.';
    `vision` and `image` are modalities, not tiers: a provider may be excellent
    at reasoning and unable to see a picture at all. Keeping them in the same
    list is what lets one rule — "pick the best connected provider that serves
-   this class" — route a critique cell and a moodboard cell without a second
-   mechanism. A cell that asks for a modality nobody connected can serve says
+   this class" — route a critique cell, a moodboard cell and a transcription
+   without a second mechanism. A cell that asks for a modality nobody connected can serve says
    so in place, exactly as an under-class cell already does. */
-const CLASSES = ['fast','reasoning','vision','image'];
+const CLASSES = ['fast','reasoning','vision','image','audio'];
 
 const PROVIDERS = {
   demo: {
     label:'Guided demo', vendor:'Nothing — scripted', tier:'demo', group:'nosetup',
-    key:'none', reach:'none', classes:['fast','reasoning','vision','image'],
+    key:'none', reach:'none', classes:['fast','reasoning','vision','image','audio'],
     plain:'Try any notebook right now. Nothing to set up, nothing to sign up for.',
     note:'Pre-scripted responses. No network request is made at all.' },
 
@@ -2334,7 +2337,9 @@ const PROVIDERS = {
 
   groq: {
     label:'Groq', vendor:'Very fast open models', tier:'free', group:'free',
-    key:'free', reach:'expected', classes:['fast','reasoning','vision'], model:'llama-3.3-70b-versatile',
+    key:'free', reach:'expected', classes:['fast','reasoning','vision','audio'], model:'llama-3.3-70b-versatile',
+    audioModel:'whisper-large-v3-turbo',
+    audioModels:['whisper-large-v3-turbo','whisper-large-v3'],
     models:['llama-3.3-70b-versatile','llama-3.1-8b-instant','qwen/qwen3-32b',
             'deepseek-r1-distill-llama-70b','gemma2-9b-it',
             'meta-llama/llama-4-scout-17b-16e-instruct'],
@@ -2408,8 +2413,10 @@ const PROVIDERS = {
 
   openai: {
     label:'OpenAI', vendor:'GPT', tier:'frontier', group:'paid',
-    key:'paid', reach:'expected', classes:['fast','reasoning','vision','image'], model:'gpt-4o',
+    key:'paid', reach:'expected', classes:['fast','reasoning','vision','image','audio'], model:'gpt-4o',
     models:['gpt-4o','gpt-4o-mini','o3-mini','gpt-4.1'],
+    audioModel:'gpt-4o-mini-transcribe',
+    audioModels:['gpt-4o-mini-transcribe','gpt-4o-transcribe','whisper-1'],
     imageModel:'gpt-image-1', imageModels:['gpt-image-1','dall-e-3'],
     base:'https://api.openai.com/v1', signup:'https://platform.openai.com/api-keys',
     plain:'Paid.', note:'' },
@@ -2474,7 +2481,9 @@ const modelOf = id => S.models[id] ?? PROVIDERS[id].model ?? '';
    one key, two catalogues. Pinning them to one field would make picking a
    drawing model silently change which model writes your prose. */
 const imageModelOf = id => S.imageModels[id] ?? PROVIDERS[id].imageModel ?? '';
+const audioModelOf = id => S.audioModels[id] ?? PROVIDERS[id].audioModel ?? '';
 const servesImage = id => !!PROVIDERS[id]?.classes.includes('image');
+const servesAudio = id => !!PROVIDERS[id]?.classes.includes('audio') && id !== 'demo';
 const servesVision = id => !!PROVIDERS[id]?.classes.includes('vision');
 
 const TIER_RANK = { frontier:4, paid:3.5, free:3, local:2, device:1, demo:0, blocked:-1 };
@@ -2809,6 +2818,112 @@ async function ensureLocalPipe(modelId, onProgress){
   });
   _localPipes[spec.id] = pipe;
   return pipe;
+}
+
+/* ── Speech in ────────────────────────────────────────────────────────
+   A recording becomes a transcript, and the transcript goes into the box —
+   the same shape as a dropped document, so every notebook that reads text
+   can read a meeting without knowing what an audio file is.
+
+   On this device by default, and that default is the point. A recording of
+   people talking is the most sensitive thing anyone will hand this app; the
+   version that never leaves the machine should be the one you get without
+   asking. A connected provider is faster and better, and is offered, but it
+   is a choice you make rather than one made for you. */
+const ASR = {
+  hf:'onnx-community/whisper-tiny.en',
+  label:'Whisper tiny (English)',
+  mb:45,
+  note:'English only, and it will mishear names. Good enough to find what was decided; not a court record.'
+};
+const ASR_MAX_SECONDS = 30 * 60;
+
+let _asrPipe = null;
+async function ensureASR(onProgress){
+  if (_asrPipe) return _asrPipe;
+  const tf = await loadTransformers();
+  const profile = await deviceProfile();
+  const report = (info) => {
+    if (info?.status === 'progress' && info.total)
+      onProgress?.(info.loaded / info.total, String(info.file || '').split('/').pop());
+  };
+  const build = (device, dtype) =>
+    tf.pipeline('automatic-speech-recognition', ASR.hf, { device, dtype, progress_callback: report });
+  try {
+    _asrPipe = profile.webgpu
+      ? await build('webgpu', { encoder_model:'fp32', decoder_model_merged:'q4' })
+      : await build('wasm', 'q8');
+  } catch {
+    /* WebGPU whisper is the fast path and the fragile one. Falling back is
+       better than telling someone their recording cannot be read. */
+    _asrPipe = await build('wasm', 'q8');
+  }
+  return _asrPipe;
+}
+
+/* Whisper wants mono 16 kHz floats. The browser will resample on decode if
+   the context is created at that rate, which is the only reason this is four
+   lines rather than a resampler. */
+async function decodeAudio(file){
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) throw new Error('This browser cannot decode audio.');
+  const ctx = new Ctx({ sampleRate: 16000 });
+  let audio;
+  try { audio = await ctx.decodeAudioData(await file.arrayBuffer()); }
+  catch { throw new Error(`Could not decode ${file.name || 'that file'}. WAV, MP3, M4A, FLAC, OGG and WebM usually work.`); }
+  finally { ctx.close?.(); }
+  if (audio.duration > ASR_MAX_SECONDS)
+    throw new Error(`That recording is ${Math.round(audio.duration / 60)} minutes. This build stops at ${ASR_MAX_SECONDS / 60} — split it, or transcribe it elsewhere and paste the text.`);
+  if (audio.numberOfChannels === 1) return { pcm: audio.getChannelData(0), seconds: audio.duration };
+  const a = audio.getChannelData(0), b = audio.getChannelData(1);
+  const mono = new Float32Array(a.length);
+  for (let i = 0; i < a.length; i++) mono[i] = (a[i] + b[i]) / 2;
+  return { pcm: mono, seconds: audio.duration };
+}
+
+async function transcribeOnDevice(file, onStage){
+  onStage?.(`Getting ${ASR.label} — about ${ASR.mb} MB, once.`);
+  const pipe = await ensureASR((frac, name) =>
+    onStage?.(`Getting ${ASR.label} — ${Math.round(frac * 100)}%${name ? ` · ${name}` : ''}`));
+  onStage?.('Decoding the audio…');
+  const { pcm, seconds } = await decodeAudio(file);
+  onStage?.(`Listening to ${Math.round(seconds)} seconds on this device…`);
+  /* Whisper hears 30 seconds at a time; the stride is the overlap that stops
+     a word being lost on a window boundary. */
+  const out = await pipe(pcm, { chunk_length_s: 30, stride_length_s: 5 });
+  const text = (Array.isArray(out) ? out.map(o => o.text).join(' ') : out.text || '').trim();
+  return { text, seconds, via: `${ASR.label}, on this device` };
+}
+
+/* Multipart, so this cannot go through netFetch — that bridge carries a
+   string body. Both of these send permissive CORS headers, so plain fetch
+   works from the page and from the desktop webview alike. */
+async function transcribeWithProvider(id, file, onStage){
+  const cfg = PROVIDERS[id];
+  const model = audioModelOf(id);
+  onStage?.(`Sending the audio to ${cfg.label} · ${model}…`);
+  const body = new FormData();
+  body.append('file', file, file.name || 'audio.webm');
+  body.append('model', model);
+  const base = (S.bases?.[id] || cfg.base || '').replace(/\/$/, '');
+  const res = await fetch(`${base}/audio/transcriptions`, {
+    method:'POST', body, headers:{ authorization:`Bearer ${S.keys[id] ?? ''}` }
+  });
+  if (!res.ok) await fail(res, cfg.label);
+  const j = await res.json();
+  if (typeof j.text !== 'string') throw new Error(`${cfg.label} replied without a transcript.`);
+  return { text: j.text.trim(), seconds: null, via: `${cfg.label} · ${model}` };
+}
+
+const transcribers = () => connected().filter(servesAudio);
+
+async function transcribe(file, onStage){
+  const want = S.asrEngine;
+  const id = want && want !== 'device' && isConnected(want) ? want : null;
+  const r = id ? await transcribeWithProvider(id, file, onStage)
+               : await transcribeOnDevice(file, onStage);
+  if (!r.text) throw new Error('Nothing was said, or nothing could be made out. Check the recording has speech in it.');
+  return r;
 }
 
 async function downloadLocalModel(modelId, onProgress){
@@ -3950,7 +4065,7 @@ async function confirmMobileRunAll(nb){
 
 const S = {
   view:'library', nbId:null, locale:'en', mode:'light',
-  brand:'rams', provider:'auto', keys:{}, cellProvider:{}, models:{}, imageModels:{}, tests:{}, builtin:'absent', dl:null,
+  brand:'rams', provider:'auto', keys:{}, cellProvider:{}, models:{}, imageModels:{}, audioModels:{}, tests:{}, builtin:'absent', dl:null,
   local:{ status:'idle', progress:null, file:null, err:null, ready:null }, device:null,
   editing:false, edits:{}, connectSel:null, testing:null, bases:{},
   typeset:'brand', density:'comfortable', modePref:'system', lookTab:0,
@@ -3961,6 +4076,10 @@ const S = {
   /* What the last dropped document was, said in a sentence. Not persisted —
      it describes this tab's last action, not the run. */
   docNote:null,
+  /* Which engine transcribes a dropped recording. Defaults to the device,
+     deliberately: a recording of people talking is the most sensitive thing
+     anyone hands this app. */
+  asrEngine:'device', asrStage:null,
   /* Camera per scene cell. Kept out of the run so orbiting a model is not a
      change to the run's result — it is how you are looking at it. */
   scenes:{},
@@ -4383,6 +4502,7 @@ function renderNotebook(){
   const inKey = 'input.' + nb.input.id;
   const wantsImage = nb.input.accepts === 'image';
   const wantsFile = nb.input.accepts === 'file';
+  const wantsAudio = nb.input.accepts === 'audio';
   const curImage = isImageVal(run.bag[inKey]) ? run.bag[inKey] : null;
   const busy = Object.values(run.cells).some(c=>c.state==='running'||c.state==='streaming'||c.state==='waiting');
   view.innerHTML = `
@@ -4441,6 +4561,31 @@ function renderNotebook(){
         </div>
       </div>
       <div class="cell-body">
+        ${wantsAudio ? (() => {
+          const heard = transcribers();
+          const busy = !!S.asrStage;
+          return `
+        <div class="attach" id="audiozone-wrap">
+          <label class="dropzone file ${busy ? 'busy' : ''}" for="nb-audio" id="audiozone">
+            <span class="dz-hint">${busy ? esc(S.asrStage)
+              : S.docNote ? esc(S.docNote)
+              : 'Drop a recording here, or choose one — WAV, MP3, M4A, FLAC, OGG or WebM'}</span>
+          </label>
+          <input type="file" id="nb-audio" accept="audio/*,video/webm,.wav,.mp3,.m4a,.flac,.ogg,.webm" hidden>
+          <div class="asr-row">
+            <label class="field-inline">
+              <span class="eyebrow">Transcribed by</span>
+              <select id="asr-engine">
+                <option value="device" ${S.asrEngine === 'device' ? 'selected' : ''}>This device — nothing is uploaded</option>
+                ${heard.map(id => `<option value="${esc(id)}" ${S.asrEngine === id ? 'selected' : ''}>${esc(PROVIDERS[id].label)} · ${esc(audioModelOf(id))}</option>`).join('')}
+              </select>
+            </label>
+          </div>
+          <p class="fine">${S.asrEngine === 'device'
+            ? `On this device with ${esc(ASR.label)} — a ${ASR.mb} MB download the first time, then nothing leaves the machine. ${esc(ASR.note)}`
+            : `Sent to ${esc(PROVIDERS[S.asrEngine]?.label ?? 'the provider')}, which means the recording leaves this machine. Faster and more accurate; your call.`}
+            The transcript lands in the box below, so you can correct it before anything reads it.</p>
+        </div>`; })() : ''}
         ${wantsFile ? `
         <div class="attach" id="filezone-wrap">
           <label class="dropzone file" for="nb-file" id="filezone">
@@ -4505,6 +4650,36 @@ function renderNotebook(){
     render();
   };
   ta.onblur = commit;
+
+  if (wantsAudio){
+    const dz = $('#audiozone'), picker = $('#nb-audio'), engine = $('#asr-engine');
+    engine.onchange = () => { S.asrEngine = engine.value; render(); };
+    const take = async (f) => {
+      if (!f) return;
+      S.asrStage = 'Reading the file…'; S.docNote = null; render();
+      try {
+        const {text, seconds, via} = await transcribe(f, stage => {
+          S.asrStage = stage;
+          const el = $('#audiozone .dz-hint');
+          if (el) el.textContent = stage;
+        });
+        S.asrStage = null;
+        S.docNote = `Transcribed ${f.name || 'the recording'}${seconds ? ` — ${Math.round(seconds)} seconds` : ''} · ${via}`;
+        const ta2 = $('#nb-input');
+        if (ta2) ta2.value = text;
+        run.bag[inKey] = text;
+        staleFromInput();
+        render();
+      } catch(e){ S.asrStage = null; render(); toast(e.message || String(e)); }
+    };
+    picker.onchange = () => take(picker.files?.[0]);
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+    dz.addEventListener('drop', e => {
+      e.preventDefault(); dz.classList.remove('over');
+      take(e.dataTransfer?.files?.[0]);
+    });
+  }
 
   if (wantsFile){
     const dz = $('#filezone'), picker = $('#nb-file');
@@ -6225,6 +6400,11 @@ function connectDetail(id){
                  different catalogue at the same key, so picking a drawing model does not change
                  which model writes your prose.</p>
                ${imageModelPicker(id)}`) : ''}
+          ${servesAudio(id) ? `
+            <p style="margin-block-start:var(--p-space-3)">And one for transcribing recordings.
+              Faster and more accurate than the on-device model — and it means the audio leaves
+              this machine, which for a recording of people talking is worth deciding on purpose.</p>
+            ${audioModelPicker(id)}` : ''}
           ${p.classes.includes('vision') ? `<p class="fine">This one can also read pictures you attach.</p>` : ''}
         </div>
       </div>` : ''}
@@ -6243,6 +6423,17 @@ function connectDetail(id){
     ${p.note && !built && id!=='localdl' && p.reach !== 'blocked' && id!=='ollama' && id!=='lmstudio'
       ? `<p class="fine">${esc(p.note)}</p>` : ''}
   </div>`;
+}
+
+function audioModelPicker(id){
+  const p = PROVIDERS[id];
+  const cur = audioModelOf(id), list = p.audioModels ?? [];
+  if (!list.length) return `<input type="text" data-audiomodel="${id}" value="${esc(cur)}"
+    placeholder="transcription model" aria-label="Transcription model">`;
+  return `<select data-audiomodel="${id}" aria-label="Transcription model">
+    ${list.map(m=>`<option value="${esc(m)}" ${cur===m?'selected':''}>${esc(m)}</option>`).join('')}
+    ${list.includes(cur) ? '' : `<option value="${esc(cur)}" selected>${esc(cur)} (custom)</option>`}
+  </select>`;
 }
 
 function imageModelPicker(id){
@@ -6415,6 +6606,9 @@ function wireSheet(el){
   });
   el.querySelectorAll('[data-imagemodel]').forEach(inp => {
     inp.oninput = () => { S.imageModels[inp.dataset.imagemodel] = inp.value; };
+  });
+  el.querySelectorAll('[data-audiomodel]').forEach(inp => {
+    inp.oninput = () => { S.audioModels[inp.dataset.audiomodel] = inp.value; };
   });
   el.querySelectorAll('[data-weight-get]').forEach(b => b.onclick = () => {
     const entry = WEIGHTS.find(w => w.id === b.dataset.weightGet);

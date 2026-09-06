@@ -175,6 +175,7 @@ together.
 | 3D scenes render and export to `.obj` / `.stl` from the same triangles | **Real**, no library |
 | Image inputs: drop, paste or choose a picture; vision cells read it | **Real** |
 | Document inputs: text, Markdown, CSV, TSV, JSON — and PDF, parsed in the page | **Real** |
+| Audio inputs: a recording transcribed **on the device** by Whisper, no key | **Real**, tested on real speech |
 | `ask` can stop the run and take a **picture** from a person | **Real** |
 | `choice` between **pictures**, matched to a gallery the run just drew | **Real** |
 | Chains — send a finished value into another notebook, with provenance | **Real** |
@@ -199,7 +200,7 @@ together.
 
 ## The library
 
-**113 notebooks across 13 personas, 9 realms, and 8 concepts.** The home page
+**114 notebooks across 13 personas, 9 realms, and 8 concepts.** The home page
 filters on three axes, because they answer different questions:
 
 - **Persona** — whose job: manager, product, engineer, designer, marketer,
@@ -358,6 +359,40 @@ and a PDF with no text layer is a scan, which this refuses honestly rather than
 returning an empty string. There is no OCR; a photograph of the page and a
 vision notebook will get further.
 
+### Speech in
+
+Drop a recording — WAV, MP3, M4A, FLAC, OGG, WebM — and its transcript goes
+into the box, the same shape as a dropped document. Every notebook that reads
+text can therefore read a meeting without knowing what an audio file is.
+*What Was Actually Agreed* and *Questions That Can't Be Answered Yes* both take
+one.
+
+**It transcribes on your machine by default, and that default is the argument.**
+A recording of people talking is the most sensitive thing anyone will hand this
+app, so the version that never leaves the device is the one you get without
+asking for it. Whisper tiny arrives once as a ~45 MB download through the
+Transformers.js runtime the app already loads for text models, and nothing is
+uploaded. It is English-only and it will mishear names — the card says so, and
+the transcript lands in the box where you can correct it *before* anything reads
+it.
+
+A connected provider that serves the new `audio` class — Groq or OpenAI — is
+offered in the same control, with the trade stated plainly: faster and more
+accurate, and the recording leaves the machine. That is a choice to make on
+purpose rather than one made for you.
+
+Tested against real speech rather than asserted. A ten-second clip of
+
+> "So on the pricing change, I think we are aligned that we are not doing it
+> this quarter…"
+
+came back as *"…we are not doing **at** this quarter…"* — one wrong word in
+thirty, which is exactly the accuracy the card promises and exactly why the
+transcript is editable before a cell reads it. The provider adapters are
+`multipart/form-data`, so they take plain `fetch` rather than the desktop
+bridge, which carries a string body — and they are **unverified**, like every
+other keyed path here.
+
 ### A person hands over a picture
 
 `ask` cells stop the run for a human answer. One can now take a **picture**:
@@ -427,12 +462,12 @@ the question; pin a cell only if you want to.
 | Local image engine | Desktop + a running engine | `image` | FLUX/SDXL/SD1.5 on your own machine, offline, no key. Weights download from Connect. Speaks the A1111 API (Forge, SD.Next, Draw Things). Adapter unverified — no engine was running here to test against. |
 | Pollinations | Free token | `image` | **Tested, and it failed keyless:** anonymous requests are refused with `403 {"error":"Missing Turnstile token"}` — a bot check, not a rate limit. Shipped as a token provider; the token path is unverified. |
 | Google AI Studio | Free key | `fast`, `reasoning`, `vision`, `image` | Best free starting point, and the only free key that both sees and draws. |
-| Groq | Free key | `fast`, `reasoning`, `vision` | Very fast, open weights. |
+| Groq | Free key | `fast`, `reasoning`, `vision`, `audio` | Very fast, open weights. `whisper-large-v3-turbo` for transcription. |
 | OpenRouter | Free key | `fast`, `reasoning`, `vision` | Model ids ending `:free` cost nothing. |
 | Hugging Face | Free token | `fast`, `reasoning`, `vision`, `image` | FLUX and the open image world behind one token. |
 | Together | Paid key | `fast`, `reasoning`, `image` | FLUX.1-schnell has a free tier. |
 | Anthropic | Paid key | `fast`, `reasoning`, `vision` | Sees, does not draw. |
-| OpenAI | Paid key | `fast`, `reasoning`, `vision`, `image` | |
+| OpenAI | Paid key | `fast`, `reasoning`, `vision`, `image`, `audio` | |
 | Enterprise gateway | — | — | CORS-blocked from any browser. Desktop or self-hosted only. |
 
 `vision` and `image` are **modalities, not tiers**. A provider can be excellent
@@ -656,9 +691,11 @@ Mitigations shipping in the viewer:
   local engine. That test also caught a second bug: `humanError()`
   mapped the 403 to "That key was not accepted", which for a provider that takes
   no key is an answer pointing at nothing. It now names the bot check.
-- **No audio, video or OCR.** Transcription would mean shipping a model
-  download this build cannot verify end to end, and a scanned PDF needs OCR
-  that is not here. Both are refused by name rather than failing oddly.
+- **No microphone recording yet, no video, no OCR.** Transcription is in and
+  tested, but only for a file you already have: capturing from a mic needs a
+  microphone to test against and this build was not written near one. A scanned
+  PDF needs OCR that is not here. Both are refused by name rather than failing
+  oddly.
 - Chains are one hop by design, not a saved pipeline.
 - **The local image engine adapter is unverified.** It is written to the
   documented Automatic1111 `/sdapi/v1/txt2img` shape, and no engine was running
