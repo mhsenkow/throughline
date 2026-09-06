@@ -30,3 +30,7 @@ src-tauri/target
 src/index.html
 src/library.json
 src/icons/
+
+# App Store Connect API keys
+macos/secrets/
+**/*.p8

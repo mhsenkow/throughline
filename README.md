@@ -259,12 +259,13 @@ the fork staying local and file-shaped (P4).
 
 ## Connecting a model
 
-**Seventeen providers**, grouped by what they cost you rather than by vendor.
-Nothing in the "ready now" column generates images — see Known gaps:
+**Eighteen providers**, grouped by what they cost you rather than by vendor.
+In the browser, nothing in the "ready now" column generates images; on desktop,
+**Local image engine** does, with weights you downloaded and no key at all:
 
 | Ready now, or nearly | Free, with a key | Paid |
 |---|---|---|
-| Guided demo · Your browser (Gemini Nano) · Ollama · LM Studio | Google AI Studio · OpenRouter · Groq · Hugging Face · Cerebras · Mistral · **Pollinations** | DeepSeek · Together · xAI · Anthropic · OpenAI |
+| Guided demo · Your browser (Gemini Nano) · Ollama · LM Studio · **Local image engine** (desktop) | Google AI Studio · OpenRouter · Groq · Hugging Face · Cerebras · Mistral · **Pollinations** | DeepSeek · Together · xAI · Anthropic · OpenAI |
 
 The panel is master-detail: pick one on the left, follow numbered steps on the
 right — open the key page, paste, pick a model. **The key is tested
@@ -358,6 +359,7 @@ the question; pin a cell only if you want to.
 | Guided demo | None | everything | Scripted. No network request at all. |
 | Chrome built-in (Gemini Nano) | Download once | `fast` | Free forever, offline, no key. Chrome 138+ on supported hardware. |
 | Ollama | Run it locally | `fast` | Needs `OLLAMA_ORIGINS` set for this origin. An https page cannot call `http://localhost` — self-host over http, or use desktop. |
+| Local image engine | Desktop + a running engine | `image` | FLUX/SDXL/SD1.5 on your own machine, offline, no key. Weights download from Connect. Speaks the A1111 API (Forge, SD.Next, Draw Things). Adapter unverified — no engine was running here to test against. |
 | Pollinations | Free token | `image` | **Tested, and it failed keyless:** anonymous requests are refused with `403 {"error":"Missing Turnstile token"}` — a bot check, not a rate limit. Shipped as a token provider; the token path is unverified. |
 | Google AI Studio | Free key | `fast`, `reasoning`, `vision`, `image` | Best free starting point, and the only free key that both sees and draws. |
 | Groq | Free key | `fast`, `reasoning`, `vision` | Very fast, open weights. |
@@ -448,6 +450,7 @@ the browser cannot have:
 | Ceiling | Web / phone | Desktop |
 |---|---|---|
 | Providers | CORS-permissive only | **Every OpenAI-compatible gateway** (Azure, Bedrock proxies, LiteLLM, company relays) via native HTTP |
+| Image models | Someone else's API, always | **FLUX on your own machine** — 17 GB of weights downloaded to a folder you own, drawn by a local engine, offline and keyless |
 | Storage | IndexedDB (browser may clear) | **`~/Documents/Throughline/`** — git-able JSON on disk |
 | Keys | Held in the tab | **OS keychain** |
 
@@ -473,6 +476,44 @@ in [`desktop/README.md`](desktop/README.md#mac-app-store) and
 xattr -cr /Applications/Throughline.app
 open /Applications/Throughline.app
 ```
+
+### Getting big models
+
+The desktop build downloads image-model weights straight to
+`~/Documents/Throughline/models/`. This is the clearest case yet of a ceiling
+the browser cannot lift: a tab cannot stream seventeen gigabytes to a folder
+you own, resume it after the wifi drops, or leave it somewhere another program
+can read. `download_model` in the Rust shell does all three — streamed to disk
+through a 1 MB buffer, `Range`-resumed from a `.part` file, cancellable, and
+renamed into place only once the byte count matches. A half-finished file keeps
+its `.part` name, so it can never be loaded as if it were a model.
+
+Three entries, each a **single complete file**, ungated, checked against the
+Hugging Face API for existence, size and licence:
+
+| Model | Size | Licence | For |
+|---|---|---|---|
+| **FLUX.1 schnell** (`Comfy-Org/flux1-schnell`, fp8) | 17.2 GB | Apache 2.0 | The one people mean by FLUX. Transformer, both text encoders and the VAE in one file. ~12 GB VRAM, or 24 GB unified. |
+| **SDXL Turbo** (`stabilityai/sdxl-turbo`, fp16) | 6.9 GB | Stability non-commercial | A third the size, several times faster, weaker at text in pictures. |
+| **Stable Diffusion 1.5** (`Comfy-Org/…-archive`, fp16) | 2.1 GB | CreativeML OpenRAIL-M | Runs on 4 GB of VRAM. A download nobody can run is not a feature. |
+
+Split checkpoints are deliberately absent. The low-VRAM GGUF route for FLUX
+(6.8 GB) needs a VAE that lives in a gated repo, and a download that ends in
+"now find four more files, one of which needs an account" is not the easy link
+it was asked to be.
+
+**Throughline does not run these files.** It fetches them and gets out of the
+way; the engine that loads them is a separate program you already trust,
+reached over localhost. **Local image engine** in Connect speaks the
+Automatic1111 HTTP API — which Forge, SD.Next, Draw Things and A1111 itself all
+implement — and names the checkpoint in the request, so picking a downloaded
+file here actually switches the model over there. Start yours with its API
+enabled (`--api` for Forge and A1111).
+
+Embedding an inference runtime instead would mean shipping GPU kernels for
+hardware we cannot test, and would make this app the thing that breaks the week
+a model format changes. Downloading is a problem with one correct answer;
+inference is not.
 
 The desktop bridge also carries **raw image bytes** now: `native_fetch` takes a
 `binary` flag and returns a `data:` URL, because the streaming path decodes as
@@ -528,11 +569,23 @@ Mitigations shipping in the viewer:
   returns `403 {"error":"Missing Turnstile token"}`. A bot check is not something
   a key or a retry fixes, and solving one is not something this app will ever do,
   so the provider moved out of the no-setup group and the copy that called it
-  "the only keyless way to draw for real" is gone. **There is currently no
-  keyless way to generate an image here** — the guided demo's pictures are
-  hand-authored and say so. That test also caught a second bug: `humanError()`
+  "the only keyless way to draw for real" is gone. **In the browser there is now
+  no keyless way to generate an image** — the guided demo's pictures are
+  hand-authored and say so. On desktop there is: download weights and point at a
+  local engine. That test also caught a second bug: `humanError()`
   mapped the 403 to "That key was not accepted", which for a provider that takes
   no key is an answer pointing at nothing. It now names the bot check.
+- **The local image engine adapter is unverified.** It is written to the
+  documented Automatic1111 `/sdapi/v1/txt2img` shape, and no engine was running
+  on this machine to test against (ports 7860 and 8188 were both silent).
+  The downloader underneath it *is* tested — `cargo test -- --ignored` in
+  `desktop/src-tauri` runs a real transfer and a real resume against a local
+  server and asserts the resumed file is byte-identical.
+- **ComfyUI is not supported yet.** It is the most common FLUX runner, but its
+  `/prompt` API takes a full workflow graph rather than a prompt, and authoring
+  one blind is exactly the kind of thing that ships broken. Forge, SD.Next and
+  Draw Things all run FLUX and all speak the A1111 API, so that is the door
+  this build knocks on.
 - The 3D renderer is a painter's algorithm over convex primitives. Interpenetrating
   or concave shapes can sort wrongly; a depth buffer is the fix if scenes ever get
   more ambitious than a room or a shelf.

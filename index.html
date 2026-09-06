@@ -1475,6 +1475,28 @@ table.out-table{min-inline-size:32rem}
 .img-alt{font-size:var(--p-size-2); color:var(--ink-secondary); line-height:1.5}
 .img-foot{display:flex; align-items:center; gap:var(--p-space-3); flex-wrap:wrap}
 
+/* Big-model downloads (desktop) */
+.weights{display:flex; flex-direction:column; gap:var(--p-space-3); margin-block:var(--p-space-3)}
+.weight{
+  padding:var(--p-space-4); border-radius:var(--radius-md);
+  border:1px solid var(--border-subtle); background:var(--surface-sunken);
+  display:flex; flex-direction:column; gap:var(--p-space-2);
+}
+.weight.ready{border-color:var(--accent-base)}
+.weight.downloading{border-color:var(--status-stale)}
+.weight-head{display:flex; align-items:baseline; gap:var(--p-space-3)}
+.weight-head strong{font-size:var(--p-size-4)}
+.weight-blurb{margin:0; font-size:var(--p-size-2); color:var(--ink-secondary); line-height:1.55}
+.weight .row{display:flex; align-items:center; gap:var(--p-space-2); flex-wrap:wrap}
+.dl-track{
+  block-size:6px; border-radius:var(--radius-pill); overflow:hidden;
+  background:var(--border-subtle);
+}
+.dl-bar{
+  display:block; block-size:100%; inline-size:0%;
+  background:var(--accent-base); transition:inline-size 180ms linear;
+}
+
 /* Chains */
 .chain-note{
   display:flex; align-items:baseline; flex-wrap:wrap; gap:var(--p-space-2);
@@ -2370,6 +2392,25 @@ const PROVIDERS = {
     base:'https://api.openai.com/v1', signup:'https://platform.openai.com/api-keys',
     plain:'Paid.', note:'' },
 
+  localdiffusion: {
+    label:'Local image engine', vendor:'On this machine',
+    tier: isDesktopShell() ? 'local' : 'blocked',
+    group:'nosetup', key:'none',
+    reach: isDesktopShell() ? 'unverified' : 'blocked',
+    surface:'desktop', classes:['image'],
+    model:'', models:[],
+    imageModel:'flux1-schnell-fp8.safetensors',
+    imageModels:['flux1-schnell-fp8.safetensors','sd_xl_turbo_1.0_fp16.safetensors',
+                 'v1-5-pruned-emaonly-fp16.safetensors'],
+    base:'http://127.0.0.1:7860',
+    plain: isDesktopShell()
+      ? 'Draw with a model on your own machine. No key, no account, no upload — and it runs FLUX, which no browser can.'
+      : 'Running a real image model needs the free desktop app. A web page cannot download twenty gigabytes to a folder you own, or call a server on localhost over https.',
+    signup:'https://github.com/lllyasviel/stable-diffusion-webui-forge',
+    note: isDesktopShell()
+      ? 'Speaks the Automatic1111 HTTP API, which Forge, SD.Next, Draw Things and A1111 itself all implement. Start yours with its API enabled, then check the connection. Unverified here — press the button and it will tell you exactly what came back.'
+      : 'Desktop downloads the weights and talks to the engine; the browser can do neither.' },
+
   pollinations: {
     label:'Pollinations', vendor:'Open image generation', tier:'free', group:'free',
     key:'free', reach:'unverified', classes:['image'],
@@ -2442,7 +2483,120 @@ const CSP_CONNECT = [
   /* Image generation. Bytes are fetched and turned into a data URL rather
      than rendered from a remote src, so img-src stays 'self' data:. */
   'https://image.pollinations.ai',
+  /* The local image engine. Listed for completeness — on desktop the request
+     never passes through CSP at all, and in the browser the provider is
+     reach:'blocked' so it is refused before a request is made. */
+  'http://localhost:7860',
+  'http://127.0.0.1:7860',
 ];
+
+/* ── Weights you can actually keep ────────────────────────────────────────
+   Desktop only, and that is the point rather than a limitation. A browser tab
+   cannot stream seventeen gigabytes to a folder you own, resume it after the
+   café wifi drops, or leave it somewhere another program can read. The desktop
+   shell can, so it does.
+
+   This app does not run these files. It fetches them and gets out of the way —
+   the engine that loads them (Forge, SD.Next, Draw Things, ComfyUI) is a
+   separate program the user already trusts. Embedding an inference runtime
+   would mean shipping GPU kernels for hardware we cannot test, and would make
+   this app the thing that breaks the week a model format changes.
+
+   Every entry is a SINGLE file that is complete on its own, ungated, and was
+   checked against the Hugging Face API for existence, size and licence on
+   2026-09-05. Split checkpoints are deliberately absent: the low-VRAM GGUF
+   route for FLUX needs a VAE that sits behind a gated repo, and a download
+   that ends in "now find four more files, one of which needs an account" is
+   not the easy link it was asked to be. */
+const WEIGHTS = [
+  { id:'flux-schnell', name:'FLUX.1 schnell', file:'flux1-schnell-fp8.safetensors',
+    url:'https://huggingface.co/Comfy-Org/flux1-schnell/resolve/main/flux1-schnell-fp8.safetensors',
+    gb:17.2, license:'Apache 2.0 — commercial use allowed',
+    blurb:'The one people mean when they say FLUX. Everything in one file — transformer, both text encoders, the VAE — so there is nothing to assemble afterwards. Wants roughly 12 GB of video memory, or an Apple Silicon machine with 24 GB unified.' },
+  { id:'sdxl-turbo', name:'SDXL Turbo', file:'sd_xl_turbo_1.0_fp16.safetensors',
+    url:'https://huggingface.co/stabilityai/sdxl-turbo/resolve/main/sd_xl_turbo_1.0_fp16.safetensors',
+    gb:6.9, license:'Stability non-commercial research licence',
+    blurb:'A third of the size and several times faster — one to four steps an image. Weaker than FLUX at text inside pictures and at long prompts.' },
+  { id:'sd15', name:'Stable Diffusion 1.5', file:'v1-5-pruned-emaonly-fp16.safetensors',
+    url:'https://huggingface.co/Comfy-Org/stable-diffusion-v1-5-archive/resolve/main/v1-5-pruned-emaonly-fp16.safetensors',
+    gb:2.1, license:'CreativeML OpenRAIL-M',
+    blurb:'Old, small, undemanding — it runs on a laptop with 4 GB of video memory. Here because a download nobody can run is not a feature.' }
+];
+
+const fmtBytes = n => {
+  if (!Number.isFinite(n) || n <= 0) return '—';
+  const gb = n / 1e9;
+  return gb >= 1 ? `${gb.toFixed(1)} GB` : `${Math.round(n / 1e6)} MB`;
+};
+
+/* Whether a catalogue entry is on disk, still arriving, or absent. `.part`
+   files are shown rather than hidden — an interrupted 17 GB download is
+   something you want to see, and starting it again resumes it. */
+const weightState = (entry) => {
+  const list = S.weights.list ?? [];
+  if (S.weights.busy === entry.file) return 'downloading';
+  if (list.some(m => m.file === entry.file)) return 'ready';
+  if (list.some(m => m.file === entry.file + '.part')) return 'partial';
+  return 'absent';
+};
+
+async function refreshWeights(){
+  const core = tauriCore();
+  if (!core) return;
+  try { S.weights.list = await core.invoke('list_models'); S.weights.err = null; }
+  catch(e){ S.weights.err = e?.message || String(e); }
+}
+
+function paintWeightProgress(){
+  const bar = document.querySelector('[data-dl-bar]');
+  if (!bar) return;
+  const {received, total} = S.weights;
+  const pct = total ? Math.min(100, (received / total) * 100) : 0;
+  bar.style.inlineSize = `${pct}%`;
+  const label = document.querySelector('[data-dl-label]');
+  if (label) label.textContent = total
+    ? `${fmtBytes(received)} of ${fmtBytes(total)} · ${Math.round(pct)}%`
+    : `${fmtBytes(received)} so far`;
+}
+
+async function startWeight(entry){
+  const core = tauriCore();
+  if (!core?.Channel) return;
+  S.weights.busy = entry.file; S.weights.received = 0; S.weights.total = null; S.weights.err = null;
+  renderSheet();
+  const ch = new core.Channel();
+  ch.onmessage = (msg) => {
+    if (msg.kind === 'progress' || msg.kind === 'start'){
+      S.weights.received = msg.received ?? 0;
+      S.weights.total = msg.total ?? S.weights.total;
+      paintWeightProgress();
+    }
+  };
+  try {
+    await core.invoke('download_model', { url: entry.url, file: entry.file, onProgress: ch });
+  } catch(e){
+    const m = e?.message || String(e);
+    S.weights.err = m === 'cancelled' ? null : m;
+  } finally {
+    S.weights.busy = null;
+    await refreshWeights();
+    renderSheet();
+  }
+}
+
+async function cancelWeight(){
+  const core = tauriCore();
+  if (!core || !S.weights.busy) return;
+  try { await core.invoke('cancel_download', { file: S.weights.busy }); } catch {}
+}
+
+async function deleteWeight(file){
+  const core = tauriCore();
+  if (!core) return;
+  try { await core.invoke('delete_model', { file }); } catch(e){ S.weights.err = e?.message || String(e); }
+  await refreshWeights();
+  renderSheet();
+}
 
 /* Curated Transformers.js / ONNX chat models. Ranked per device at runtime —
    phones get the tiny ones; WebGPU desktops can take the 1B. */
@@ -3261,6 +3415,33 @@ const IMAGE_ADAPTERS = {
     throw new Error(`${label} returned a link to the picture rather than the picture. This build only accepts image bytes, so nothing is fetched from a third-party CDN when you look at a run.`);
   },
 
+  /* One endpoint reaches Forge, SD.Next, Draw Things and A1111 — they all
+     implement /sdapi/v1/txt2img and all return base64, which is already the
+     only shape this app accepts. The checkpoint is named in the request, so
+     picking a downloaded file here actually switches the model over there. */
+  async a1111Image({prompt, signal, cfg, aspect}){
+    const body = {
+      prompt, width: aspect.w, height: aspect.h,
+      steps: /schnell|turbo/i.test(cfg._imageModel) ? 6 : 24,
+      cfg_scale: /schnell|turbo/i.test(cfg._imageModel) ? 1.5 : 6,
+      sampler_name: 'Euler',
+      save_images: false
+    };
+    if (cfg._imageModel) body.override_settings = { sd_model_checkpoint: cfg._imageModel };
+    let res;
+    try {
+      res = await netFetch(`${cfg.base}/sdapi/v1/txt2img`, { method:'POST', signal,
+        headers:{'content-type':'application/json'}, body: JSON.stringify(body) });
+    } catch {
+      throw new Error(`Nothing answered at ${cfg.base}. Start your image engine with its API enabled — Forge and A1111 need --api on the command line — then try again.`);
+    }
+    if (!res.ok) await fail(res, 'Local image engine');
+    const j = await res.json();
+    const b64 = j.images?.[0];
+    if (!b64) throw new Error('The engine answered without an image. Check the checkpoint name matches a file it can actually load.');
+    return /^data:/.test(b64) ? b64 : `data:image/png;base64,${b64}`;
+  },
+
   async googleImage({prompt, signal, cfg, key}){
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(cfg._imageModel)}:generateContent`;
     const res = await netFetch(url, { method:'POST', signal,
@@ -3297,7 +3478,8 @@ const IMAGE_ADAPTERS = {
 };
 
 const IMAGE_ADAPTER_FOR = { openai:'openaiImages', together:'openaiImages', gateway:'openaiImages',
-  google:'googleImage', huggingface:'hfImage', pollinations:'pollinations' };
+  google:'googleImage', huggingface:'hfImage', pollinations:'pollinations',
+  localdiffusion:'a1111Image' };
 
 /* One picture in, one value out. There is no partial image to stream, so the
    cell shows what it is doing in words instead of faking a progress bar it
@@ -3334,6 +3516,8 @@ function humanError(msg, id){
     return 'The key works, but you have hit the free limit for now. Try again shortly.';
   if (/404|model|not found/i.test(m))
     return `The key works, but that model name was not recognised. Pick a different one from the list.`;
+  if (/connection refused|econnrefused|nothing answered/i.test(m))
+    return `Nothing is listening at that address. Start ${PROVIDERS[id]?.label ?? 'the service'} first — Forge and A1111 need --api on the command line — then check again.`;
   if (/failed to fetch|networkerror|cors|load failed/i.test(m))
     return id === 'localdl'
       ? 'Could not download the model files. Stay on this page, try the smallest size, or paste a free cloud key instead.'
@@ -3692,7 +3876,11 @@ const S = {
      which of its variables came across. Deliberately one hop and not a graph
      — P1 says the unit is a linear notebook, and a chain of notebooks that
      drew itself as a canvas would be the same mistake one level up. */
-  chain:null, sendVar:null, sendQ:''
+  chain:null, sendVar:null, sendQ:'',
+  /* Big model files on disk, desktop only. Separate from S.models (which text
+     model a provider uses) and S.local (the in-browser download) — three
+     different things that would be one confusing field if they shared a name. */
+  weights:{ list:null, busy:null, received:0, total:null, err:null }
 };
 
 /* Keys live here and nowhere else — never written to storage, never sent to
@@ -5632,6 +5820,77 @@ function connectDetail(id){
       </div>`;
     })() : ''}
 
+    ${id==='localdiffusion' && isDesktopShell() ? (() => {
+      const busy = S.weights.busy;
+      const onDisk = (S.weights.list ?? []).filter(m => !m.partial);
+      const picked = imageModelOf(id);
+      return `
+      <div class="step ${onDisk.length ? 'done' : ''}">
+        <span class="step-n">1</span>
+        <div class="step-body">
+          <p><b>Get a model.</b> These go to <code>models/</code> in your library folder, over a
+            connection that resumes if it drops. Nothing is uploaded and no account is involved.</p>
+          <div class="weights">
+            ${WEIGHTS.map(w => {
+              const st = weightState(w);
+              return `
+              <div class="weight ${st}">
+                <div class="weight-head">
+                  <strong>${esc(w.name)}</strong>
+                  <span class="meta">${esc(String(w.gb))} GB</span>
+                  <span class="spacer"></span>
+                  ${st === 'ready' ? '<span class="rec">On disk</span>' : ''}
+                  ${st === 'partial' ? '<span class="rec" style="opacity:.7">Part-downloaded</span>' : ''}
+                </div>
+                <p class="weight-blurb">${esc(w.blurb)}</p>
+                <p class="fine">${esc(w.license)}</p>
+                ${st === 'downloading' ? `
+                  <div class="dl-track"><span class="dl-bar" data-dl-bar></span></div>
+                  <div class="row">
+                    <span class="meta" data-dl-label>Starting…</span>
+                    <span class="spacer"></span>
+                    <button class="btn secondary tiny" data-dl-cancel="1">Stop</button>
+                  </div>` : `
+                  <div class="row">
+                    ${st === 'ready'
+                      ? `<button class="btn secondary tiny" data-weight-use="${esc(w.file)}"
+                           ${picked === w.file ? 'disabled' : ''}>${picked === w.file ? 'Selected' : 'Use this one'}</button>
+                         <button class="btn secondary tiny" data-weight-del="${esc(w.file)}">Delete</button>`
+                      : `<button class="btn" data-weight-get="${esc(w.id)}" ${busy ? 'disabled' : ''}>
+                           ${st === 'partial' ? 'Resume download' : `Download ${esc(String(w.gb))} GB`}</button>`}
+                    <span class="spacer"></span>
+                    <a class="linkbtn" href="${esc(w.url.replace(/\/resolve\/.*$/, ''))}" target="_blank" rel="noopener noreferrer">Model page ↗</a>
+                  </div>`}
+              </div>`;
+            }).join('')}
+          </div>
+          ${S.weights.err ? `<div class="result bad">${esc(S.weights.err)}</div>` : ''}
+          <p class="fine">A file that is part-downloaded keeps its <code>.part</code> name until it is
+            whole, so a half-finished 17 GB transfer can never be loaded as if it were a model.</p>
+        </div>
+      </div>
+
+      <div class="step ${on ? 'done' : ''}">
+        <span class="step-n">2</span>
+        <div class="step-body">
+          <p><b>Point at the engine that runs it.</b> Throughline downloads weights; it does not run
+            them. Forge, SD.Next, Draw Things and A1111 all speak the same HTTP API — start yours with
+            its API enabled and put its address here.</p>
+          <input type="url" data-base="${id}" value="${esc(S.bases[id] ?? p.base ?? '')}"
+            placeholder="http://127.0.0.1:7860" autocomplete="off" spellcheck="false"
+            aria-label="Image engine address">
+          <p style="margin-block-start:var(--p-space-3)">Checkpoint to ask it for — the file name, as
+            the engine sees it.</p>
+          ${imageModelPicker(id)}
+          <div class="row" style="margin-block-start:var(--p-space-3)">
+            <button class="btn" data-test="${id}">Check the connection</button>
+            <a class="linkbtn" href="${esc(p.signup)}" target="_blank" rel="noopener noreferrer">Get Forge ↗</a>
+          </div>
+          <p class="fine">${esc(p.note)}</p>
+        </div>
+      </div>`;
+    })() : ''}
+
     ${id==='ollama' || id==='lmstudio' ? (
       phoneSurfaceNote(id)
         ? `<div class="step">
@@ -5842,6 +6101,12 @@ function wireSheet(el){
   };
   const def = el.querySelector('#defprov');
   if (def) def.onchange = () => { S.provider = def.value; renderSheet(); render(); };
+  /* Read the models folder the first time this panel is looked at, not on
+     boot — most sessions never open it, and it touches the disk. */
+  if (S.connectSel === 'localdiffusion' && isDesktopShell() && S.weights.list === null){
+    S.weights.list = [];
+    refreshWeights().then(renderSheet);
+  }
   el.querySelectorAll('[data-sel]').forEach(b => b.onclick = () => {
     S.connectSel = b.dataset.sel; renderSheet(); });
   el.querySelectorAll('[data-jump]').forEach(b => b.onclick = () => {
@@ -5881,6 +6146,16 @@ function wireSheet(el){
   });
   el.querySelectorAll('[data-imagemodel]').forEach(inp => {
     inp.oninput = () => { S.imageModels[inp.dataset.imagemodel] = inp.value; };
+  });
+  el.querySelectorAll('[data-weight-get]').forEach(b => b.onclick = () => {
+    const entry = WEIGHTS.find(w => w.id === b.dataset.weightGet);
+    if (entry) startWeight(entry);
+  });
+  el.querySelectorAll('[data-dl-cancel]').forEach(b => b.onclick = () => cancelWeight());
+  el.querySelectorAll('[data-weight-del]').forEach(b => b.onclick = () => deleteWeight(b.dataset.weightDel));
+  el.querySelectorAll('[data-weight-use]').forEach(b => b.onclick = () => {
+    S.imageModels.localdiffusion = b.dataset.weightUse;
+    renderSheet();
   });
   el.querySelectorAll('[data-local-model]').forEach(b => b.onclick = () => {
     S.models.localdl = b.dataset.localModel;
