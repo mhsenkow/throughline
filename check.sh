@@ -377,6 +377,20 @@ for nb in lib:
                 continue
             issues.append(f"{nb['id']}/{cell.get('id')}: prompt var {{{{ {var} }}}} not in inputs/bag")
 
+        # Every declared input.* must appear in the prompt — otherwise live runs ignore the user.
+        for ref in cell.get('inputs') or []:
+            if ref.startswith('input.') and ('{{'+ref+'}}') not in (cell.get('prompt') or ''):
+                issues.append(f"{nb['id']}/{cell.get('id')}: prompt never interpolates {{{{ {ref} }}}}")
+            if ('.' in ref) and (not ref.startswith('input.')):
+                issues.append(f"{nb['id']}/{cell.get('id')}: input ref {ref} looks like a nested path — use bag key only")
+
+        # Ban alternate template dialects the runtime cannot resolve
+        for var in re.findall(r'\{\{([\w.]+)\}\}', cell.get('prompt') or ''):
+            if var == 'locale.outputLanguage' or var.startswith('input.'):
+                continue
+            if '.output' in var or var.endswith('.picked'):
+                issues.append(f"{nb['id']}/{cell.get('id')}: template {{{{ {var} }}}} is not a bag key")
+
         if cell.get('gate'):
             to = cell['gate'].get('to')
             if to not in cell_ids[:i]:

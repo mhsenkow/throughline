@@ -189,17 +189,24 @@ together.
 
 ## The library
 
-**100 notebooks across 13 personas, 16 realms, and 8 concepts.** The home page
+**103 notebooks across 13 personas, 9 realms, and 8 concepts.** The home page
 filters on three axes, because they answer different questions:
 
 - **Persona** — whose job: manager, product, engineer, designer, marketer,
   customer lead, analyst, operator, people partner, founder, scholar, maker,
   householder.
 - **Realm** — the world you work in: business, technology, design, writing,
-  music, worldbuilding, photography, manufacturing, gardening, food, health,
-  learning, home & repair, money & legal, science, games.
+  craft & media, home & body, learning, money & legal, science.
 - **Concept** — the move the notebook makes: critique, extract, diagnose,
   generate, compare, plan, translate, teach.
+
+A curated shelf (featured) sits above the grid: gate, choice, ask, map, money,
+teaching, and the dogfood authoring notebook (*Write a Notebook*). Sparse hobby
+realms were merged into **Craft & Media** and **Home & Body** so facets stay
+intentional. Financial work pulled out of a bloated business realm into
+**Money & Legal** (runway, contracts, pricing, renewal risk). `check.sh` rejects
+prompts that declare an `input.*` and never interpolate it — live runs must see
+what the user pasted.
 
 Filing by domain alone would hide half the library from everyone. A gardener
 and a CFO both want *find the hole in this plan* — same concept, different
@@ -213,7 +220,9 @@ The shelf is content-as-data in `library.json` (`schemaVersion` up to **1.2.0**)
 ranking / timeline / choice output types. Every notebook still ships with
 hand-written `demo` output so it can be run before you connect anything (R6).
 Thin filler would violate the thing the brief cares most about — the library
-*is* the product.
+*is* the product. Editorial tooling lives in `scripts/editorial_pass.py`,
+`scripts/deep_pass.py`, and `scripts/deep_pass2.py` as history — prefer hand
+edits to `library.json` going forward.
 
 Scaling honestly: the surface window-renders the card grid and handles
 hundreds. The constraint remains authorship quality, not UI capacity.
@@ -349,6 +358,22 @@ The single file is marked with the seams it splits along — `tokens`, `notebook
 engine, not before. The rule that carries everything: **`engine` never gains a DOM
 or framework dependency.**
 
+## Phones (Android / iPhone)
+
+On-device downloads via Transformers.js work in mobile Chrome — including Pixel —
+but **Run all with a downloaded model can freeze the tab** because WASM generation
+blocks the main thread across every cell (worse with gates and maps).
+
+Mitigations shipping in the viewer:
+
+- **Phone-friendly filter** is on by default on phones: ≤4 cells, no gate, no map
+  (~87 notebooks). Toggle **All** to see the full shelf.
+- **Run all** on a phone with a downloaded model offers the **guided demo for that
+  run** first — explore the shape without a freeze; keep the model for cell-by-cell.
+- On-device generation uses shorter completions, yields between cells, skips gate
+  re-loops on phone+local model, and caps map iterations.
+- Android defaults to **SmolLM2 135M** for responsiveness (larger models stay in Connect).
+
 ## Known gaps
 
 - Runs are held in memory only; the IndexedDB adapter is wired and reporting but
@@ -357,6 +382,8 @@ or framework dependency.**
   this becomes Zod-validated with a retry-on-parse-failure.
 - Notebook content is untranslated (§10 L1) — visible in the Arabic build, and
   correct: it needs its own authoring pipeline, not the UI string catalogue.
+- Phone on-device Run all is still slower than demo or a free cloud key; the demo
+  offer is intentional, not a bug.
 
 ## Live preview
 
