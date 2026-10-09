@@ -642,6 +642,90 @@ html[data-card-size="large"] .card > p:not(.eyebrow){
   padding:0 var(--p-space-6) var(--p-space-6);
   padding-inline-start:calc(var(--p-space-6) + var(--p-space-6));
 }
+
+/* Post-flow column — cells read like a feed of statuses (singular → multiple).
+   Social chrome is not faked: foot actions stay Run / model / share. */
+.doc.post-flow .cells{
+  gap:0;
+}
+.doc.post-flow .cell:not(.compose){
+  border-block-start:1px solid var(--border-subtle);
+}
+.doc.post-flow .cell:not(.compose) .cell-head{
+  display:grid;
+  grid-template-columns:2.5rem minmax(0,1fr) auto;
+  align-items:start;
+  gap:var(--p-space-3);
+  padding:var(--p-space-4) var(--p-space-5) var(--p-space-2);
+}
+.doc.post-flow .cell:not(.compose) .cell-index{
+  width:2.5rem; height:2.5rem;
+  display:inline-flex; align-items:center; justify-content:center;
+  border-radius:var(--radius-pill);
+  background:var(--surface-sunken);
+  color:var(--ink-secondary);
+  font-family:var(--font-body);
+  font-size:var(--p-size-1);
+  font-weight:var(--p-weight-bold);
+  padding-block-start:0;
+}
+.doc.post-flow .cell:not(.compose) .cell-titles h3{
+  font-size:var(--p-size-4);
+  font-weight:var(--p-weight-bold);
+  line-height:1.3;
+}
+.doc.post-flow .cell:not(.compose) .cell-meta{
+  display:flex; flex-wrap:wrap; gap:0.35rem 0.75rem;
+  margin-block-start:0.2rem;
+  color:var(--ink-muted);
+  font-size:var(--p-size-1);
+}
+.doc.post-flow .cell:not(.compose) .cell-intent{
+  margin:0;
+  color:inherit;
+  font-size:inherit;
+}
+.doc.post-flow .cell:not(.compose) .io-line{
+  display:none;
+}
+.doc.post-flow .cell:not(.compose) details.cell-io{
+  margin-block-start:var(--p-space-2);
+  font-size:var(--p-size-0);
+  color:var(--ink-muted);
+}
+.doc.post-flow .cell:not(.compose) details.cell-io summary{
+  cursor:pointer;
+  font-family:var(--font-mono);
+  list-style:none;
+}
+.doc.post-flow .cell:not(.compose) details.cell-io .io-line{
+  display:flex;
+  margin-block-start:var(--p-space-2);
+}
+.doc.post-flow .cell:not(.compose) .cell-body{
+  padding:0 var(--p-space-5) var(--p-space-3);
+  padding-inline-start:calc(var(--p-space-5) + 2.5rem + var(--p-space-3));
+  font-size:var(--p-size-3);
+  line-height:1.55;
+}
+.doc.post-flow .cell:not(.compose) .cell-foot{
+  padding:var(--p-space-2) var(--p-space-5) var(--p-space-4);
+  padding-inline-start:calc(var(--p-space-5) + 2.5rem + var(--p-space-3));
+  gap:var(--p-space-2);
+  border-block-start:0;
+}
+.doc.post-flow .cell:not(.compose) .cell-foot .btn{
+  min-height:2rem;
+}
+.note-view .doc{ max-width:42rem; margin-inline:auto; }
+.note-view .note-actions{
+  display:flex; flex-wrap:wrap; gap:var(--p-space-2);
+  margin-block-start:var(--p-space-4);
+}
+.hero-actions{
+  display:flex; flex-wrap:wrap; gap:var(--p-space-3);
+  margin-block-start:var(--p-space-5);
+}
 .compose-media{
   display:grid; gap:var(--p-space-4); margin-block-end:var(--p-space-4);
 }
@@ -4380,6 +4464,8 @@ const S = {
      — P1 says the unit is a linear notebook, and a chain of notebooks that
      drew itself as a canvas would be the same mistake one level up. */
   chain:null, sendVar:null, sendQ:'',
+  /* Solo Note — singular cell; AI stays here, not in bruh. */
+  noteText:'',
   /* Big model files on disk, desktop only. Separate from S.models (which text
      model a provider uses) and S.local (the in-browser download) — three
      different things that would be one confusing field if they shared a name. */
@@ -4589,6 +4675,10 @@ function renderLibrary(){
         new Set(NOTEBOOKS.map(n=>n.persona).filter(Boolean)).size} personas · ${
         new Set(NOTEBOOKS.map(n=>n.realm)).size} realms · ${
         new Set(NOTEBOOKS.map(n=>n.concept)).size} kinds of thinking · nothing to install</p>
+      <div class="hero-actions">
+        <button type="button" class="btn primary" id="new-note">New note</button>
+        <button type="button" class="btn secondary" id="browse-notebooks">Browse notebooks</button>
+      </div>
       ${libraryStatus==='loading' ? '<p class="fine">Loading the rest of the library…</p>' : ''}
       ${libraryStatus==='error' ? '<p class="error-box" style="margin-block-start:var(--p-space-3)">The full library could not be loaded. These ' + SEED_NOTEBOOKS.length + ' notebooks still run. Check that library.json is next to this page.</p>' : ''}
       ${isMobileClient() ? `<p class="phone-banner" role="status">
@@ -4829,6 +4919,13 @@ function renderLibrary(){
     F.mine = 'yours'; S.libShown = LIB_PAGE; refilter();
   });
 
+  const newNote = $('#new-note');
+  if (newNote) newNote.onclick = () => openNote();
+  const browseNb = $('#browse-notebooks');
+  if (browseNb) browseNb.onclick = () => {
+    const shelf = view.querySelector('.collection, .feature, .filters');
+    shelf?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
   view.querySelectorAll('[data-nb]').forEach(el =>
     el.onclick = () => {
       S.nbId = el.dataset.nb; S.view='notebook';
@@ -4863,7 +4960,7 @@ function renderNotebook(){
   const busy = Object.values(run.cells).some(c=>c.state==='running'||c.state==='streaming'||c.state==='waiting');
   view.innerHTML = `
     <button class="ghost" id="back" style="margin-block-end:var(--p-space-4)">${esc(t('back'))}</button>
-    <article class="doc">
+    <article class="doc post-flow">
     <!-- Tools live with the document and travel with it. The rail straddles
          the sheet's edge: half on the page, half on the canvas — present
          without taking a place in the reading column. -->
@@ -4871,6 +4968,7 @@ function renderNotebook(){
       <div class="doc-tools" role="group" aria-label="Notebook actions">
         <button class="tool" id="share"><span class="lbl">Share</span>${ICONS.share}</button>
         <button class="tool" id="send"><span class="lbl">Send on</span>${ICONS.send}</button>
+        <button class="tool" id="post-ns"><span class="lbl">NeoSpace</span>${ICONS.send}</button>
         <button class="tool" id="export"><span class="lbl">${esc(t('exportNb'))}</span>${ICONS.save}</button>
         <button class="tool" id="clear"><span class="lbl">${esc(t('clearRun'))}</span>${ICONS.clear}</button>
         <button class="tool ${S.editing?'on':''}" id="edit" aria-pressed="${!!S.editing}">
@@ -5178,6 +5276,8 @@ function renderNotebook(){
   };
   $('#share').onclick = e => copyShare(nb, e.currentTarget);
   $('#send').onclick = () => { S.sheet = 'send'; renderSheet(); };
+  const postNs = $('#post-ns');
+  if (postNs) postNs.onclick = () => postNotebookToNeospace(nb);
   $('#export').onclick = () => exportNotebook(nb, run);
   $('#clear').onclick = () => { delete S.runs[nb.id]; render(); };
   $('#edit').onclick = () => { S.editing = !S.editing; render(); };
@@ -5233,6 +5333,15 @@ function renderNotebook(){
     commit();
     const cell = nb.cells.find(c=>c.id===el.dataset.run);
     await execCell(nb, cell, getRun(nb), render);
+  });
+  view.querySelectorAll('[data-customise-cell]').forEach(el => el.onclick = () => {
+    S.editing = true; render();
+    nextTickFocusPrompt(el.dataset.customiseCell);
+  });
+  view.querySelectorAll('[data-post-cell]').forEach(el => el.onclick = () => {
+    const st = getRun(nb).cells[el.dataset.postCell];
+    const text = st?.value != null ? bagText(st.value) : '';
+    postTextToNeospace(text, { title: nb.title });
   });
   /* Accepts a plain cell id or an indexed `cellId#2` from a media list. */
   const valueOf = key => {
@@ -5348,14 +5457,21 @@ function cellHTML(nb, raw, i, run){
     </section>`;
   const canRun = ready(nb, cell, run) && !st.ctrl && !anyBusy(run);
   const ins = cell.inputs.map(r=>`<span><b>in</b> ${esc(r)}</span>`).join('');
+  const io = `${ins}<span><b>out</b> ${esc(cell.output.name)} · ${esc(cell.output.type)}</span><span><b>needs</b> ${esc(cell.requires)}</span>`;
   return `
   <section class="cell" data-state="${st.state}">
     <div class="cell-head">
-      <span class="cell-index">${String(i+1).padStart(2,'0')}</span>
+      <span class="cell-index" aria-hidden="true">${String(i+1).padStart(2,'0')}</span>
       <div class="cell-titles">
         <h3>${esc(cell.title)}</h3>
-        <p class="cell-intent">${esc(cell.intent)}</p>
-        <div class="io-line">${ins}<span><b>out</b> ${esc(cell.output.name)} · ${esc(cell.output.type)}</span><span><b>needs</b> ${esc(cell.requires)}</span></div>
+        <div class="cell-meta">
+          <p class="cell-intent">${esc(cell.intent)}</p>
+          <span class="cell-step">cell ${String(i+1).padStart(2,'0')}</span>
+        </div>
+        <details class="cell-io">
+          <summary>in · out · needs</summary>
+          <div class="io-line">${io}</div>
+        </details>
       </div>
       ${st.pass > 1 ? `<span class="badge pass-badge">pass ${st.pass}</span>` : ''}
       <span class="badge" data-s="${st.state}">${esc(st.state)}</span>
@@ -5395,6 +5511,9 @@ function cellHTML(nb, raw, i, run){
     <div class="cell-foot">
       <button class="btn secondary tiny" data-run="${cell.id}" ${canRun?'':'disabled'}>
         ${esc(st.state==='done'||st.state==='stale' ? t('reRun') : t('run'))}</button>
+      <button class="btn secondary tiny" data-customise-cell="${raw.id}" type="button">Customise</button>
+      ${st.state==='done' && st.value != null
+        ? `<button class="btn secondary tiny" data-post-cell="${cell.id}" type="button">Post</button>` : ''}
       ${st.ms ? `<span class="meta">${st.ms} ms</span>`:''}
       <span class="spacer"></span>
       ${cellPicker(cell)}
@@ -7046,8 +7165,8 @@ function wireSheet(el){
     const again = $('#send-q');
     if (again){ again.focus(); again.setSelectionRange(again.value.length, again.value.length); }
   };
-  pick('brand',   v => S.brand = v);
-  pick('typeset', v => S.typeset = v);
+  pick('brand',   v => { S.brand = v; pushSuiteLookFromLocal(); });
+  pick('typeset', v => { S.typeset = v; pushSuiteLookFromLocal(); });
   pick('density', v => S.density = v);
   pick('locale',  v => S.locale = v);
   pick('mode',    v => {
@@ -7852,12 +7971,335 @@ function paintScenes(){
 }
 addEventListener('resize', () => { if (S.view === 'notebook') paintScenes(); });
 
+
+/* ── Suite look + NeoSpace handoff (mirror bruh; do not change bruh) ── */
+const SUITE_SHARED_KEY = 'ibm.tools.shared';
+const NEOSPACE_ORIGINS = [
+  'https://neospace.ibm.io',
+  'https://neospace-dc4.pages.dev',
+];
+const DEFAULT_NEOSPACE = 'https://neospace.ibm.io';
+const SUITE_THEME_BRAND = {
+  light:'rams', dark:'rams', contrast:'wcContrast', paper:'wcPaper',
+  glass:'wcGlass', frost:'wcFrost', brutal:'wcBrutal', loom:'wcLoom',
+  tank:'wcTank', nes:'wcNes',
+};
+const SUITE_FONT_TYPESET = {
+  sans:'grotesk', serif:'editorial', book:'mixed', mono:'mono', dyslexic:'humanist',
+};
+const BRAND_SUITE_THEME = Object.fromEntries(
+  Object.entries(SUITE_THEME_BRAND).map(([t,b]) => [b, t])
+);
+
+function readSuiteBlob(){
+  try {
+    const raw = localStorage.getItem(SUITE_SHARED_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch { return {}; }
+}
+function writeSuiteBlob(partial){
+  try {
+    localStorage.setItem(SUITE_SHARED_KEY, JSON.stringify({ ...readSuiteBlob(), ...partial }));
+  } catch { /* quota */ }
+}
+function rememberSuiteVisit(id = 'notebook'){
+  const blob = readSuiteBlob();
+  const recent = Array.isArray(blob.recent) ? blob.recent.filter(x => x !== id) : [];
+  recent.unshift(id);
+  writeSuiteBlob({ recent: recent.slice(0, 8) });
+}
+function applySuiteLookFromShared(){
+  const blob = readSuiteBlob();
+  const theme = typeof blob.theme === 'string' ? blob.theme : null;
+  const font = typeof blob.font === 'string' ? blob.font : null;
+  let changed = false;
+  if (theme && SUITE_THEME_BRAND[theme] && BRANDS[SUITE_THEME_BRAND[theme]]){
+    const nextBrand = SUITE_THEME_BRAND[theme];
+    if (S.brand !== nextBrand){ S.brand = nextBrand; changed = true; }
+    if (theme === 'dark' && S.modePref === 'system'){
+      /* keep system; mode already follows host */
+    } else if (theme === 'dark'){
+      if (S.modePref !== 'dark'){ S.modePref = 'dark'; S.mode = 'dark'; changed = true; }
+    } else if (theme === 'light' || theme === 'paper' || theme === 'contrast'){
+      if (S.modePref === 'dark'){ S.modePref = 'light'; S.mode = 'light'; changed = true; }
+    }
+  }
+  if (font && SUITE_FONT_TYPESET[font] && TYPESETS[SUITE_FONT_TYPESET[font]]){
+    const nextTs = SUITE_FONT_TYPESET[font];
+    if (S.typeset !== nextTs){ S.typeset = nextTs; changed = true; }
+  }
+  if (changed) applyTheme();
+  return changed;
+}
+function pushSuiteLookFromLocal(){
+  const theme = BRAND_SUITE_THEME[S.brand]
+    || (S.mode === 'dark' ? 'dark' : 'light');
+  const font = Object.entries(SUITE_FONT_TYPESET).find(([, ts]) => ts === S.typeset)?.[0] || 'sans';
+  writeSuiteBlob({ theme, font, ui: 'braun' });
+}
+function isNeospaceOrigin(origin){
+  if (NEOSPACE_ORIGINS.includes(origin)) return true;
+  try {
+    const host = new URL(origin).hostname;
+    if (host === 'localhost' || host === '127.0.0.1') return true;
+    if (host.endsWith('.pages.dev') && host.includes('neospace')) return true;
+  } catch {}
+  return false;
+}
+function neospaceComposeUrl(text, origin = DEFAULT_NEOSPACE){
+  const u = new URL('/', origin);
+  u.searchParams.set('compose', 'notebook');
+  u.searchParams.set('text', text.slice(0, 1800));
+  return u.toString();
+}
+function postTextToNeospace(text, { title } = {}){
+  const body = String(text || '').trim();
+  if (!body){ toast('Nothing to post yet — run a cell or write a note.'); return; }
+  const caption = [title, body].filter(Boolean).join('\n\n');
+  const query = caption.length > 240 ? caption.slice(0, 237) + '…' : caption;
+  const target = window.open(neospaceComposeUrl(query), 'neospace_notebook_share');
+  if (!target){ toast('Pop-up blocked — allow windows for NeoSpace.'); return; }
+  const message = { type: 'notebook-neospace-share', v: 1, text: caption };
+  let done = false;
+  const send = () => {
+    try { if (!target.closed) target.postMessage(message, DEFAULT_NEOSPACE); } catch {}
+    for (const o of NEOSPACE_ORIGINS){
+      try { if (!target.closed) target.postMessage(message, o); } catch {}
+    }
+  };
+  const onMessage = (e) => {
+    if (e.source !== target || !isNeospaceOrigin(e.origin)) return;
+    if (e.data?.type === 'neospace-notebook-ready') send();
+    if (e.data?.type === 'neospace-notebook-ack'){
+      done = true;
+      window.removeEventListener('message', onMessage);
+      clearInterval(pump);
+      clearTimeout(timer);
+      toast('Opened in NeoSpace compose.');
+    }
+  };
+  window.addEventListener('message', onMessage);
+  const pump = setInterval(send, 400);
+  const timer = setTimeout(() => {
+    window.removeEventListener('message', onMessage);
+    clearInterval(pump);
+    if (!done) toast('NeoSpace opened — finish the post there.');
+  }, 10000);
+  send();
+}
+function postNotebookToNeospace(nb){
+  const run = getRun(nb);
+  const vars = Object.entries(run.bag).filter(([, v]) => bagPresent(v));
+  const last = vars.length ? vars[vars.length - 1] : null;
+  const text = last ? bagText(last[1]) : '';
+  postTextToNeospace(text || nb.blurb || nb.title, { title: nb.title });
+}
+function nextTickFocusPrompt(cellId){
+  requestAnimationFrame(() => {
+    const ta = view.querySelector(`[data-prompt="${cellId}"]`);
+    if (ta){ ta.focus(); const d = ta.closest('details'); if (d) d.open = true; }
+  });
+}
+
+/* ── Solo Note — singular AI cell (bruh stays paper-only) ── */
+const NOTE_ID = '__note__';
+function noteNotebook(){
+  return hydrateNotebook({
+    id: NOTE_ID,
+    schemaVersion: '1.2.0',
+    realm: 'writing',
+    concept: 'generate',
+    persona: 'maker',
+    title: 'Note',
+    blurb: 'A singular cell — write, run with your model, expand into a notebook, or post to NeoSpace.',
+    teaches: 'Note — one cell before a column',
+    tags: ['note', 'solo'],
+    origin: 'note',
+    input: {
+      id: 'prompt',
+      label: 'Note',
+      placeholder: 'Write freely — one cell, like a post waiting for a column.',
+      seed: '',
+    },
+    cells: [{
+      id: 'reply',
+      title: 'Note',
+      intent: 'Singular cell · your connected model',
+      inputs: ['input.prompt'],
+      output: { name: 'note', type: 'prose' },
+      requires: 'fast',
+      prompt: 'Respond helpfully and concretely to the note below. Keep a clear voice. Respond in {{locale.outputLanguage}}.\n\n{{input.prompt}}',
+      demo: 'Here is a clear take on that note:\n\nYou named something real. The next move is to make one claim falsifiable — then the notebook column can pressure-test it.',
+    }],
+  });
+}
+function openNote(){
+  S.view = 'note';
+  S.nbId = NOTE_ID;
+  const nb = noteNotebook();
+  const run = getRun(nb);
+  const key = 'input.prompt';
+  if (S.noteText) run.bag[key] = S.noteText;
+  else if (!bagPresent(run.bag[key])) run.bag[key] = '';
+  render(); scrollTop();
+}
+function renderNote(){
+  const nb = noteNotebook();
+  const run = getRun(nb);
+  const inKey = 'input.prompt';
+  const cell = nb.cells[0];
+  const st = run.cells[cell.id];
+  const busy = st.state === 'running' || st.state === 'streaming';
+  const out = st.value != null ? bagText(st.value) : '';
+  view.innerHTML = `
+    <div class="note-view">
+      <button class="ghost" id="back" style="margin-block-end:var(--p-space-4)">${esc(t('back'))}</button>
+      <article class="doc post-flow">
+        <div class="doc-head">
+          <p class="eyebrow">Note · singular cell</p>
+          <h1 style="margin-block-start:var(--p-space-2)">Note</h1>
+          <p class="lede">Like a post without a board — AI stays here. Expand into a notebook column, or place it in NeoSpace.</p>
+        </div>
+        <div class="cell compose">
+          <div class="cell-head">
+            <span class="cell-index">Note</span>
+            <div class="cell-titles">
+              <h3>Write</h3>
+              <p class="compose-lede">One cell. Run with your connected model, or the guided demo.</p>
+            </div>
+          </div>
+          <div class="cell-body">
+            <textarea id="nb-input" rows="6" placeholder="${esc(nb.input.placeholder)}">${esc(run.bag[inKey] ?? S.noteText ?? '')}</textarea>
+          </div>
+          <div class="cell-foot">
+            <button class="btn primary tiny" id="note-run" ${busy?'disabled':''}>${busy ? 'Running…' : 'Run'}</button>
+            <span class="spacer"></span>
+            <span class="meta">${esc(st.state)}</span>
+          </div>
+        </div>
+        ${out || st.raw || st.error ? `
+        <section class="cell" data-state="${st.state}">
+          <div class="cell-head">
+            <span class="cell-index" aria-hidden="true">01</span>
+            <div class="cell-titles">
+              <h3>Reply</h3>
+              <div class="cell-meta"><p class="cell-intent">Model output · same rhythm as a post body</p></div>
+            </div>
+            <span class="badge" data-s="${st.state}">${esc(st.state)}</span>
+          </div>
+          <div class="cell-body">
+            ${st.error ? `<div class="error-box">${esc(st.error)}</div>` : ''}
+            ${st.raw && st.state==='streaming' ? `<pre class="raw">${esc(st.raw)}<span class="caret"></span></pre>` : ''}
+            ${out ? `<div class="prose">${inline(out)}</div>` : ''}
+          </div>
+          <div class="cell-foot">
+            <button class="btn secondary tiny" id="note-run-again" ${busy?'disabled':''}>Re-run</button>
+            ${out ? `<button class="btn secondary tiny" id="note-post">Post to NeoSpace</button>` : ''}
+          </div>
+        </section>` : ''}
+        <div class="note-actions" style="padding:var(--p-space-5)">
+          <button class="btn secondary" id="note-expand">Expand to notebook</button>
+          <button class="btn" id="note-post-main" ${out?'':'disabled'}>Post to NeoSpace</button>
+        </div>
+      </article>
+    </div>`;
+  $('#back').onclick = () => { S.view='library'; S.nbId=null; render(); scrollTop(); };
+  const ta = $('#nb-input');
+  const commit = () => {
+    const v = ta?.value ?? '';
+    S.noteText = v;
+    run.bag[inKey] = v;
+  };
+  if (ta) ta.oninput = () => { S.noteText = ta.value; run.bag[inKey] = ta.value; };
+  const runNote = async () => {
+    commit();
+    if (!String(run.bag[inKey] || '').trim()){ toast('Write a note first.'); return; }
+    await execCell(nb, cell, run, render);
+    render();
+  };
+  $('#note-run').onclick = runNote;
+  const again = $('#note-run-again');
+  if (again) again.onclick = runNote;
+  const post = () => {
+    commit();
+    const text = out || String(run.bag[inKey] || '').trim();
+    postTextToNeospace(text, { title: 'Note' });
+  };
+  $('#note-post')?.addEventListener('click', post);
+  $('#note-post-main')?.addEventListener('click', post);
+  $('#note-expand').onclick = async () => {
+    commit();
+    const prompt = String(run.bag[inKey] || '').trim();
+    if (!prompt){ toast('Write something before expanding.'); return; }
+    const id = `note-${Date.now().toString(36)}`;
+    const draft = {
+      id,
+      schemaVersion: '1.2.0',
+      realm: 'writing',
+      concept: 'generate',
+      persona: 'maker',
+      title: prompt.slice(0, 48) + (prompt.length > 48 ? '…' : ''),
+      blurb: 'Expanded from Note — a short column of cells.',
+      teaches: 'Note → notebook column',
+      tags: ['note', 'yours'],
+      input: {
+        id: 'prompt',
+        label: 'Starting note',
+        placeholder: 'The singular cell you began with',
+        seed: prompt,
+      },
+      cells: [
+        {
+          id: 'reply',
+          title: 'First reply',
+          intent: 'Expand the note into a usable answer',
+          inputs: ['input.prompt'],
+          output: { name: 'reply', type: 'prose' },
+          requires: 'fast',
+          prompt: 'Respond helpfully to the note. Respond in {{locale.outputLanguage}}.\n\n{{input.prompt}}',
+          demo: out || 'A first pass on your note.',
+        },
+        {
+          id: 'sharpen',
+          title: 'Sharpen',
+          intent: 'Make one claim falsifiable',
+          inputs: ['reply'],
+          output: { name: 'sharp', type: 'prose' },
+          requires: 'reasoning',
+          prompt: 'From the reply, extract one falsifiable claim and one next step. Respond in {{locale.outputLanguage}}.\n\n{{reply}}',
+          demo: 'Claim: …\nNext step: …',
+        },
+      ],
+    };
+    try {
+      const saved = await saveUserNotebook(draft);
+      const trun = getRun(saved);
+      trun.bag['input.prompt'] = prompt;
+      if (out) {
+        trun.cells.reply.value = out;
+        trun.cells.reply.state = 'done';
+        trun.bag.reply = out;
+      }
+      S.view = 'notebook';
+      S.nbId = saved.id;
+      render(); scrollTop();
+      toast('Expanded into a notebook column.');
+    } catch (e) {
+      toast(e.message || String(e));
+    }
+  };
+}
+
+
 function render(){
   const focus = document.activeElement?.id;
   const scroll = workspace.scrollTop;
-  S.view === 'library' ? renderLibrary() : renderNotebook();
+  if (S.view === 'library') renderLibrary();
+  else if (S.view === 'note') renderNote();
+  else renderNotebook();
   renderSwitcher(); renderRail(); renderStatusbar();
-  if (S.view !== 'library') paintScenes();
+  if (S.view === 'notebook') paintScenes();
   if (focus === 'nb-input'){
     const ta = $('#nb-input');
     if (ta){ const end = ta.value.length; ta.focus(); ta.setSelectionRange(end,end); }
@@ -7880,6 +8322,12 @@ addEventListener('click', e => {
   if (!m || m.hidden) return;
   if (e.target.closest('.switch-wrap') || e.target.closest('#model-menu') || e.target.closest('#model-scrim')) return;
   closeMenu();
+});
+rememberSuiteVisit('notebook');
+applySuiteLookFromShared();
+addEventListener('storage', e => {
+  if (e.key !== SUITE_SHARED_KEY) return;
+  if (applySuiteLookFromShared()) render();
 });
 $('#home').onclick = () => { S.view='library'; S.nbId=null; render(); scrollTop(); };
 $('#btn-look').querySelector('.ico').innerHTML = ICONS.look;
