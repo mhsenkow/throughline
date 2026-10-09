@@ -643,88 +643,451 @@ html[data-card-size="large"] .card > p:not(.eyebrow){
   padding-inline-start:calc(var(--p-space-6) + var(--p-space-6));
 }
 
-/* Post-flow column — cells read like a feed of statuses (singular → multiple).
-   Social chrome is not faked: foot actions stay Run / model / share. */
+/* Post-flow column — NeoSpace status-card / column-posts rhythm.
+   Face cards on paper, avatar + author/handle/time, muted action row. */
+.workspace:has(.doc.post-flow),
+.workspace:has(.note-view){
+  background:var(--surface-base);
+}
+.doc.post-flow{
+  background:transparent;
+  border:0;
+  border-radius:0;
+  box-shadow:none;
+  max-width:44rem;
+  margin-inline:auto;
+  width:100%;
+  padding:0.5rem;
+  box-sizing:border-box;
+}
+.doc.post-flow > .doc-head{
+  background:var(--surface-raised);
+  border:1px solid var(--border-subtle);
+  border-radius:var(--radius-md);
+  margin-block-end:0.375rem;
+  padding:0.875rem 1rem;
+}
+.doc.post-flow > .doc-head .nb-head h1{
+  font-size:1.25rem;
+  letter-spacing:-0.02em;
+  max-width:28ch;
+}
+.doc.post-flow > .doc-head .eyebrow{
+  font-size:0.8125rem;
+  color:var(--ink-muted);
+  text-transform:none;
+  letter-spacing:0;
+}
+.doc.post-flow > .doc-head .lede{
+  font-size:0.9375rem;
+  color:var(--ink-secondary);
+  margin-block-start:0.35rem;
+  max-width:42ch;
+}
+.doc.post-flow .doc-rail{
+  position:static;
+  float:none;
+  width:auto;
+  margin:0 0 0.375rem;
+  padding:0;
+  border:0;
+  background:transparent;
+}
+.doc.post-flow .doc-tools{
+  display:flex;
+  flex-wrap:wrap;
+  gap:0.15rem;
+  padding:0;
+  border:0;
+  background:transparent;
+  position:static;
+  transform:none;
+  inset:auto;
+}
+.doc.post-flow .doc-tools .tool{
+  position:relative;
+  inline-size:auto;
+  block-size:auto;
+  min-height:2.5rem;
+  min-width:2.5rem;
+  padding:0.45rem 0.55rem;
+  border-radius:4px;
+  border:0;
+  background:transparent;
+  color:var(--ink-muted);
+  font-size:0.8125rem;
+  box-shadow:none;
+  display:inline-flex;
+  align-items:center;
+  gap:0.3rem;
+}
+.doc.post-flow .doc-tools .tool:hover,
+.doc.post-flow .doc-tools .tool:focus-visible{
+  background:var(--surface-sunken);
+  color:var(--ink-primary);
+  box-shadow:none;
+}
+.doc.post-flow .doc-tools .tool .lbl{
+  position:static;
+  opacity:1;
+  pointer-events:auto;
+  transform:none;
+  display:inline;
+  padding:0;
+  background:transparent;
+  box-shadow:none;
+  color:inherit;
+  font-size:0.8125rem;
+}
+.doc.post-flow .doc-tools .tool svg,
+.doc.post-flow .doc-tools .tool .i{
+  width:18px; height:18px; flex:none;
+}
 .doc.post-flow .cells{
-  gap:0;
+  display:flex;
+  flex-direction:column;
+  gap:0.375rem;
+  padding:0;
 }
+/* Face cards — match TimelineColumn :deep(.status-card) */
+.doc.post-flow .cell,
 .doc.post-flow .cell:not(.compose){
+  background:var(--surface-raised);
+  border:1px solid var(--border-subtle);
+  border-radius:var(--radius-md);
   border-block-start:1px solid var(--border-subtle);
+  overflow:visible;
+  box-shadow:none;
+  transition:border-color 0.15s ease, background 0.15s ease;
 }
-.doc.post-flow .cell:not(.compose) .cell-head{
-  display:grid;
-  grid-template-columns:2.5rem minmax(0,1fr) auto;
-  align-items:start;
-  gap:var(--p-space-3);
-  padding:var(--p-space-4) var(--p-space-5) var(--p-space-2);
+.doc.post-flow .cell:hover{
+  border-color:var(--border-strong);
+  background:var(--surface-raised);
+  z-index:2;
 }
-.doc.post-flow .cell:not(.compose) .cell-index{
-  width:2.5rem; height:2.5rem;
+/* State lives in the time meta — not a tinted notebook band. */
+.doc.post-flow .cell[data-state="running"],
+.doc.post-flow .cell[data-state="streaming"],
+.doc.post-flow .cell[data-state="stale"],
+.doc.post-flow .cell[data-state="error"],
+.doc.post-flow .cell[data-state="waiting"]{
+  background:var(--surface-raised);
+  box-shadow:none;
+  border-style:solid;
+}
+.doc.post-flow .cell-main{
+  display:flex;
+  gap:0.75rem;
+  padding:0.875rem;
+  overflow:visible;
+  max-width:100%;
+}
+.doc.post-flow .cell-avatar{
+  flex:none;
+  width:40px; height:40px;
   display:inline-flex; align-items:center; justify-content:center;
-  border-radius:var(--radius-pill);
+  border-radius:50%;
   background:var(--surface-sunken);
   color:var(--ink-secondary);
   font-family:var(--font-body);
-  font-size:var(--p-size-1);
-  font-weight:var(--p-weight-bold);
-  padding-block-start:0;
+  font-size:0.75rem;
+  font-weight:600;
+  letter-spacing:-0.02em;
+  object-fit:cover;
 }
-.doc.post-flow .cell:not(.compose) .cell-titles h3{
-  font-size:var(--p-size-4);
-  font-weight:var(--p-weight-bold);
-  line-height:1.3;
+.doc.post-flow .cell-avatar.you{
+  background:var(--accent-wash);
+  color:var(--accent-base);
+  font-size:0.6875rem;
+  text-transform:uppercase;
+  letter-spacing:0.04em;
 }
-.doc.post-flow .cell:not(.compose) .cell-meta{
-  display:flex; flex-wrap:wrap; gap:0.35rem 0.75rem;
-  margin-block-start:0.2rem;
-  color:var(--ink-muted);
-  font-size:var(--p-size-1);
+.doc.post-flow .cell-content{
+  flex:1;
+  min-width:0;
+  max-width:100%;
+  display:flex;
+  flex-direction:column;
+  gap:0.25rem;
+  overflow:visible;
 }
-.doc.post-flow .cell:not(.compose) .cell-intent{
+.doc.post-flow .cell:not(.compose) .cell-head,
+.doc.post-flow .cell.compose .cell-head{
+  display:flex;
+  align-items:center;
+  gap:0.375rem;
+  padding:0;
   margin:0;
-  color:inherit;
-  font-size:inherit;
+  max-width:100%;
+  overflow:visible;
 }
-.doc.post-flow .cell:not(.compose) .io-line{
-  display:none;
+.doc.post-flow .cell-author{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:baseline;
+  gap:0.35rem;
+  overflow:hidden;
+  min-height:32px;
+  padding:0.15rem 0;
 }
+.doc.post-flow .cell:not(.compose) .cell-titles{ display:contents; }
+.doc.post-flow .cell:not(.compose) .cell-titles h3,
+.doc.post-flow .cell-author h3{
+  margin:0;
+  font-size:0.9375rem;
+  font-weight:600;
+  line-height:1.3;
+  color:var(--ink-primary);
+  font-family:var(--font-body);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  flex:0 0 auto;
+  max-width:100%;
+}
+.doc.post-flow .cell-handle{
+  flex:0 1 auto;
+  min-width:0;
+  font-size:0.8125rem;
+  font-weight:400;
+  color:var(--ink-muted);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  max-width:12rem;
+}
+.doc.post-flow .cell-meta{ display:none; }
+.doc.post-flow .cell-intent{ display:none; }
+.doc.post-flow .cell-step{ display:none; }
+.doc.post-flow .cell:not(.compose) .io-line{ display:none; }
 .doc.post-flow .cell:not(.compose) details.cell-io{
-  margin-block-start:var(--p-space-2);
-  font-size:var(--p-size-0);
+  margin:0.05rem 0 0;
+  font-size:0.6875rem;
   color:var(--ink-muted);
 }
 .doc.post-flow .cell:not(.compose) details.cell-io summary{
   cursor:pointer;
-  font-family:var(--font-mono);
   list-style:none;
+  font-family:var(--font-body);
+  color:var(--ink-muted);
 }
+.doc.post-flow .cell:not(.compose) details.cell-io summary:hover{ color:var(--ink-secondary); }
 .doc.post-flow .cell:not(.compose) details.cell-io .io-line{
   display:flex;
-  margin-block-start:var(--p-space-2);
+  margin-block-start:0.35rem;
+  font-family:var(--font-mono);
+  font-size:0.6875rem;
 }
-.doc.post-flow .cell:not(.compose) .cell-body{
-  padding:0 var(--p-space-5) var(--p-space-3);
-  padding-inline-start:calc(var(--p-space-5) + 2.5rem + var(--p-space-3));
-  font-size:var(--p-size-3);
-  line-height:1.55;
+/* Time/status — NeoSpace status-time, not pill badges */
+.doc.post-flow .cell-time,
+.doc.post-flow .cell-time.badge{
+  flex-shrink:0;
+  display:inline;
+  font-size:0.8125rem;
+  font-weight:400;
+  color:var(--ink-muted);
+  text-transform:none;
+  letter-spacing:0;
+  background:transparent;
+  padding:0;
+  border-radius:0;
+  gap:0;
+  white-space:nowrap;
 }
+.doc.post-flow .cell-time::before,
+.doc.post-flow .cell-time.badge::before{
+  display:none !important;
+  content:none !important;
+  inline-size:0; block-size:0;
+}
+.doc.post-flow .cell-time[data-s="running"],
+.doc.post-flow .cell-time[data-s="streaming"]{ color:var(--status-running); }
+.doc.post-flow .cell-time[data-s="done"]{ color:var(--ink-muted); }
+.doc.post-flow .cell-time[data-s="stale"],
+.doc.post-flow .cell-time[data-s="waiting"]{ color:var(--status-stale); }
+.doc.post-flow .cell-time[data-s="error"]{ color:var(--status-error); }
+.doc.post-flow .cell:not(.compose) .cell-body,
+.doc.post-flow .cell.compose .cell-body{
+  padding:0;
+  margin:0;
+  font-size:0.9375rem;
+  line-height:1.5;
+  color:var(--ink-primary);
+  max-width:62ch;
+}
+.doc.post-flow .cell:not(.compose) .cell-body .meta,
+.doc.post-flow .cell.compose .compose-lede{
+  font-family:var(--font-body);
+  font-size:0.8125rem;
+  color:var(--ink-muted);
+  margin:0;
+}
+/* Action row — status-actions */
 .doc.post-flow .cell:not(.compose) .cell-foot{
-  padding:var(--p-space-2) var(--p-space-5) var(--p-space-4);
-  padding-inline-start:calc(var(--p-space-5) + 2.5rem + var(--p-space-3));
-  gap:var(--p-space-2);
-  border-block-start:0;
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:0.15rem;
+  padding:0;
+  margin:0.5rem 0 0;
+  margin-inline-start:-0.35rem;
+  border:0;
+  background:transparent;
+  max-width:100%;
 }
-.doc.post-flow .cell:not(.compose) .cell-foot .btn{
-  min-height:2rem;
+.doc.post-flow .cell:not(.compose) .cell-foot .btn,
+.doc.post-flow .cell-action{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:0.3rem;
+  min-height:2.75rem;
+  min-width:2.75rem;
+  padding:0.45rem 0.5rem;
+  border:0;
+  border-radius:4px;
+  background:transparent;
+  color:var(--ink-muted);
+  font-size:0.8125rem;
+  font-weight:500;
+  font-family:var(--font-body);
+  box-shadow:none;
+  line-height:1;
+  transition:background 0.15s ease, color 0.15s ease, transform 0.1s ease;
 }
-.note-view .doc{ max-width:42rem; margin-inline:auto; }
+.doc.post-flow .cell:not(.compose) .cell-foot .btn .i,
+.doc.post-flow .cell-action .i{
+  width:20px; height:20px; flex:none;
+}
+.doc.post-flow .cell:not(.compose) .cell-foot .btn:hover,
+.doc.post-flow .cell-action:hover{
+  background:var(--surface-sunken);
+  color:var(--ink-primary);
+}
+.doc.post-flow .cell:not(.compose) .cell-foot .btn:active:not(:disabled),
+.doc.post-flow .cell-action:active:not(:disabled){
+  transform:scale(0.92);
+}
+.doc.post-flow .cell:not(.compose) .cell-foot .btn:disabled{
+  opacity:0.5;
+  cursor:not-allowed;
+}
+.doc.post-flow .cell-action--accent{
+  color:var(--accent-base);
+}
+.doc.post-flow .cell-action--accent:hover{
+  background:var(--accent-wash);
+  color:var(--accent-base);
+}
+.doc.post-flow .cell:not(.compose) .cell-foot .meta{
+  font-family:var(--font-body);
+  font-size:0.75rem;
+  color:var(--ink-muted);
+  margin-inline-start:0.25rem;
+}
+.doc.post-flow .cell:not(.compose) .picker{
+  margin-inline-start:auto;
+  opacity:0.85;
+  display:inline-flex;
+  align-items:center;
+  gap:0.25rem;
+}
+.doc.post-flow .cell:not(.compose) .picker .meta{ display:none; }
+.doc.post-flow .cell:not(.compose) .picker select{
+  font-size:0.75rem;
+  color:var(--ink-muted);
+  background:transparent;
+  border:0;
+  max-width:9rem;
+}
+/* Compose = same face card as a post you're writing */
+.doc.post-flow .cell.compose{
+  background:var(--surface-raised);
+  border:1px solid var(--border-subtle);
+  border-radius:var(--radius-md);
+  box-shadow:none;
+  margin-block-end:0;
+}
+.doc.post-flow .cell.compose .cell-index{ display:none; }
+.doc.post-flow .cell.compose .compose-write,
+.doc.post-flow .cell.compose textarea#nb-input{
+  width:100%;
+  min-height:5.5rem;
+  margin-block-start:0.25rem;
+  padding:0.65rem 0.75rem;
+  border-radius:4px;
+  border:1px solid var(--border-subtle);
+  background:var(--surface-base);
+  font-size:0.9375rem;
+  line-height:1.5;
+  resize:vertical;
+}
+.doc.post-flow .cell.compose .compose-write:focus,
+.doc.post-flow .cell.compose textarea#nb-input:focus{
+  outline:2px solid var(--accent-base);
+  outline-offset:2px;
+  border-color:transparent;
+}
+.doc.post-flow .cell.compose .compose-label{
+  font-size:0.8125rem;
+  color:var(--ink-muted);
+  font-weight:500;
+}
+.note-view{
+  max-width:44rem;
+  margin-inline:auto;
+  width:100%;
+  padding:0.5rem;
+  box-sizing:border-box;
+}
+.note-view .doc{ max-width:none; margin-inline:0; }
 .note-view .note-actions{
-  display:flex; flex-wrap:wrap; gap:var(--p-space-2);
-  margin-block-start:var(--p-space-4);
+  display:flex; flex-wrap:wrap; gap:0.15rem;
+  margin-block-start:0.5rem;
+  margin-inline-start:-0.35rem;
+  padding:0;
+}
+.note-view .note-actions .btn{
+  min-height:2.75rem;
+  min-width:2.75rem;
+  border-radius:4px;
+  border:0;
+  background:transparent;
+  color:var(--ink-muted);
+  padding:0.45rem 0.55rem;
+}
+.note-view .note-actions .btn:hover{
+  background:var(--surface-sunken);
+  color:var(--ink-primary);
 }
 .hero-actions{
   display:flex; flex-wrap:wrap; gap:var(--p-space-3);
   margin-block-start:var(--p-space-5);
+}
+@media (max-width:600px){
+  .doc.post-flow{ max-width:none; padding:0.35rem; }
+  .doc.post-flow .cell-main{ padding:0.65rem 0.5rem; gap:0.65rem; }
+  .doc.post-flow .cell-avatar{ width:36px; height:36px; font-size:0.6875rem; }
+  .doc.post-flow .cell:not(.compose) .cell-body{ font-size:0.9375rem; }
+  .doc.post-flow .cell:not(.compose) .cell-foot .btn,
+  .doc.post-flow .cell-action{
+    min-height:3rem;
+    min-width:3rem;
+    padding:0.55rem 0.6rem;
+  }
+  .doc.post-flow .cell:not(.compose) .cell-foot .btn .i,
+  .doc.post-flow .cell-action .i{ width:22px; height:22px; }
+  /* Full-bleed faces on narrow — same as NeoSpace mobile cards */
+  .doc.post-flow .cell,
+  .doc.post-flow .cell:not(.compose),
+  .doc.post-flow .cell.compose,
+  .doc.post-flow > .doc-head{
+    border:0;
+    border-radius:0;
+    background:var(--surface-raised);
+  }
 }
 .compose-media{
   display:grid; gap:var(--p-space-4); margin-block-end:var(--p-space-4);
@@ -1963,36 +2326,36 @@ const DENSITY = {
 const BRANDS = {
   rams: { group:'core',
     name:'Braun', note:'Rams — functional, honest, as little as possible',
-    chips:['#e04403','#f2f1ed','#1a1a18'],
+    chips:['#a84c1e','#f2f2f0','#111111'],
     light: {
-      /* Warm neutrals, one accent doing real work. Braun used orange, green
-         and yellow as FUNCTIONAL markers — on, attention, fault — never as
-         decoration, so the status tokens carry them and nothing else does. */
-      '--surface-base':'#eceae4', '--surface-raised':'#faf9f6', '--surface-sunken':'#e2e0d9',
-      '--ink-primary':'#1a1a18', '--ink-secondary':'#55534e', '--ink-muted':'#8e8b85',
-      '--ink-inverse':'#faf9f6',
-      '--accent-base':'#e04403', '--accent-hover':'#b83703', '--accent-ink':'#ffffff',
-      '--accent-wash':'color-mix(in oklab, #e04403 9%, transparent)',
-      '--border-subtle':'#d5d3cd', '--border-strong':'#a8a49c', '--border-focus':'#e04403',
-      '--status-idle':'#a8a49c', '--status-running':'#0a6ebd',
-      '--status-done':'#3f7a2e', '--status-stale':'#d99400', '--status-error':'#c8321e',
-      '--font-display':"'Helvetica Neue',Helvetica,Arial,'Akzidenz-Grotesk',sans-serif",
-      '--font-body':"'Helvetica Neue',Helvetica,Arial,'Akzidenz-Grotesk',sans-serif",
-      '--weight-heading':'700', '--tracking-heading':'-0.02em',
-      '--radius-sm':'1px', '--radius-md':'2px', '--radius-lg':'3px', '--radius-pill':'999px',
-      /* No drop shadows. Depth is stated with a hairline, not implied with blur. */
-      '--elevation-1':'none', '--elevation-2':'none'
+      /* NeoSpace Braun light — themes.scss neo-from-braun(#f2f2f0,#fafaf8,#111,#666,#c8c8c4,#e4e4e0,#a84c1e). */
+      '--surface-base':'#f2f2f0', '--surface-raised':'#fafaf8', '--surface-sunken':'#e4e4e0',
+      '--ink-primary':'#111111', '--ink-secondary':'#666666', '--ink-muted':'#666666',
+      '--ink-inverse':'#fafaf8',
+      '--accent-base':'#a84c1e', '--accent-hover':'#8a3e18', '--accent-ink':'#ffffff',
+      '--accent-wash':'color-mix(in oklab, #a84c1e 12%, transparent)',
+      '--border-subtle':'#e4e4e0', '--border-strong':'#c8c8c4', '--border-focus':'#a84c1e',
+      '--status-idle':'#999999', '--status-running':'#0a6ebd',
+      '--status-done':'#3f7a2e', '--status-stale':'#d99400', '--status-error':'#c62828',
+      '--font-display':"Helvetica,'Helvetica Neue',Arial,ui-sans-serif,system-ui,sans-serif",
+      '--font-body':"Helvetica,'Helvetica Neue',Arial,ui-sans-serif,system-ui,sans-serif",
+      '--weight-heading':'600', '--tracking-heading':'-0.015em',
+      '--radius-sm':'2px', '--radius-md':'4px', '--radius-lg':'8px', '--radius-pill':'999px',
+      '--elevation-1':'none', '--elevation-2':'none',
+      '--cell-bg':'#fafaf8', '--cell-border':'#e4e4e0', '--cell-index-ink':'#666666'
     },
     dark: {
-      '--surface-base':'#232320', '--surface-raised':'#2c2c28', '--surface-sunken':'#1a1a18',
-      '--ink-primary':'#f0efea', '--ink-secondary':'#b3b0a8', '--ink-muted':'#807d76',
-      '--ink-inverse':'#1a1a18',
-      '--accent-base':'#ff5c1a', '--accent-hover':'#ff7a42', '--accent-ink':'#1a1a18',
-      '--accent-wash':'color-mix(in oklab, #ff5c1a 14%, transparent)',
-      '--border-subtle':'#3b3b36', '--border-strong':'#5a5951', '--border-focus':'#ff5c1a',
-      '--status-idle':'#807d76', '--status-running':'#4f9fd8',
-      '--status-done':'#6aa84f', '--status-error':'#e2604c', '--status-stale':'#e8b53d',
-      '--elevation-1':'none', '--elevation-2':'none'
+      /* NeoSpace Braun dark — #161616 / #1c1c1c / #e07a45. */
+      '--surface-base':'#161616', '--surface-raised':'#1c1c1c', '--surface-sunken':'#2a2a2a',
+      '--ink-primary':'#f0f0ee', '--ink-secondary':'#8a8a8a', '--ink-muted':'#8a8a8a',
+      '--ink-inverse':'#161616',
+      '--accent-base':'#e07a45', '--accent-hover':'#eb8f5f', '--accent-ink':'#161616',
+      '--accent-wash':'color-mix(in oklab, #e07a45 14%, transparent)',
+      '--border-subtle':'#2a2a2a', '--border-strong':'#3a3a3a', '--border-focus':'#e07a45',
+      '--status-idle':'#8a8a8a', '--status-running':'#4f9fd8',
+      '--status-done':'#6aa84f', '--status-error':'#e57373', '--status-stale':'#e8b53d',
+      '--elevation-1':'none', '--elevation-2':'none',
+      '--cell-bg':'#1c1c1c', '--cell-border':'#2a2a2a', '--cell-index-ink':'#8a8a8a'
     }
   },
   throughline: { group:'core',
@@ -4961,20 +5324,6 @@ function renderNotebook(){
   view.innerHTML = `
     <button class="ghost" id="back" style="margin-block-end:var(--p-space-4)">${esc(t('back'))}</button>
     <article class="doc post-flow">
-    <!-- Tools live with the document and travel with it. The rail straddles
-         the sheet's edge: half on the page, half on the canvas — present
-         without taking a place in the reading column. -->
-    <div class="doc-rail" aria-hidden="false">
-      <div class="doc-tools" role="group" aria-label="Notebook actions">
-        <button class="tool" id="share"><span class="lbl">Share</span>${ICONS.share}</button>
-        <button class="tool" id="send"><span class="lbl">Send on</span>${ICONS.send}</button>
-        <button class="tool" id="post-ns"><span class="lbl">NeoSpace</span>${ICONS.send}</button>
-        <button class="tool" id="export"><span class="lbl">${esc(t('exportNb'))}</span>${ICONS.save}</button>
-        <button class="tool" id="clear"><span class="lbl">${esc(t('clearRun'))}</span>${ICONS.clear}</button>
-        <button class="tool ${S.editing?'on':''}" id="edit" aria-pressed="${!!S.editing}">
-          <span class="lbl">Customise</span>${ICONS.edit}</button>
-      </div>
-    </div>
     <div class="doc-head">
     <div class="nb-head">
       <div class="nb-title">
@@ -5013,21 +5362,35 @@ function renderNotebook(){
     </p>` : ''}
 
     </div>
+    <div class="doc-rail" aria-hidden="false">
+      <div class="doc-tools" role="group" aria-label="Notebook actions">
+        <button class="tool" id="share"><span class="lbl">Share</span>${ICONS.share}</button>
+        <button class="tool" id="send"><span class="lbl">Send on</span>${ICONS.send}</button>
+        <button class="tool" id="post-ns"><span class="lbl">NeoSpace</span>${ICONS.send}</button>
+        <button class="tool" id="export"><span class="lbl">${esc(t('exportNb'))}</span>${ICONS.save}</button>
+        <button class="tool" id="clear"><span class="lbl">${esc(t('clearRun'))}</span>${ICONS.clear}</button>
+        <button class="tool ${S.editing?'on':''}" id="edit" aria-pressed="${!!S.editing}">
+          <span class="lbl">Customise</span>${ICONS.edit}</button>
+      </div>
+    </div>
 
     <div class="cell compose">
+      <div class="cell-main">
+        <span class="cell-avatar you" aria-hidden="true">you</span>
+        <div class="cell-content">
       <div class="cell-head">
-        <span class="cell-index">Start</span>
-        <div class="cell-titles">
+        <div class="cell-author">
           <h3>${esc(nb.input.label)}</h3>
-          <p class="compose-lede">${esc(nb.input.placeholder || (wantsImage
+          <span class="cell-handle">@input · start</span>
+        </div>
+      </div>
+      <p class="compose-lede">${esc(nb.input.placeholder || (wantsImage
             ? 'Add a picture, then say what matters about it.'
             : wantsAudio
             ? 'Drop a recording, or type what was said.'
             : wantsFile
             ? 'Drop a document, or paste the text you want read.'
             : 'Write freely — this is what the notebook reads first.'))}</p>
-        </div>
-      </div>
       <div class="cell-body">
         ${wantsAudio ? (() => {
           const heard = transcribers();
@@ -5099,6 +5462,8 @@ function renderNotebook(){
         <textarea id="nb-input" class="compose-write" rows="10" placeholder="${esc(nb.input.placeholder)}">${esc(
           run.bag['input.'+nb.input.id] ?? nb.input.seed)}</textarea>
         `}
+      </div>
+        </div>
       </div>
     </div>
 
@@ -5448,77 +5813,89 @@ function cellHTML(nb, raw, i, run){
   const st = run.cells[cell.id];
   if (off) return `
     <section class="cell off" data-state="off">
-      <div class="cell-head">
-        <span class="cell-index">${String(i+1).padStart(2,'0')}</span>
-        <div class="cell-titles"><h3>${esc(cell.title)}</h3>
-          <p class="cell-intent">Skipped. Cells that read <code>${esc(cell.output.name)}</code> cannot run.</p></div>
-        <button class="btn secondary tiny" data-toggle="${raw.id}">Re-enable</button>
+      <div class="cell-main">
+        <span class="cell-avatar" aria-hidden="true">${String(i+1).padStart(2,'0')}</span>
+        <div class="cell-content">
+          <div class="cell-head">
+            <div class="cell-author">
+              <h3>${esc(cell.title)}</h3>
+              <span class="cell-handle">skipped</span>
+            </div>
+          </div>
+          <div class="cell-body"><p class="meta">Cells that read <code>${esc(cell.output.name)}</code> cannot run.</p></div>
+          <div class="cell-foot">
+            <button class="btn secondary tiny cell-action" data-toggle="${raw.id}">${ICONS.clear}<span class="lbl">Re-enable</span></button>
+          </div>
+        </div>
       </div>
     </section>`;
   const canRun = ready(nb, cell, run) && !st.ctrl && !anyBusy(run);
   const ins = cell.inputs.map(r=>`<span><b>in</b> ${esc(r)}</span>`).join('');
   const io = `${ins}<span><b>out</b> ${esc(cell.output.name)} · ${esc(cell.output.type)}</span><span><b>needs</b> ${esc(cell.requires)}</span>`;
+  const handle = `@cell${String(i+1).padStart(2,'0')}`;
   return `
   <section class="cell" data-state="${st.state}">
-    <div class="cell-head">
-      <span class="cell-index" aria-hidden="true">${String(i+1).padStart(2,'0')}</span>
-      <div class="cell-titles">
-        <h3>${esc(cell.title)}</h3>
-        <div class="cell-meta">
-          <p class="cell-intent">${esc(cell.intent)}</p>
-          <span class="cell-step">cell ${String(i+1).padStart(2,'0')}</span>
+    <div class="cell-main">
+      <span class="cell-avatar" aria-hidden="true">${String(i+1).padStart(2,'0')}</span>
+      <div class="cell-content">
+        <div class="cell-head">
+          <div class="cell-author">
+            <h3>${esc(cell.title)}</h3>
+            <span class="cell-handle" title="${esc(cell.intent)}">${esc(handle)}</span>
+          </div>
+          ${st.pass > 1 ? `<span class="cell-time">×${st.pass}</span>` : ''}
+          <span class="cell-time" data-s="${st.state}" title="${esc(cell.intent)}">${esc(st.state)}</span>
         </div>
         <details class="cell-io">
-          <summary>in · out · needs</summary>
+          <summary>wiring</summary>
           <div class="io-line">${io}</div>
         </details>
+        <div class="cell-body">
+          ${st.state==='stale' ? `<div class="stale-note">⚠ ${esc(t('staleNote'))}</div>`:''}
+          ${st.error ? `<div class="error-box">${esc(st.error)}</div>` : ''}
+          ${belowClass(cell) && st.state!=='error' ? classNotice(cell) : ''}
+          ${st.raw ? `<pre class="raw">${esc(st.raw)}<span class="caret"></span></pre>` : ''}
+          ${st.state==='waiting' && cell.ask ? outputHTML(st.value ?? '', 'prose', false, cell, st)
+            : st.value!=null ? outputHTML(st.value, cell.output.type, st.state==='streaming'||st.state==='waiting', cell, st)
+            : (st.raw ? '' : st.state==='running'?'<p class="meta">…</p>':`<p class="meta">${esc(t('emptyOut'))}</p>`)}
+        </div>
+        ${S.editing ? `
+        <div class="cell-edit">
+          <div class="edit-row">
+            ${raw.gate || ['gate','choice','score','diff','ranking','timeline','image','scene','diagram','chart'].includes(raw.output.type) || raw.ask || raw.map
+              ? `<span class="field-inline"><span class="eyebrow">Output as</span><span>${esc(raw.output.type)}${raw.map?' · map':''}${raw.ask?' · ask':''}</span></span>`
+              : `<label class="field-inline">
+              <span class="eyebrow">Output as</span>
+              <select data-type="${raw.id}">
+                ${['prose','list','table','markdown'].map(x=>
+                  `<option value="${x}" ${cell.output.type===x?'selected':''}>${x}</option>`).join('')}
+              </select>
+            </label>`}
+            <button class="btn secondary tiny" data-toggle="${raw.id}">Skip this cell</button>
+            ${Object.keys(o).length ? `<button class="btn secondary tiny" data-revert="${raw.id}">Revert cell</button>`:''}
+            <span class="spacer"></span>
+            ${Object.keys(o).length ? '<span class="badge pass-badge">edited</span>':''}
+          </div>
+          <details class="edit-prompt" ${o.prompt?'open':''}>
+            <summary>Prompt</summary>
+            <textarea data-prompt="${raw.id}" rows="5">${esc(cell.prompt)}</textarea>
+            <p class="hint">Changes what a connected model is asked. The guided demo replays its script whatever you write here — that is what makes it a demo.</p>
+          </details>
+        </div>` : ''}
+        <div class="cell-foot">
+          <button class="btn secondary tiny cell-action" data-run="${cell.id}" ${canRun?'':'disabled'} title="${esc(st.state==='done'||st.state==='stale' ? t('reRun') : t('run'))}">
+            ${ICONS.run}<span class="lbl">${esc(st.state==='done'||st.state==='stale' ? t('reRun') : t('run'))}</span></button>
+          <button class="btn secondary tiny cell-action" data-customise-cell="${raw.id}" type="button" title="Customise">
+            ${ICONS.edit}<span class="lbl">Customise</span></button>
+          ${st.state==='done' && st.value != null
+            ? `<button class="btn secondary tiny cell-action cell-action--accent" data-post-cell="${cell.id}" type="button" title="Post to NeoSpace">
+                ${ICONS.send}<span class="lbl">Post</span></button>` : ''}
+          ${st.ms ? `<span class="meta">${st.ms} ms</span>`:''}
+          ${cellPicker(cell)}
+          ${nb.id==='write-a-notebook' && raw.id==='emit' && st.state==='done' && st.value
+            ? `<button class="btn tiny cell-action" data-save-mine="1">${ICONS.save}<span class="lbl">Save</span></button>` : ''}
+        </div>
       </div>
-      ${st.pass > 1 ? `<span class="badge pass-badge">pass ${st.pass}</span>` : ''}
-      <span class="badge" data-s="${st.state}">${esc(st.state)}</span>
-    </div>
-    <div class="cell-body">
-      ${st.state==='stale' ? `<div class="stale-note">⚠ ${esc(t('staleNote'))}</div>`:''}
-      ${st.error ? `<div class="error-box">${esc(st.error)}</div>` : ''}
-      ${belowClass(cell) && st.state!=='error' ? classNotice(cell) : ''}
-      ${st.raw ? `<pre class="raw">${esc(st.raw)}<span class="caret"></span></pre>` : ''}
-      ${st.state==='waiting' && cell.ask ? outputHTML(st.value ?? '', 'prose', false, cell, st)
-        : st.value!=null ? outputHTML(st.value, cell.output.type, st.state==='streaming'||st.state==='waiting', cell, st)
-        : (st.raw ? '' : st.state==='running'?'<p class="meta">…</p>':`<p class="meta">${esc(t('emptyOut'))}</p>`)}
-    </div>
-    ${S.editing ? `
-    <div class="cell-edit">
-      <div class="edit-row">
-        ${raw.gate || ['gate','choice','score','diff','ranking','timeline','image','scene','diagram','chart'].includes(raw.output.type) || raw.ask || raw.map
-          ? `<span class="field-inline"><span class="eyebrow">Output as</span><span>${esc(raw.output.type)}${raw.map?' · map':''}${raw.ask?' · ask':''}</span></span>`
-          : `<label class="field-inline">
-          <span class="eyebrow">Output as</span>
-          <select data-type="${raw.id}">
-            ${['prose','list','table','markdown'].map(x=>
-              `<option value="${x}" ${cell.output.type===x?'selected':''}>${x}</option>`).join('')}
-          </select>
-        </label>`}
-        <button class="btn secondary tiny" data-toggle="${raw.id}">Skip this cell</button>
-        ${Object.keys(o).length ? `<button class="btn secondary tiny" data-revert="${raw.id}">Revert cell</button>`:''}
-        <span class="spacer"></span>
-        ${Object.keys(o).length ? '<span class="badge pass-badge">edited</span>':''}
-      </div>
-      <details class="edit-prompt" ${o.prompt?'open':''}>
-        <summary>Prompt</summary>
-        <textarea data-prompt="${raw.id}" rows="5">${esc(cell.prompt)}</textarea>
-        <p class="hint">Changes what a connected model is asked. The guided demo replays its script whatever you write here — that is what makes it a demo.</p>
-      </details>
-    </div>` : ''}
-    <div class="cell-foot">
-      <button class="btn secondary tiny" data-run="${cell.id}" ${canRun?'':'disabled'}>
-        ${esc(st.state==='done'||st.state==='stale' ? t('reRun') : t('run'))}</button>
-      <button class="btn secondary tiny" data-customise-cell="${raw.id}" type="button">Customise</button>
-      ${st.state==='done' && st.value != null
-        ? `<button class="btn secondary tiny" data-post-cell="${cell.id}" type="button">Post</button>` : ''}
-      ${st.ms ? `<span class="meta">${st.ms} ms</span>`:''}
-      <span class="spacer"></span>
-      ${cellPicker(cell)}
-      ${nb.id==='write-a-notebook' && raw.id==='emit' && st.state==='done' && st.value
-        ? `<button class="btn tiny" data-save-mine="1">Save to my library</button>` : ''}
     </div>
   </section>`;
 }
@@ -8162,43 +8539,54 @@ function renderNote(){
           <p class="lede">Like a post without a board — AI stays here. Expand into a notebook column, or place it in NeoSpace.</p>
         </div>
         <div class="cell compose">
-          <div class="cell-head">
-            <span class="cell-index">Note</span>
-            <div class="cell-titles">
-              <h3>Write</h3>
+          <div class="cell-main">
+            <span class="cell-avatar you" aria-hidden="true">you</span>
+            <div class="cell-content">
+              <div class="cell-head">
+                <div class="cell-author">
+                  <h3>Write</h3>
+                  <span class="cell-handle">@note · draft</span>
+                </div>
+                <span class="cell-time" data-s="${st.state}">${esc(st.state)}</span>
+              </div>
               <p class="compose-lede">One cell. Run with your connected model, or the guided demo.</p>
+              <div class="cell-body">
+                <textarea id="nb-input" class="compose-write" rows="6" placeholder="${esc(nb.input.placeholder)}">${esc(run.bag[inKey] ?? S.noteText ?? '')}</textarea>
+              </div>
+              <div class="cell-foot" style="display:flex;align-items:center;gap:0.15rem;margin:0.5rem 0 0;margin-inline-start:-0.35rem">
+                <button class="btn secondary tiny cell-action" id="note-run" ${busy?'disabled':''}>
+                  ${ICONS.run}<span class="lbl">${busy ? 'Running…' : 'Run'}</span></button>
+              </div>
             </div>
-          </div>
-          <div class="cell-body">
-            <textarea id="nb-input" rows="6" placeholder="${esc(nb.input.placeholder)}">${esc(run.bag[inKey] ?? S.noteText ?? '')}</textarea>
-          </div>
-          <div class="cell-foot">
-            <button class="btn primary tiny" id="note-run" ${busy?'disabled':''}>${busy ? 'Running…' : 'Run'}</button>
-            <span class="spacer"></span>
-            <span class="meta">${esc(st.state)}</span>
           </div>
         </div>
         ${out || st.raw || st.error ? `
         <section class="cell" data-state="${st.state}">
-          <div class="cell-head">
-            <span class="cell-index" aria-hidden="true">01</span>
-            <div class="cell-titles">
-              <h3>Reply</h3>
-              <div class="cell-meta"><p class="cell-intent">Model output · same rhythm as a post body</p></div>
+          <div class="cell-main">
+            <span class="cell-avatar" aria-hidden="true">01</span>
+            <div class="cell-content">
+              <div class="cell-head">
+                <div class="cell-author">
+                  <h3>Reply</h3>
+                  <span class="cell-handle">@note</span>
+                </div>
+                <span class="cell-time" data-s="${st.state}">${esc(st.state)}</span>
+              </div>
+              <div class="cell-body">
+                ${st.error ? `<div class="error-box">${esc(st.error)}</div>` : ''}
+                ${st.raw && st.state==='streaming' ? `<pre class="raw">${esc(st.raw)}<span class="caret"></span></pre>` : ''}
+                ${out ? `<div class="prose">${inline(out)}</div>` : ''}
+              </div>
+              <div class="cell-foot">
+                <button class="btn secondary tiny cell-action" id="note-run-again" ${busy?'disabled':''}>
+                  ${ICONS.run}<span class="lbl">Re-run</span></button>
+                ${out ? `<button class="btn secondary tiny cell-action cell-action--accent" id="note-post">
+                  ${ICONS.send}<span class="lbl">Post</span></button>` : ''}
+              </div>
             </div>
-            <span class="badge" data-s="${st.state}">${esc(st.state)}</span>
-          </div>
-          <div class="cell-body">
-            ${st.error ? `<div class="error-box">${esc(st.error)}</div>` : ''}
-            ${st.raw && st.state==='streaming' ? `<pre class="raw">${esc(st.raw)}<span class="caret"></span></pre>` : ''}
-            ${out ? `<div class="prose">${inline(out)}</div>` : ''}
-          </div>
-          <div class="cell-foot">
-            <button class="btn secondary tiny" id="note-run-again" ${busy?'disabled':''}>Re-run</button>
-            ${out ? `<button class="btn secondary tiny" id="note-post">Post to NeoSpace</button>` : ''}
           </div>
         </section>` : ''}
-        <div class="note-actions" style="padding:var(--p-space-5)">
+        <div class="note-actions">
           <button class="btn secondary" id="note-expand">Expand to notebook</button>
           <button class="btn" id="note-post-main" ${out?'':'disabled'}>Post to NeoSpace</button>
         </div>
